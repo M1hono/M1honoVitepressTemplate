@@ -1,0 +1,21 @@
+{
+  "languages": [
+    {
+      "code": "",
+      "name": "zh-CN",
+      "displayName": "简体中文",
+      "isDefault": true,
+      "link": "/",
+      "label": "简体中文",
+      "fileName": "root.ts"
+    }
+  ],
+  "generatedAt": "2025-06-30T17:21:14.992Z",
+  "summary": {
+    "": {
+      "totalTags": 0,
+      "totalPages": 0,
+      "language": ""
+    }
+  }
+}

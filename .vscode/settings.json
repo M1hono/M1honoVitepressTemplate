@@ -1,0 +1,20 @@
+{
+    "files.associations": {
+        "*.md": "markdown",
+        "**/docs/**/*.md": "markdown"
+    },
+    "[markdown]": {
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": true,
+            "strings": true
+        }
+    },
+    "yaml.schemas": {
+        ".vscode/frontmatter.schema.json": ["**/docs/**/*.md"]
+    },
+    "cSpell.words": [
+        "sidebarrc"
+    ],
+    "svg.preview.background": "transparent"
+} 
