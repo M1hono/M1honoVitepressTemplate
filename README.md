@@ -47,8 +47,7 @@ yarn dev
 ## Links
 
 - **[Complete Documentation](./docs/README.md)** - Full setup and usage guide
-- **[Live Demo](https://m1hono.github.io/M1honoVitepressTemplate/)** - See the template in action
-- **[Features Demo](./docs/src/test.md)** - Markdown capabilities showcase
+- **[Live Demo](https://m1hono.github.io/template/)** - See the template in action
 
 ## Features
 
