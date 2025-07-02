@@ -1,6 +1,7 @@
 export const projectConfig: ProjectConfig = {
     name: "vitepress-M1hono-template",
-    base: "/",
+    // Remember to change this to your own repository name
+    base: "/M1honoVitepressTemplate/",
     keyWords: ["VitePress", "template", "documentation", "wiki", "markdown"],
     description: "A feature-rich VitePress template with advanced plugins and configurations",
     version: "1.0.0",
