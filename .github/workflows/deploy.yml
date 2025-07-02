@@ -44,7 +44,7 @@ jobs:
       - name: Build with VitePress
         run: |
           cd docs
-          yarn docs:build
+          yarn build
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
