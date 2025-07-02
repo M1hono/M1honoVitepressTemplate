@@ -6,7 +6,9 @@ import {
     ResponsibleEditor,
     MdDialog,
     MdMultiPageDialog,
-    CustomAlert
+    CustomAlert,
+    ChatPanel,
+    ChatMessage,
 } from "../../theme/components/content";
 import { YoutubeVideo, BilibiliVideo, PdfViewer } from "../../theme/components/media";
 import { MNavLinks } from "../../theme/components/navigation";
@@ -48,7 +50,9 @@ const components = {
     MdDialog,
     MdMultiPageDialog,
     CustomAlert,
-    TagsPage
+    TagsPage,
+    ChatPanel,
+    ChatMessage,
 };
 
 export const registerComponents = (app: App) => {

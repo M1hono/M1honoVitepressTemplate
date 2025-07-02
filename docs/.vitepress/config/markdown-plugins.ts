@@ -46,7 +46,6 @@ export const markdown: MarkdownOptions = {
         dark: "github-dark"
     },
     shikiSetup: async (shiki) => {
-        // Pre-load common languages for Magic Move
         const commonLanguages = [
             'javascript', 'js', 'typescript', 'ts', 'java', 'python', 'py',
             'cpp', 'c', 'csharp', 'cs', 'php', 'ruby', 'go', 'rust', 'swift',
@@ -60,9 +59,7 @@ export const markdown: MarkdownOptions = {
                 if (!shiki.getLoadedLanguages().includes(lang)) {
                     await shiki.loadLanguage(lang as any);
                 }
-            } catch (error) {
-                // Silently ignore languages that can't be loaded
-            }
+            } catch (error) {}
         }
         
         magicMoveShiki = shiki;
@@ -93,15 +90,11 @@ export const markdown: MarkdownOptions = {
         md.use(mark);
         md.use(ins);
 
-        // Register tab-based plugins individually
         md.use(tab, stepper);
         md.use(tab, carousels);
         md.use(tab, iframes);
 
-        // Non-tab plugins
         md.use(card);
-        
-        // Magic move plugin with shiki integration
         if (magicMoveShiki) {
             md.use(MagicMovePlugin, magicMoveShiki, {
                 light: "github-light",

@@ -25,11 +25,12 @@ function generateAvatarUrl(username: string) {
 /**
  * Common configuration shared across all locales
  * Language-specific configurations should be in lang/ files
+ * You should  change the base, icon, 
  */
 export const commonConfig = {
     title: projectInfo.name,
     description: projectInfo.description,
-    base: "/template/",
+    base: projectInfo.base,
     
     srcDir: "./src",
     outDir: "./.vitepress/dist",
@@ -41,8 +42,8 @@ export const commonConfig = {
     ignoreDeadLinks: true,
 
     head: [
-        ["link", { rel: "icon", href: "/M1honoVitepressTemplate/logo.svg" }],
-        ["meta", { name: "keywords", content: "VitePress, template, documentation, wiki, markdown" }],
+        ["link", { rel: "icon", href: `${projectInfo.base}logo.svg` }],
+        ["meta", { name: "keywords", content: (projectInfo as any).keyWords?.join(", ") || "vitepress, template, documentation" }],
         ["meta", { name: "author", content: projectInfo.author }],
         ["meta", { property: "og:title", content: projectInfo.name }],
         ["meta", { property: "og:description", content: projectInfo.description }],
@@ -71,14 +72,14 @@ export const commonConfig = {
             },
         ],
 
-        footer: {
-            message: `Built with VitePress | ${projectInfo.license} License`,
-            copyright: `Copyright © ${new Date().getFullYear()} ${projectInfo.author}`,
-        },
+        // footer: {
+        //     message: `Built with VitePress ? | ${projectInfo.license} License`,
+        //     copyright: `Copyright © ${new Date().getFullYear()} ${projectInfo.author}`,
+        // },
 
-        editLink: {
-            pattern: `${projectInfo.repository.url}/edit/main/docs/src/:path`,
-        },
+        // editLink: {
+        //     pattern: `${projectInfo.repository.url}/edit/main/docs/src/:path`,
+        // },
     } satisfies DefaultTheme.Config,
 
     vite: {
@@ -207,6 +208,15 @@ export const commonConfig = {
                     replacement: fileURLToPath(
                         new URL(
                             "../theme/components/VPFeatures.vue",
+                            import.meta.url
+                        )
+                    ),
+                },
+                {
+                    find: /^.*\/VPButton\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/VPButton.vue",
                             import.meta.url
                         )
                     ),

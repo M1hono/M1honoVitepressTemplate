@@ -16,12 +16,6 @@ hero:
     - theme: alt
       text: "Features"
       link: /en-US/guide/features
-    - theme: alt
-      text: "Configuration Guide"
-      link: /en-US/guide/configuration
-    - theme: alt
-      text: "GitHub"
-      link: https://github.com/M1hono/M1honoVitepressTemplate
 
 features:
   - icon: 📝

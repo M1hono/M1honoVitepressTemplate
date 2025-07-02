@@ -13,6 +13,8 @@ export { default as MdMultiPageDialog } from "./MdMultiPageDialog.vue";
 export { default as CustomAlert } from "./CustomAlert.vue";
 export { default as PageTags } from "./PageTags.vue";
 export { default as TagsPage } from "./TagsPage.vue";
+export { default as ChatPanel } from "./ChatPanel.vue";
+export { default as ChatMessage } from "./ChatMessage.vue";
 
 // Note: CommitsCounter and MinecraftAdvancedDamageChart are handled as 
 // dynamic imports in the theme to prevent SSR issues

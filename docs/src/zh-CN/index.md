@@ -16,12 +16,6 @@ hero:
     - theme: alt
       text: 特性介绍
       link: /zh-CN/guide/features
-    - theme: alt
-      text: 配置指南
-      link: /zh-CN/guide/configuration
-    - theme: alt
-      text: GitHub
-      link: https://github.com/M1hono/M1honoVitepressTemplate
 
 features:
   - icon: 📝

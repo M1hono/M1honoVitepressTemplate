@@ -1428,5 +1428,116 @@
         "prefix": "@fm-tags-batch",
         "body": ["tags:", "  - ${1:tag1}", "  - ${2:tag2}", "  - ${3:tag3}"],
         "description": "Frontmatter: 批量插入多个标签。"
+    },
+
+    // ---------- Chat Components ----------
+    "@ChatPanel": {
+        "prefix": "@chatpanel",
+        "body": [
+            "<ChatPanel",
+            "  title=\"${1:Chat Panel}\"",
+            "  :showTimestamp=\"${2|true,false|}\"",
+            "  :allowMarkdown=\"${3|true,false|}\"",
+            "  :maxHeight=\"${4:400}\"",
+            "  :scrollToBottom=\"${5|true,false|}\"",
+            "/>"
+        ],
+        "description": "Chat panel component with configuration options."
+    },
+    "@ChatPanel Basic": {
+        "prefix": "@chatpanel-basic",
+        "body": ["<ChatPanel />"],
+        "description": "Basic chat panel component with default settings."
+    },
+    "@ChatPanel Advanced": {
+        "prefix": "@chatpanel-advanced", 
+        "body": [
+            "<ChatPanel",
+            "  title=\"${1:AI Assistant Chat}\"",
+            "  :showTimestamp=\"${2|true,false|}\"",
+            "  :allowMarkdown=\"${3|true,false|}\"",
+            "  :maxHeight=\"${4:500}\"",
+            "  :scrollToBottom=\"${5|true,false|}\"",
+            "  :showAvatar=\"${6|true,false|}\"",
+            "  theme=\"${7|light,dark,auto|}\"",
+            "  :enableSearch=\"${8|true,false|}\"",
+            "  placeholder=\"${9:Type your message...}\"",
+            "/>"
+        ],
+        "description": "Advanced chat panel with all available configuration options."
+    },
+    "@ChatMessage": {
+        "prefix": "@chatmessage",
+        "body": [
+            "<ChatMessage",
+            "  role=\"${1|user,assistant,system|}\"",
+            "  :timestamp=\"${2:Date.now()}\"",
+            "  avatar=\"${3:/avatar.png}\"",
+            "  username=\"${4:User}\"",
+            "  :allowMarkdown=\"${5|true,false|}\"",
+            ">",
+            "  ${6:Your message content here}",
+            "</ChatMessage>"
+        ],
+        "description": "Single chat message component."
+    },
+    "@ChatMessage User": {
+        "prefix": "@chatmessage-user",
+        "body": [
+            "<ChatMessage role=\"user\" username=\"${1:User}\">",
+            "  ${2:User message content}",
+            "</ChatMessage>"
+        ],
+        "description": "User chat message with minimal configuration."
+    },
+    "@ChatMessage Assistant": {
+        "prefix": "@chatmessage-assistant",
+        "body": [
+            "<ChatMessage role=\"assistant\" username=\"${1:AI Assistant}\" :allowMarkdown=\"true\">",
+            "  ${2:Assistant response content}",
+            "</ChatMessage>"
+        ],
+        "description": "Assistant chat message with markdown support."
+    },
+    "@ChatMessage System": {
+        "prefix": "@chatmessage-system",
+        "body": [
+            "<ChatMessage role=\"system\" username=\"${1:System}\">",
+            "  ${2:System notification content}",
+            "</ChatMessage>"
+        ],
+        "description": "System chat message for notifications."
+    },
+    "@Chat Conversation": {
+        "prefix": "@chat-conversation",
+        "body": [
+            "<ChatPanel title=\"${1:Conversation}\" :allowMarkdown=\"true\">",
+            "  <ChatMessage role=\"user\" username=\"${2:User}\">",
+            "    ${3:Hello, can you help me with...}",
+            "  </ChatMessage>",
+            "  ",
+            "  <ChatMessage role=\"assistant\" username=\"${4:AI Assistant}\" :allowMarkdown=\"true\">",
+            "    ${5:Of course! I'd be happy to help you...}",
+            "  </ChatMessage>",
+            "</ChatPanel>"
+        ],
+        "description": "Complete chat conversation with user and assistant messages."
+    },
+    "@Chat Demo": {
+        "prefix": "@chat-demo",
+        "body": [
+            ":::demo ${1:Chat Demo}",
+            "<ChatPanel title=\"${2:Demo Chat}\" :maxHeight=\"300\">",
+            "  <ChatMessage role=\"user\" username=\"${3:User}\">",
+            "    ${4:How do I configure this component?}",
+            "  </ChatMessage>",
+            "  ",
+            "  <ChatMessage role=\"assistant\" username=\"${5:Assistant}\" :allowMarkdown=\"true\">",
+            "    ${6:You can configure the component using these props...}",
+            "  </ChatMessage>",
+            "</ChatPanel>",
+            ":::"
+        ],
+        "description": "Chat component demo with example conversation."
     }
 }

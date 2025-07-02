@@ -12,6 +12,7 @@
     import VPButton from "vitepress/dist/client/theme-default/components/VPButton.vue";
     import VPImage from "vitepress/dist/client/theme-default/components/VPImage.vue";
     import { motion } from "motion-v";
+    import { useData } from "vitepress";
     
     import defaultSnippets from "../../config/defaultSnippets.json";
     import customSnippets from "../../config/snippets.json";
@@ -48,6 +49,8 @@
     const heroImageSlotExists = inject(
         "hero-image-slot-exists"
     ) as Ref<boolean>;
+
+    const { site, lang } = useData();
 
     const snippetIndices = ref<Record<string, number[]>>({});
 
@@ -294,27 +297,13 @@
         },
     };
 
-    const actionsVariants = {
-        hidden: { opacity: 0, y: 40 },
-        visible: {
-            opacity: 1,
-            y: 0,
-            transition: {
-                duration: 0.8,
-                ease: "easeOut",
-                delay: 1.0,
-                staggerChildren: 0.1,
-            },
-        },
-    };
-
     const buttonVariants = {
         hidden: {
             opacity: 0,
-            scale: 0.8,
+            scale: 0.9,
             y: 20,
         },
-        visible: {
+        visible: (i: unknown) => ({
             opacity: 1,
             scale: 1,
             y: 0,
@@ -322,30 +311,10 @@
                 type: "spring",
                 stiffness: 150,
                 damping: 15,
-                duration: 0.6,
+                duration: 0.5,
+                delay: (i as number) * 0.1 + 1.2,
             },
-        },
-    };
-
-    const buttonHover = {
-        scale: 1.05,
-        y: -2,
-        transition: {
-            type: "spring",
-            stiffness: 300,
-            damping: 20,
-            duration: 0.2,
-        },
-    };
-
-    const buttonTap = {
-        scale: 0.95,
-        transition: {
-            type: "spring",
-            stiffness: 400,
-            damping: 25,
-            duration: 0.1,
-        },
+        }),
     };
 
     const imageVariants = {
@@ -402,6 +371,10 @@
 
     const checkMobile = () => {
         isMobile.value = window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    };
+
+    const isExternalLink = (link: string) => {
+        return /^https?:\/\//.test(link);
     };
 
     onMounted(() => {
@@ -484,7 +457,7 @@
                 :variants="heroContainerVariants"
                 initial="hidden"
                 :whileInView="'visible'"
-                :viewport="{ once: true, margin: '-50px' }"
+                :viewport="{ once: false, margin: '-50px' }"
             >
                 <slot name="home-hero-info-before" />
                 <slot name="home-hero-info">
@@ -498,7 +471,7 @@
                                 :custom="wordIndex"
                                 initial="hidden"
                                 :whileInView="'visible'"
-                                :viewport="{ once: true, margin: '-100px' }"
+                                :viewport="{ once: false, margin: '-100px' }"
                             >
                                 <motion.span
                                     v-for="(letter, letterIndex) in word.split(
@@ -510,7 +483,7 @@
                                     :custom="wordIndex * 5 + letterIndex"
                                     initial="hidden"
                                     :whileInView="'visible'"
-                                    :viewport="{ once: true, margin: '-100px' }"
+                                        :viewport="{ once: false, margin: '-100px' }"
                                 >
                                     {{ letter }}
                                 </motion.span>
@@ -524,50 +497,49 @@
                             :variants="subtitleVariants"
                             initial="hidden"
                             :whileInView="'visible'"
-                            :viewport="{ once: true, margin: '-100px' }"
-                            v-html="props.text"
-                        />
+                            :viewport="{ once: false, margin: '-100px' }"
+                        >
+                            {{ props.text }}
+                        </motion.h2>
                     </div>
 
-                                    <motion.p
-                    v-if="props.tagline"
-                    class="tagline"
-                    :variants="taglineVariants"
-                    initial="hidden"
-                    :whileInView="'visible'"
-                    :viewport="{ once: true, margin: '-100px' }"
-                    v-html="props.tagline"
-                />
+                    <motion.p
+                        v-if="props.tagline"
+                        class="tagline"
+                        :variants="taglineVariants"
+                        initial="hidden"
+                        :whileInView="'visible'"
+                        :viewport="{ once: false, margin: '-100px' }"
+                    >
+                        {{ props.tagline }}
+                    </motion.p>
                 </slot>
                 <slot name="home-hero-info-after" />
 
-                <motion.div
-                    v-if="actions"
+                <div
+                    v-if="actions && actions.length > 0"
                     class="actions"
-                    :variants="actionsVariants"
-                    initial="hidden"
-                    :whileInView="'visible'"
-                    :viewport="{ once: true, margin: '-100px' }"
                 >
                     <motion.div
-                        v-for="action in actions"
-                        :key="action.link"
+                        v-for="(action, index) in actions"
+                        :key="`btn-${index}`"
                         class="action"
                         :variants="buttonVariants"
-                        :whileHover="buttonHover"
-                        :whileTap="buttonTap"
+                        initial="hidden"
+                        :whileInView="'visible'"
+                        :viewport="{ once: true }"
+                        :custom="index"
                     >
                         <VPButton
-                            tag="a"
-                            size="medium"
-                            :theme="action.theme"
+                            :theme="action.theme || 'brand'"
                             :text="action.text"
                             :href="action.link"
-                            :target="action.target"
-                            :rel="action.rel"
+                            :target="action.target || (isExternalLink(action.link) ? '_blank' : undefined)"
+                            :rel="action.rel || (isExternalLink(action.link) ? 'noopener noreferrer' : undefined)"
+                            size="medium"
                         />
                     </motion.div>
-                </motion.div>
+                </div>
                 <slot name="home-hero-actions-after" />
             </motion.div>
 
@@ -588,7 +560,7 @@
                 :whileHover="imageHover"
                 initial="hidden"
                 :whileInView="'visible'"
-                :viewport="{ once: true, margin: '-50px' }"
+                :viewport="{ once: false, margin: '-50px' }"
             >
                 <div class="image-container">
                     <slot name="home-hero-image">
@@ -823,6 +795,8 @@
         flex-wrap: wrap;
         gap: 16px;
         margin-top: 8px;
+        position: relative;
+        z-index: 10;
     }
 
     .VPHero.has-image .actions {
@@ -837,172 +811,11 @@
 
     .action {
         flex-shrink: 0;
+        position: relative;
+        z-index: 1;
     }
 
-    :deep(.VPButton) {
-        padding: 14px 32px !important;
-        font-size: 16px !important;
-        font-weight: 600 !important;
-        border-radius: 12px !important;
-        min-width: 140px !important;
-        color: var(--vp-c-text-1) !important;
-        background: linear-gradient(
-            135deg,
-            rgba(var(--vp-c-bg-soft-rgb), 0.9),
-            rgba(var(--vp-c-bg-alt-rgb), 0.95)
-        ) !important;
-        border: 2px solid rgba(var(--vp-c-divider-rgb), 0.8) !important;
-        backdrop-filter: blur(12px) !important;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        position: relative !important;
-        overflow: hidden !important;
-        box-shadow: 
-            0 2px 8px rgba(0, 0, 0, 0.12),
-            0 1px 3px rgba(0, 0, 0, 0.08),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
-    }
 
-    :deep(.VPButton::after) {
-        content: "";
-        position: absolute;
-        top: 1px;
-        left: 1px;
-        right: 1px;
-        bottom: 1px;
-        border-radius: 10px;
-        border: 1px solid rgba(0, 0, 0, 0.15);
-        pointer-events: none;
-        transition: all 0.3s ease;
-    }
-
-    :deep(.VPButton::before) {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.2),
-            transparent
-        );
-        transition: left 0.5s ease;
-    }
-
-    :deep(.VPButton:hover::before) {
-        left: 100%;
-    }
-
-    :deep(.VPButton:hover) {
-        background: linear-gradient(
-            135deg,
-            rgba(var(--vp-c-bg-alt-rgb), 0.95),
-            rgba(var(--vp-c-brand-rgb), 0.15)
-        ) !important;
-        border-color: var(--vp-c-brand-1) !important;
-        color: var(--vp-c-brand-1) !important;
-        box-shadow: 
-            0 4px 16px rgba(var(--vp-c-brand-rgb), 0.15),
-            0 2px 8px rgba(0, 0, 0, 0.1),
-            inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-        transform: translateY(-1px) !important;
-    }
-
-    :deep(.VPButton:hover::after) {
-        border-color: rgba(var(--vp-c-brand-rgb), 0.5);
-    }
-
-    :deep(.VPButton.brand) {
-        background: linear-gradient(
-            135deg,
-            var(--vp-c-brand-1),
-            var(--vp-c-brand-2)
-        ) !important;
-        border-color: var(--vp-c-brand-1) !important;
-        color: var(--vp-c-white) !important;
-        box-shadow: 
-            0 4px 12px rgba(var(--vp-c-brand-rgb), 0.4),
-            0 2px 6px rgba(0, 0, 0, 0.15),
-            inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
-    }
-
-    :deep(.VPButton.brand::after) {
-        border-color: rgba(255, 255, 255, 0.4);
-    }
-
-    :deep(.VPButton.brand:hover) {
-        background: linear-gradient(
-            135deg,
-            var(--vp-c-brand-2),
-            var(--vp-c-brand-3)
-        ) !important;
-        border-color: var(--vp-c-brand-2) !important;
-        color: var(--vp-c-white) !important;
-    }
-
-    :deep(.VPButton.brand:hover::after) {
-        border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    :deep(.VPButton.alt) {
-        background: linear-gradient(
-            135deg,
-            rgba(var(--vp-c-bg-soft-rgb), 0.7),
-            rgba(var(--vp-c-bg-alt-rgb), 0.8)
-        ) !important;
-        border-color: rgba(var(--vp-c-divider-rgb), 0.5) !important;
-        color: var(--vp-c-text-1) !important;
-    }
-
-    .dark :deep(.VPButton) {
-        background: rgba(255, 255, 255, 0.08) !important;
-        border: 2px solid rgba(255, 255, 255, 0.4) !important;
-        color: rgba(255, 255, 255, 0.9) !important;
-        backdrop-filter: blur(8px) !important;
-        box-shadow: 
-            0 2px 8px rgba(0, 0, 0, 0.4),
-            0 1px 3px rgba(0, 0, 0, 0.2),
-            inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
-    }
-
-    .dark :deep(.VPButton::after) {
-        border-color: rgba(255, 255, 255, 0.5);
-    }
-
-    .dark :deep(.VPButton:hover) {
-        background: rgba(var(--vp-c-brand-rgb), 0.15) !important;
-        border-color: var(--vp-c-brand-1) !important;
-        color: var(--vp-c-brand-1) !important;
-    }
-
-    .dark :deep(.VPButton:hover::after) {
-        border-color: rgba(var(--vp-c-brand-rgb), 0.6);
-    }
-
-    .dark :deep(.VPButton.alt) {
-        background: rgba(255, 255, 255, 0.06) !important;
-        border-color: rgba(255, 255, 255, 0.35) !important;
-        color: rgba(255, 255, 255, 0.85) !important;
-    }
-
-    .dark :deep(.VPButton.alt::after) {
-        border-color: rgba(255, 255, 255, 0.45);
-    }
-
-    .dark :deep(.VPButton.alt:hover) {
-        background: rgba(255, 255, 255, 0.12) !important;
-        border-color: rgba(255, 255, 255, 0.3) !important;
-        color: var(--vp-c-white) !important;
-    }
-
-    .dark :deep(.VPButton.alt:hover::after) {
-        border-color: rgba(255, 255, 255, 0.7);
-    }
 
 
 
@@ -1463,30 +1276,20 @@
         }
 
         .actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px 10px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
             max-width: 320px;
             margin: 0 auto;
-            justify-items: center;
-        }
-
-        .action {
-            width: 100%;
-            display: flex;
             justify-content: center;
         }
 
-        :deep(.VPButton) {
-            width: 100% !important;
-            min-width: unset !important;
-            max-width: 140px !important;
-            padding: 8px 14px !important;
-            font-size: 14px !important;
-            font-weight: 600 !important;
-            min-height: 36px !important;
-            border-radius: 14px !important;
+        .action {
+            flex: 0 0 auto;
+            min-width: 120px;
         }
+
+
     }
 
     @media (max-width: 480px) {
@@ -1506,18 +1309,11 @@
         }
 
         .actions {
-            grid-template-columns: 1fr 1fr !important;
+            gap: 10px !important;
             max-width: 280px !important;
-            gap: 10px 8px !important;
         }
 
-        :deep(.VPButton) {
-            max-width: 125px !important;
-            padding: 6px 10px !important;
-            font-size: 13px !important;
-            min-height: 32px !important;
-            border-radius: 12px !important;
-        }
+
     }
 
     @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,7 @@
 export const projectConfig: ProjectConfig = {
     name: "vitepress-M1hono-template",
+    base: "/template/",
+    keyWords: ["VitePress", "template", "documentation", "wiki", "markdown"],
     description: "A feature-rich VitePress template with advanced plugins and configurations",
     version: "1.0.0",
     author: "M1hono",
@@ -15,7 +17,7 @@ export const projectConfig: ProjectConfig = {
             code: "zh-CN",
             name: "zh-CN",
             displayName: "简体中文",
-            isDefault: true,
+            isDefault: false,
             link: "/zh-CN/",
             label: "简体中文",
             fileName: "zh.ts"
@@ -96,6 +98,7 @@ export function isFeatureEnabled(feature: keyof typeof projectConfig.features): 
 export function getProjectInfo() {
     return {
         name: projectConfig.name,
+        base: projectConfig.base,
         description: projectConfig.description,
         version: projectConfig.version,
         author: projectConfig.author,
@@ -131,6 +134,8 @@ export interface PathConfig {
 
 export interface ProjectConfig {
     name: string;
+    base: string;
+    keyWords: string[];
     description: string;
     version: string;
     author: string;
