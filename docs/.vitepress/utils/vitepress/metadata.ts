@@ -3,7 +3,7 @@
  * Extracted from ArticleMetadataCN component
  */
 
-import type { MetadataConfig, TranslationDictionary } from '../types';
+import type { MetadataConfig, TranslationDictionary } from '../content/types';
 
 /**
  * Calculate reading time based on word count and image count

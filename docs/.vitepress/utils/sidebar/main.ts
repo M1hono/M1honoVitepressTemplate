@@ -12,7 +12,6 @@ import { StructuralGeneratorService } from "./structure";
 import { JsonConfigSynchronizerService } from "./overrides";
 import { GitBookService } from "./external";
 import { GitBookParserService } from "./external/GitBookParserService";
-import { UpdateTrackingService } from "./build";
 import { FileSystem, NodeFileSystem } from "./shared/index";
 import { normalizePathSeparators } from "./shared/objectUtils";
 
@@ -24,39 +23,46 @@ import { normalizePathSeparators } from "./shared/objectUtils";
  */
 function filterGroupedContent(items: any[], groupPaths: Set<string>): any[] {
     return items.map(item => {
-        // Create a copy to avoid mutating the original
         const newItem = { ...item };
         
-        // Check if this directory should be removed
         if (newItem._isDirectory && newItem._relativePathKey && !newItem._isGeneratedGroup) {
-            // Normalize paths for comparison
             const itemRelativePath = newItem._relativePathKey.replace(/\/$/, '');
             const itemRelativePathWithSlash = itemRelativePath + '/';
             
-            // Check if this directory should be removed (exact match with any group path)
             const shouldRemove = Array.from(groupPaths).some(groupPath => {
                 const normalizedGroupPath = groupPath.replace(/\/$/, '');
                 return itemRelativePath === normalizedGroupPath || itemRelativePathWithSlash === groupPath;
             });
             
             if (shouldRemove) {
-                return null; // Mark for removal
+                return null;
             }
         }
         
-        // Always recursively filter nested items (regardless of whether current item is filtered)
         if (newItem.items) {
             newItem.items = filterGroupedContent(newItem.items, groupPaths);
         }
         
-        return newItem;
+        return newItem
     }).filter(item => item !== null);
 }
 
 /**
- * @file main.ts
- * @description Top-level orchestrator for the entire sidebar generation process.
- * This file exports the main `generateSidebars` function that drives the system.
+ * @fileoverview Top-level orchestrator for the entire sidebar generation process.
+ * 
+ * This module serves as the primary entry point for generating VitePress sidebars
+ * from directory structures. It coordinates between various services to:
+ * - Discover and parse markdown files and directories
+ * - Apply configuration from index.md frontmatter and global configs
+ * - Generate hierarchical sidebar structures
+ * - Handle grouping and external content integration
+ * - Apply JSON overrides and synchronization
+ * - Output final sidebar configurations in VitePress-compatible format
+ * 
+ * @module SidebarMain
+ * @version 1.0.0
+ * @author VitePress Sidebar Generator
+ * @since 1.0.0
  */
 
 /**
@@ -248,7 +254,7 @@ export async function generateSidebars(
 
             rootKeyInSidebarMulti = rootKeyInSidebarMulti.replace(/\/\/+/g, "/");
             if (rootKeyInSidebarMulti !== "/" && !rootKeyInSidebarMulti.endsWith("/")) {
-                 rootKeyInSidebarMulti += "/";
+                    rootKeyInSidebarMulti += "/";
             }
             if (!rootKeyInSidebarMulti.startsWith("/")) {
                 rootKeyInSidebarMulti = "/" + rootKeyInSidebarMulti;
@@ -275,7 +281,6 @@ export async function generateSidebars(
                     isDevMode
                 );
 
-            // Process structural items normally
             const synchronizedItems = await jsonSynchronizer.synchronize(
                 rootKeyInSidebarMulti,
                 structuralItems, 
@@ -284,7 +289,6 @@ export async function generateSidebars(
                 langGitbookPaths 
             );
 
-            // Handle groups by creating sibling entries in the same sidebar
             const groupItems: any[] = [];
             const groupPaths = new Set<string>();
             
@@ -293,18 +297,15 @@ export async function generateSidebars(
                     const groupTitle = groupConfig.title;
                     const groupPath = groupConfig.path;
                     
-                    // Resolve group content path
                     const groupContentAbsPath = normalizePathSeparators(
                         path.resolve(rootContentPath, groupPath)
                     );
                     
-                    // Generate unique config path for the group (for JSON configs)
                     const groupRelativePath = normalizePathSeparators(
                         path.relative(absDocsPath, groupContentAbsPath)
                     );
                     const groupConfigKey = `/${groupRelativePath}/`.replace(/\/\/+/g, "/");
                     
-                    // Create effective config for group
                     let groupEffectiveConfig: EffectiveDirConfig;
                     const groupIndexPath = path.join(groupContentAbsPath, 'index.md');
                     
@@ -325,17 +326,15 @@ export async function generateSidebars(
                         };
                     }
                     
-                    // Override with group-specific settings
                     groupEffectiveConfig = {
                         ...groupEffectiveConfig,
                         title: groupTitle,
                         priority: groupConfig.priority ?? groupEffectiveConfig.priority ?? 0,
                         maxDepth: groupConfig.maxDepth ?? groupEffectiveConfig.maxDepth,
-                        groups: [], // Prevent infinite recursion
+                        groups: [],
                         _baseRelativePathForChildren: ''
                     };
                     
-                    // Generate group structure
                     const groupStructuralItems = await structuralGenerator.generateSidebarView(
                         groupContentAbsPath,
                         groupEffectiveConfig,
@@ -344,9 +343,8 @@ export async function generateSidebars(
                         isDevMode
                     );
                     
-                    // Synchronize group items with its own config path
                     const groupSynchronizedItems = await jsonSynchronizer.synchronize(
-                        groupConfigKey, // Use separate config path for group
+                        groupConfigKey,
                         groupStructuralItems,
                         lang,
                         isDevMode,
@@ -354,7 +352,6 @@ export async function generateSidebars(
                     );
                     
                     if (groupSynchronizedItems && groupSynchronizedItems.length > 0) {
-                        // Create group wrapper item
                         const groupWrapper = {
                             text: groupTitle,
                             items: groupSynchronizedItems,
@@ -364,7 +361,7 @@ export async function generateSidebars(
                             _isDirectory: true,
                             _isRoot: false,
                             _hidden: false,
-                            _isGeneratedGroup: true  // Mark as generated group to avoid filtering
+                            _isGeneratedGroup: true
                         };
                         
                         groupItems.push(groupWrapper);
@@ -373,16 +370,13 @@ export async function generateSidebars(
                 }
             }
             
-            // Combine main structure (with grouped content removed) and group items
             if (synchronizedItems && synchronizedItems.length > 0) {
                 let finalItems = synchronizedItems;
                 
-                // Filter out grouped content from main structure
                 if (groupPaths.size > 0) {
                     finalItems = filterGroupedContent(synchronizedItems, groupPaths);
                 }
                 
-                // Add group items as siblings
                 if (groupItems.length > 0) {
                     finalItems = [...finalItems, ...groupItems];
                 }

@@ -1,7 +1,39 @@
+/**
+ * @fileoverview Configuration defaults provider for sidebar generation.
+ * 
+ * This module provides functionality to apply system defaults to partial
+ * configuration objects, ensuring all required fields are present with
+ * appropriate fallback values. It resolves final configuration objects
+ * from merged partial configurations.
+ * 
+ * @module ConfigDefaultsProvider
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
+ */
+
 import path from 'node:path';
 import { EffectiveDirConfig, GlobalSidebarConfig, DirectoryConfig, GroupConfig, ExternalLinkConfig } from '../types';
-// import { normalizePathSeparators } from '../shared/objectUtils'; // Not needed if path comes normalized
 
+/**
+ * @function convertItemOrderToRecord
+ * @description Converts item order configuration from array or object format to a standardized Record format.
+ * Handles both array-based ordering (with index-based priorities) and object-based ordering
+ * with explicit priority values. Ensures all values are valid numbers.
+ * @param {string[] | Record<string, number> | undefined} itemOrder - Item order configuration to convert
+ * @returns {Record<string, number>} Normalized order configuration as a record of item names to priorities
+ * @private
+ * @example
+ * ```typescript
+ * // Array format
+ * convertItemOrderToRecord(['intro', 'guide', 'api'])
+ * // Returns: { 'intro': 0, 'guide': 1, 'api': 2 }
+ * 
+ * // Object format
+ * convertItemOrderToRecord({ 'api': 10, 'intro': 1 })
+ * // Returns: { 'api': 10, 'intro': 1 }
+ * ```
+ */
 function convertItemOrderToRecord(itemOrder?: string[] | Record<string, number>): Record<string, number> {
     if (Array.isArray(itemOrder)) {
         const recordOrder: Record<string, number> = {};
@@ -11,10 +43,8 @@ function convertItemOrderToRecord(itemOrder?: string[] | Record<string, number>)
         return recordOrder;
     }
     if (typeof itemOrder === 'object' && itemOrder !== null) {
-        // Convert order.json values to priority values
         const recordOrder: Record<string, number> = {};
         for (const [key, value] of Object.entries(itemOrder)) {
-            // Ensure the value is a number
             const numValue = typeof value === 'number' ? value : parseInt(value as string, 10);
             if (!isNaN(numValue)) {
                 recordOrder[key] = numValue;
@@ -26,77 +56,75 @@ function convertItemOrderToRecord(itemOrder?: string[] | Record<string, number>)
 }
 
 /**
- * Applies default values to a merged configuration 
- * to produce the final EffectiveDirConfig.
- * Uses hidden: boolean instead of status for visibility control.
+ * @function applyConfigDefaults
+ * @description Applies system defaults to a partial configuration object to create a complete EffectiveDirConfig.
+ * Resolves all optional fields with appropriate fallback values and ensures the configuration
+ * is complete and valid for use throughout the sidebar generation process.
+ * 
+ * Default values applied:
+ * - root: false (unless explicitly set to true)
+ * - title: directory name (derived from path)
+ * - hidden: false
+ * - priority: 0
+ * - maxDepth: 3 (or from global defaults)
+ * - collapsed: false (or from global defaults)
+ * - itemOrder: {} (empty object)
+ * - groups: [] (empty array)
+ * - externalLinks: [] (empty array)
+ * 
+ * @param {Partial<EffectiveDirConfig>} partialConfig - Partial configuration object to complete
+ * @param {string} directoryPath - Absolute path to the directory for this configuration
+ * @param {string} lang - Language code for this configuration
+ * @param {boolean} isDevMode - Whether running in development mode
+ * @param {any} [globalDefaults] - Optional global defaults to use as fallbacks
+ * @returns {EffectiveDirConfig} Complete configuration object with all required fields resolved
+ * @public
+ * @example
+ * ```typescript
+ * const complete = applyConfigDefaults(
+ *   { title: "Guide", maxDepth: 2 },
+ *   '/docs/en/guide',
+ *   'en',
+ *   false,
+ *   { maxDepth: 3, collapsed: false }
+ * );
+ * // Returns complete EffectiveDirConfig with title "Guide", maxDepth 2, other defaults applied
+ * ```
  */
 export function applyConfigDefaults(
-    mergedConfig: Partial<EffectiveDirConfig>, // hidden here is boolean|undefined
-    directoryPath: string, 
-    lang: string, 
+    partialConfig: Partial<EffectiveDirConfig>,
+    directoryPath: string,
+    lang: string,
     isDevMode: boolean,
-    globalDefaultsIn?: Partial<GlobalSidebarConfig['defaults']> | null
+    globalDefaults?: any
 ): EffectiveDirConfig {
+    const defaults = globalDefaults || {};
     const dirName = path.basename(directoryPath);
-    const actualGlobalDefaults = globalDefaultsIn || {};
-
-    // Hidden is boolean - default to false (visible)
-    const hidden: boolean = 
-        mergedConfig.hidden ?? 
-        actualGlobalDefaults.hidden ?? 
-        false;
-
-    const resolvedItemOrder = convertItemOrderToRecord(mergedConfig.itemOrder ?? actualGlobalDefaults.itemOrder);
     
-    const defaultMaxDepth = actualGlobalDefaults.maxDepth ?? 2; 
-    const maxDepth = mergedConfig.maxDepth ?? defaultMaxDepth;
+    const root = partialConfig.root ?? false;
+    const title = partialConfig.title ?? dirName;
+    const hidden = partialConfig.hidden ?? defaults.hidden ?? false;
+    const priority = partialConfig.priority ?? 0;
+    const maxDepth = partialConfig.maxDepth ?? defaults.maxDepth ?? 3;
+    const collapsed = partialConfig.collapsed ?? defaults.collapsed ?? false;
+    const itemOrder = partialConfig.itemOrder ?? {};
+    const groups = partialConfig.groups ?? [];
+    const externalLinks = partialConfig.externalLinks ?? [];
 
-    const scopeBasedDefaultCollapsed = true;
-    const collapsed = mergedConfig.collapsed ?? actualGlobalDefaults.collapsed ?? scopeBasedDefaultCollapsed;
-
-    // For title, only use mergedConfig.title if it was explicitly set. 
-    // Don't fall back to inherited titles from parent directories.
-    // Instead, generate a proper title from the directory name.
-    const title = mergedConfig.title && mergedConfig.title !== 'Main Test Sidebar' // Avoid inherited title
-        ? mergedConfig.title 
-        : (dirName.charAt(0).toUpperCase() + dirName.slice(1).replace(/-/g, ' '));
-
-    // If priority is not explicitly set, try to get it from itemOrder
-    let priority = mergedConfig.priority;
-    if (priority === undefined) {
-        const dirKey = path.basename(directoryPath);
-        if (resolvedItemOrder.hasOwnProperty(dirKey)) {
-            priority = resolvedItemOrder[dirKey];
-        } else {
-            priority = Number.MAX_SAFE_INTEGER; // Default priority if not found in itemOrder
-        }
-    }
-
-    // Constructing the object with all required fields of EffectiveDirConfig first,
-    // then spreading the remaining/custom fields from mergedConfig.
-    const baseConfig: Omit<EffectiveDirConfig, keyof Partial<DirectoryConfig>> & Required<Pick<EffectiveDirConfig, 'path' | 'lang' | 'isDevMode' | 'root' | 'title' | 'hidden' | 'priority' | 'maxDepth' | 'collapsed' | 'itemOrder' | 'groups' | 'externalLinks'>> = {
+    return {
+        root,
+        title,
+        hidden,
+        priority,
+        maxDepth,
+        collapsed,
+        itemOrder,
+        groups,
+        externalLinks,
         path: directoryPath,
         lang,
         isDevMode,
-        root: mergedConfig.root ?? false,
-        title: title,
-        hidden: hidden, 
-        priority: priority,
-        maxDepth: maxDepth, 
-        collapsed: collapsed,
-        itemOrder: resolvedItemOrder, 
-        groups: mergedConfig.groups ?? [],
-        externalLinks: mergedConfig.externalLinks ?? [],
+        ...partialConfig
     };
-
-    // Add any other custom properties from mergedConfig that are not part of the core EffectiveDirConfig fields already set.
-    const customFields: Partial<EffectiveDirConfig> = {};
-    for (const key in mergedConfig) {
-        if (mergedConfig.hasOwnProperty(key) && !(key in baseConfig)) {
-            (customFields as any)[key] = mergedConfig[key as keyof EffectiveDirConfig];
-        }
-    }
-
-    return { ...baseConfig, ...customFields } as EffectiveDirConfig;
 } 
 

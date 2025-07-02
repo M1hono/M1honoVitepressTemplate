@@ -3,7 +3,7 @@ import {
     getDefaultLanguage, 
     getLocalesConfig,
     type LanguageConfig 
-} from './project-config';
+} from '../../config/project-config';
 import { getLanguageModule, getSearchModule } from './language-registry';
 
 export function loadLanguageConfig(langCode: string) {

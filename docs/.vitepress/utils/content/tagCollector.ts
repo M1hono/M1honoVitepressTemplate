@@ -3,7 +3,8 @@ import matter from "gray-matter";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { resolve, dirname } from "path";
 import { mkdirSync } from "fs";
-import { getLanguages, getDefaultLanguage, getSrcPath, getPaths } from "@utils/config";
+import { getLanguages, getDefaultLanguage, getPaths } from "../../config/project-config";
+import { getSrcPath } from "../config/path-resolver";
 
 export interface TagInfo {
     name: string;

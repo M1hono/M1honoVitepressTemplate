@@ -1,3 +1,20 @@
+/**
+ * @fileoverview Vite plugin for automatic sidebar generation and hot reloading.
+ * 
+ * This module provides a Vite plugin that integrates sidebar generation
+ * into the build process and development workflow. Features include:
+ * - Automatic sidebar generation on build start
+ * - Hot reloading when markdown files or configurations change
+ * - Intelligent caching and change detection
+ * - VitePress-specific integration and reload triggers
+ * - Multi-language support with per-language generation
+ * 
+ * @module SidebarPlugin
+ * @version 1.0.0
+ * @author VitePress Sidebar Generator
+ * @since 1.0.0
+ */
+
 import { Plugin } from "vite";
 import { resolve } from "path";
 import { existsSync, statSync, readdirSync, utimesSync } from "fs";
@@ -9,12 +26,39 @@ import {
     type SidebarLibConfig,
 } from "./lib";
 
+/**
+ * Configuration options specific to the sidebar Vite plugin.
+ * Extends the base SidebarLibConfig with plugin-specific settings.
+ * 
+ * @interface SidebarPluginConfig
+ * @extends SidebarLibConfig
+ * @since 1.0.0
+ */
 export interface SidebarPluginConfig extends SidebarLibConfig {
+    /** Enable hot reloading in development mode. Defaults to true */
     hotReload?: boolean;
+    /** Delay in milliseconds before triggering reload after file changes. Defaults to 100ms */
     reloadDelay?: number;
 }
 
+/**
+ * Flag to prevent concurrent sidebar generation processes.
+ * Ensures only one generation runs at a time to avoid conflicts.
+ * 
+ * @type {boolean}
+ * @since 1.0.0
+ * @private
+ */
 let isGenerating = false;
+
+/**
+ * Timestamp of the last sidebar generation.
+ * Used for throttling and avoiding unnecessary regenerations.
+ * 
+ * @type {number}
+ * @since 1.0.0
+ * @private
+ */
 let lastGenerationTime = 0;
 
 export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
@@ -24,7 +68,6 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
         );
     }
 
-    // 立即配置系统 - 这样语言配置文件就能正常工作了
     _internalConfigureSidebar(config);
 
     const finalConfig = getConfig();
@@ -41,6 +84,18 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
         ".vitepress/config/generated"
     );
 
+    /**
+     * Determines if sidebar regeneration is needed for a specific language.
+     * 
+     * Checks if the cached sidebar file exists and compares modification times
+     * of source files (index.md files and JSON configurations) against the
+     * cached sidebar to determine if regeneration is necessary.
+     * 
+     * @param {string} lang - Language code to check regeneration for
+     * @returns {boolean} True if regeneration is needed, false if cache is valid
+     * @since 1.0.0
+     * @private
+     */
     function needsRegeneration(lang: string): boolean {
         const sidebarFile = resolve(
             generatedPath,
@@ -78,6 +133,18 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
         return false;
     }
 
+    /**
+     * Recursively finds all index.md files within a directory tree.
+     * 
+     * Performs a depth-first search through the directory structure,
+     * collecting absolute paths to all index.md files found. Handles
+     * read errors gracefully by skipping inaccessible directories.
+     * 
+     * @param {string} dir - Root directory path to search from
+     * @returns {string[]} Array of absolute paths to index.md files
+     * @since 1.0.0
+     * @private
+     */
     function findIndexFiles(dir: string): string[] {
         const results: string[] = [];
 
@@ -96,14 +163,23 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
                 }
             }
         } catch (error) {
-            // 忽略无法读取的目录
         }
 
         return results;
     }
 
     /**
-     * 检查配置文件是否有更新
+     * Recursively checks if any JSON configuration files are newer than the sidebar.
+     * 
+     * Scans a configuration directory and all its subdirectories for JSON files,
+     * comparing their modification times against the provided sidebar timestamp.
+     * Returns true if any configuration file has been modified more recently.
+     * 
+     * @param {string} configDir - Directory path containing configuration files
+     * @param {number} sidebarTime - Sidebar modification timestamp in milliseconds
+     * @returns {boolean} True if any config file is newer than the sidebar
+     * @since 1.0.0
+     * @private
      */
     function checkNewerConfigs(
         configDir: string,
@@ -127,7 +203,6 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
                 }
             }
         } catch (error) {
-            // 忽略无法读取的目录
         }
 
         return false;
@@ -152,7 +227,6 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
                     }
                 }
             } catch (error) {
-                // 忽略无法读取的目录
             }
         }
 

@@ -1,29 +1,93 @@
+/**
+ * @fileoverview JSON-based sorting utilities for sidebar items.
+ * 
+ * This module provides sophisticated sorting capabilities for sidebar items
+ * based on order.json configuration files. It implements priority-based
+ * sorting with alphanumeric fallbacks and recursive processing for nested
+ * directory structures while preserving hierarchical relationships.
+ * 
+ * @module JsonItemSorter
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
+ */
+
 import { SidebarItem } from '../types';
 
 /**
- * @file JsonItemSorter.ts
- * @description Sorts sidebar items based on `order.json` data, with alphanumeric fallback.
+ * JSON-based item sorter for sidebar configurations.
+ * 
+ * Provides advanced sorting functionality for sidebar items using order.json
+ * configuration data. Implements a priority-based sorting system where items
+ * with explicit order values take precedence, while items without explicit
+ * ordering fall back to alphanumeric sorting by their keys or text.
+ * 
+ * Key features:
+ * - Priority-based sorting from order.json configurations
+ * - Alphanumeric fallback for items without explicit ordering
+ * - Recursive processing for nested directory structures
+ * - Automatic priority inheritance for directories from child items
+ * - Support for both numeric and string-numeric order values
+ * 
+ * @class JsonItemSorter
+ * @since 1.0.0
+ * @public
+ * @example
+ * ```typescript
+ * const sorter = new JsonItemSorter();
+ * 
+ * const orderConfig = {
+ *   'introduction.md': 1,
+ *   'concepts/': 2,
+ *   'advanced.md': 3
+ * };
+ * 
+ * const sortedItems = sorter.sortItems(sidebarItems, orderConfig);
+ * ```
  */
 export class JsonItemSorter {
+    /**
+     * Creates an instance of JsonItemSorter.
+     * 
+     * Initializes the sorter with a lightweight constructor. Configuration
+     * and context are provided per-operation through method parameters for
+     * maximum flexibility and testability.
+     * 
+     * @since 1.0.0
+     */
     constructor() {
-        // Constructor might be empty or take global sorting configurations if any
     }
 
     /**
-     * Sorts an array of SidebarItems based on order data from an order.json file.
-     * Items in orderData get priority, sorted by their numeric value.
-     * Items not in orderData are appended, sorted alphanumerically by their 
-     * `_relativePathKey` (for files/dirs) or `text` (for groups).
-     *
-     * @param itemsToFinalSort The array of SidebarItems (potentially with text/collapsed states already updated).
-     * @param orderJsonData The `Record<string, any>` from the corresponding order.json file.
-     *                      Keys are item._relativePathKey or item.text (for groups).
-     *                      Values are expected to be numbers for ordering.
-     * @returns A new array of finally sorted SidebarItems.
+     * Sorts sidebar items based on order.json data with intelligent fallbacks.
+     * 
+     * Implements a comprehensive sorting strategy that respects explicit ordering
+     * from order.json files while providing sensible fallbacks for items without
+     * explicit configuration. The sorting process:
+     * 
+     * 1. Items with valid order.json entries are sorted by their numeric values
+     * 2. Items without explicit ordering are sorted alphanumerically
+     * 3. Directory items inherit priority from their children when not explicitly set
+     * 4. Nested structures are processed recursively
+     * 5. Priority values are assigned to items for downstream processing
+     * 
+     * @param {SidebarItem[]} itemsToFinalSort - Array of sidebar items to sort
+     * @param {Record<string, any>} orderJsonData - Order configuration from order.json file
+     * @returns {SidebarItem[]} New array of sorted sidebar items with updated priorities
+     * @since 1.0.0
+     * @public
+     * @example
+     * ```typescript
+     * const sortedItems = sorter.sortItems(sidebarItems, {
+     *   'intro.md': 1,
+     *   'concepts/': 2,
+     *   'api/': 3,
+     *   'advanced.md': '4'  // String numbers are parsed
+     * });
+     * ```
      */
     public sortItems(        
         itemsToFinalSort: SidebarItem[], 
-        // order.json data, where values are expected to be numbers if they are for ordering
         orderJsonData: Record<string, any> 
     ): SidebarItem[] {
         if (!itemsToFinalSort || itemsToFinalSort.length === 0) {
@@ -31,32 +95,26 @@ export class JsonItemSorter {
         }
 
         const itemsWithSortInfo = itemsToFinalSort.map(item => {
-            const orderKey = item._relativePathKey || item.text; // Groups might be keyed by their title
-            let order = Number.MAX_SAFE_INTEGER; // Default for items not in orderData or invalid orderData value
+            const orderKey = item._relativePathKey || item.text;
+            let order = Number.MAX_SAFE_INTEGER;
             
             if (orderKey && orderJsonData.hasOwnProperty(orderKey)) {
                 const orderVal = orderJsonData[orderKey];
                 if (typeof orderVal === 'number' && !isNaN(orderVal)) {
                     order = orderVal;
-                    // Set the priority from order.json value
                     item._priority = order;
                 } else if (typeof orderVal === 'string') {
-                    // Try to parse string values as numbers
                     const parsedOrder = parseFloat(orderVal);
                     if (!isNaN(parsedOrder)) {
                         order = parsedOrder;
-                        // Set the priority from parsed order value
                         item._priority = order;
                     }
                 }
             }
 
-            // If this is a directory, also process its items recursively
             if (item._isDirectory && item.items && item.items.length > 0) {
-                // Pass down the same order data to maintain consistent priorities
                 item.items = this.sortItems(item.items, orderJsonData);
                 
-                // If directory has no explicit order, use the minimum priority of its children
                 if (item._priority === Number.MAX_SAFE_INTEGER) {
                     const childPriorities = item.items
                         .map(child => typeof child._priority === 'number' ? child._priority : Number.MAX_SAFE_INTEGER)
@@ -71,18 +129,15 @@ export class JsonItemSorter {
 
             return { 
                 item, 
-                // Use _priority for sorting instead of order.json value
                 order: typeof item._priority === 'number' ? item._priority : Number.MAX_SAFE_INTEGER,
-                // Use _relativePathKey for more stable alphanumeric sort if text is the same or missing
                 sortKey: item._relativePathKey || item.text || '' 
             };
         });
 
         itemsWithSortInfo.sort((a, b) => {
             if (a.order !== b.order) {
-                return a.order - b.order; // Primary sort by priority
+                return a.order - b.order;
             }
-            // Secondary sort alphanumerically by sortKey (which prefers _relativePathKey over text)
             return a.sortKey.localeCompare(b.sortKey);
         });
 

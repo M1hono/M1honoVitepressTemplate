@@ -1,3 +1,20 @@
+/**
+ * @fileoverview High-level library interface for sidebar generation and caching.
+ * 
+ * This module provides a convenient API for integrating sidebar generation
+ * into build processes and development workflows. It handles:
+ * - Configuration management and validation
+ * - Multi-level caching (memory and file-based)
+ * - Language-specific sidebar generation
+ * - Automatic cache invalidation based on file changes
+ * - Synchronous and asynchronous access patterns
+ * 
+ * @module SidebarLib
+ * @version 1.0.0
+ * @author VitePress Sidebar Generator
+ * @since 1.0.0
+ */
+
 import { resolve } from "path";
 import {
     existsSync,
@@ -9,15 +26,36 @@ import {
 } from "fs";
 import { generateSidebars } from "./main";
 
+/**
+ * Configuration options for the sidebar library.
+ * Controls how sidebars are generated, cached, and served.
+ * 
+ * @interface SidebarLibConfig
+ * @since 1.0.0
+ */
 export interface SidebarLibConfig {
+    /** Root directory of the project. Defaults to process.cwd() */
     rootDir?: string;
+    /** Relative path to the docs directory from rootDir. Defaults to "./docs" */
     docsDir?: string;
+    /** Relative path to the cache directory from rootDir. Defaults to "./.vitepress/cache/sidebar" */
     cacheDir?: string;
+    /** Enable debug logging for troubleshooting. Defaults to false */
     debug?: boolean;
+    /** Enable development mode features. Defaults to NODE_ENV === "development" */
     devMode?: boolean;
+    /** Array of language codes to generate sidebars for. Required field */
     languages: string[];
 }
 
+/**
+ * Default configuration values for the sidebar library.
+ * Provides sensible defaults for all configuration options except languages.
+ * 
+ * @constant {Omit<Required<SidebarLibConfig>, "languages">}
+ * @since 1.0.0
+ * @private
+ */
 const defaultConfig: Omit<Required<SidebarLibConfig>, "languages"> = {
     rootDir: process.cwd(),
     docsDir: "./docs",
@@ -26,12 +64,53 @@ const defaultConfig: Omit<Required<SidebarLibConfig>, "languages"> = {
     devMode: process.env.NODE_ENV === "development",
 };
 
+/**
+ * Currently active configuration for the sidebar library.
+ * Set via configureSidebar() or sidebarPlugin configuration.
+ * 
+ * @type {SidebarLibConfig | null}
+ * @since 1.0.0
+ * @private
+ */
 let currentConfig: SidebarLibConfig | null = null;
 
+/**
+ * In-memory cache for recently generated sidebars.
+ * Improves performance by avoiding repeated generation for the same language.
+ * 
+ * @type {Map<string, {data: any, timestamp: number}>}
+ * @since 1.0.0
+ * @private
+ */
 const memoryCache = new Map<string, { data: any; timestamp: number }>();
 
+/**
+ * Cache expiration time in milliseconds (5 minutes).
+ * Both memory cache and file cache entries expire after this duration.
+ * 
+ * @constant {number}
+ * @since 1.0.0
+ * @private
+ */
 const CACHE_EXPIRY = 5 * 60 * 1000;
 
+/**
+ * Internal function to configure the sidebar library.
+ * Used by both the deprecated configureSidebar() and the sidebarPlugin.
+ * 
+ * @param {SidebarLibConfig} config - Configuration object with sidebar settings
+ * @throws {Error} When languages array is missing or empty
+ * @since 1.0.0
+ * @private
+ * @example
+ * ```typescript
+ * _internalConfigureSidebar({
+ *   rootDir: '/path/to/project',
+ *   languages: ['en', 'zh'],
+ *   debug: true
+ * });
+ * ```
+ */
 export function _internalConfigureSidebar(config: SidebarLibConfig): void {
     if (!config.languages || config.languages.length === 0) {
         throw new Error(
@@ -54,6 +133,20 @@ export function configureSidebar(config: SidebarLibConfig): void {
     _internalConfigureSidebar(config);
 }
 
+/**
+ * Retrieves the current sidebar configuration with all defaults applied.
+ * If no configuration has been set, returns a default configuration with a warning.
+ * 
+ * @returns {Required<SidebarLibConfig>} Complete configuration object with all properties defined
+ * @since 1.0.0
+ * @public
+ * @example
+ * ```typescript
+ * const config = getConfig();
+ * console.log(config.languages); // ['en', 'zh']
+ * console.log(config.debug); // false
+ * ```
+ */
 export function getConfig(): Required<SidebarLibConfig> {
     if (!currentConfig) {
         console.warn('[SidebarLib] No configuration found. Please ensure sidebarPlugin is properly configured in your vite config.');
@@ -66,6 +159,19 @@ export function getConfig(): Required<SidebarLibConfig> {
     return currentConfig as Required<SidebarLibConfig>;
 }
 
+/**
+ * Validates that a language code is configured in the current sidebar configuration.
+ * 
+ * @param {string} lang - Language code to validate
+ * @throws {Error} When the language is not in the configured languages array
+ * @since 1.0.0
+ * @private
+ * @example
+ * ```typescript
+ * validateLanguage('en'); // OK if 'en' is configured
+ * validateLanguage('fr'); // Throws error if 'fr' not configured
+ * ```
+ */
 function validateLanguage(lang: string): void {
     const config = getConfig();
 
@@ -78,10 +184,35 @@ function validateLanguage(lang: string): void {
     }
 }
 
+/**
+ * Generates a unique cache key for a specific language.
+ * 
+ * @param {string} lang - Language code to generate key for
+ * @returns {string} Cache key in format "sidebar_{lang}" or "sidebar_root" for empty lang
+ * @since 1.0.0
+ * @private
+ * @example
+ * ```typescript
+ * getCacheKey('en'); // Returns "sidebar_en"
+ * getCacheKey(''); // Returns "sidebar_root"
+ * ```
+ */
 function getCacheKey(lang: string): string {
     return `sidebar_${lang || "root"}`;
 }
 
+/**
+ * Resolves the absolute file path for a language's cache file.
+ * 
+ * @param {string} lang - Language code to get cache path for
+ * @returns {string} Absolute path to the cache file
+ * @since 1.0.0
+ * @private
+ * @example
+ * ```typescript
+ * getFileCachePath('en'); // "/project/.vitepress/cache/sidebar/sidebar_en.json"
+ * ```
+ */
 function getFileCachePath(lang: string): string {
     const config = getConfig();
     const cacheDir = resolve(config.rootDir, config.cacheDir);
@@ -260,11 +391,7 @@ function checkGeneratedFallback(lang: string): any | null {
     return null;
 }
 
-/**
- * 内部同步获取侧边栏的实际实现
- */
 function _getSidebarSyncInternal(lang: string): Record<string, any[]> {
-    // 等待配置就绪
     if (!currentConfig) {
         console.warn(`[SidebarLib] No configuration found. Auto-initializing with fallback config.`);
         _internalConfigureSidebar({
@@ -323,18 +450,20 @@ export function getSidebarSync(lang: string): any {
     return new Proxy({}, {
         get(target, prop, receiver) {
             if (isGenerating) {
-                return undefined;
+                return [];
             }
             if (cachedSidebar) {
-                return Reflect.get(cachedSidebar, prop, receiver);
+                const result = Reflect.get(cachedSidebar, prop, receiver);
+                return result === undefined ? [] : result;
             }
             try {
                 isGenerating = true;
                 cachedSidebar = _getSidebarSyncInternal(lang);
-                return Reflect.get(cachedSidebar, prop, receiver);
+                const result = Reflect.get(cachedSidebar, prop, receiver);
+                return result === undefined ? [] : result;
             } catch (error) {
                 console.warn('[SidebarLib] Error generating sidebar:', error);
-                return undefined;
+                return [];
             } finally {
                 isGenerating = false;
             }

@@ -1,6 +1,6 @@
 import type { DefaultTheme } from 'vitepress';
 import { getSidebarSync } from '../../utils/sidebar';
-import { getProjectInfo } from '../../utils/config';
+import { getProjectInfo } from '../project-config';
 
 const projectInfo = getProjectInfo();
 
@@ -11,13 +11,8 @@ export const zh_CN = <DefaultTheme.Config>{
     title: projectInfo.name,
     description: projectInfo.description,
     themeConfig: {
-        nav: [
-            { text: "首页", link: "/" },
-            { text: "测试页面", link: "/test" },
-            { text: "指南", link: "/guide/" },
-            { text: "API 参考", link: "/api/" },
-        ],
-        sidebar: getSidebarSync("zh"),
+        nav: [],
+        sidebar: getSidebarSync("zh-CN"),
         outline: {
             level: "deep",
             label: "页面导航",

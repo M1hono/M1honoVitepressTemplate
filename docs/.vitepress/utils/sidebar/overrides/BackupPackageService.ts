@@ -1,14 +1,12 @@
-import path from 'node:path';
-import { normalizePathSeparators } from '../shared/objectUtils';
-import { JsonFileHandler, JsonOverrideFileType } from './JsonFileHandler';
-import { MetadataManager } from './MetadataManager';
-import { FileSystem } from '../shared/FileSystem';
-
 /**
- * @file BackupPackageService.ts
- * @description Creates self-contained backup packages that are user-friendly and easy to restore.
- * 
- * Archive Structure:
+ * @fileoverview Service for creating self-contained backup packages of sidebar configurations that are user-friendly and easy to restore.
+ * @module BackupPackageService
+ * @version 1.0.0
+ * @author M1hono
+ * @since 2024
+ * @deprecated This service is no longer used in current architecture.
+ *
+ * @description Archive Structure:
  * .archive/
  * ├── README.md                                    # How to use archives
  * ├── removed_directories/
@@ -27,6 +25,17 @@ import { FileSystem } from '../shared/FileSystem';
  *         ├── cleanup_info.json
  *         └── archived_entries.json             # User-set configs only
  */
+import path from "node:path";
+import { normalizePathSeparators } from "../shared/objectUtils";
+import { JsonFileHandler, JsonOverrideFileType } from "./JsonFileHandler";
+import { MetadataManager } from "./MetadataManager";
+import { FileSystem } from "../shared/FileSystem";
+
+/**
+ * @class BackupPackageService
+ * @deprecated This service is no longer used.
+ * @description Creates self-contained backup packages that are user-friendly and easy to restore.
+ */
 export class BackupPackageService {
     private jsonFileHandler: JsonFileHandler;
     private metadataManager: MetadataManager;
@@ -34,36 +43,61 @@ export class BackupPackageService {
     private docsPath: string;
     private archivePath: string;
 
-    constructor(jsonFileHandler: JsonFileHandler, metadataManager: MetadataManager, fs: FileSystem, docsPath: string) {
+    /**
+     * @constructor
+     * @param {JsonFileHandler} jsonFileHandler - Handler for JSON file operations
+     * @param {MetadataManager} metadataManager - Manager for metadata operations
+     * @param {FileSystem} fs - File system abstraction layer
+     * @param {string} docsPath - Path to the docs directory
+     */
+    constructor(
+        jsonFileHandler: JsonFileHandler,
+        metadataManager: MetadataManager,
+        fs: FileSystem,
+        docsPath: string
+    ) {
         this.jsonFileHandler = jsonFileHandler;
         this.metadataManager = metadataManager;
         this.fs = fs;
         this.docsPath = docsPath;
-        this.archivePath = normalizePathSeparators(path.join(this.docsPath, '..', '.vitepress', 'config', 'sidebar', '.archive'));
+        this.archivePath = normalizePathSeparators(
+            path.join(
+                this.docsPath,
+                "..",
+                ".vitepress",
+                "config",
+                "sidebar",
+                ".archive"
+            )
+        );
     }
 
     /**
-     * Creates a backup package for a removed directory with all its configs and documentation.
+     * @method createRemovedDirectoryBackup
+     * @description Creates a backup package for a removed directory with all its configs and documentation.
+     * @param {string} lang - Language code for the backup
+     * @param {string} dirSignature - Directory signature path
+     * @param {string} [reason='Directory no longer exists in filesystem'] - Reason for backup creation
+     * @returns {Promise<void>}
+     * @throws {Error} When backup creation fails
      */
     public async createRemovedDirectoryBackup(
         lang: string, 
         dirSignature: string, 
-        reason: string = 'Directory no longer exists in filesystem'
+        reason: string = "Directory no longer exists in filesystem"
     ): Promise<void> {
-        const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+        const timestamp = new Date().toISOString().split("T")[0];
         const dirName = path.basename(dirSignature);
         const packageName = `${dirName}_removed_${timestamp}`;
         
-        const packagePath = normalizePathSeparators(path.join(
-            this.archivePath, 'removed_directories', packageName
-        ));
+        const packagePath = normalizePathSeparators(
+            path.join(this.archivePath, "removed_directories", packageName)
+        );
         
-        // Ensure package directory exists
         await this.fs.ensureDir(packagePath);
         
-        // Create backup info
         const backupInfo = {
-            type: 'removed_directory',
+            type: "removed_directory",
             original_path: dirSignature,
             language: lang,
             removed_date: new Date().toISOString(),
@@ -72,73 +106,96 @@ export class BackupPackageService {
             contents: {
                 config_files: [] as string[],
                 metadata_files: [] as string[],
-                nested_directories: [] as string[]
-            }
+                nested_directories: [] as string[],
+            },
         };
         
-        // Create merged config and metadata objects to store all configurations
         const mergedConfigs: Record<string, Record<string, any>> = {
-            'locales': {},
-            'collapsed': {},  
-            'hidden': {},
-            'order': {}
+            locales: {},
+            collapsed: {},
+            hidden: {},
+            order: {},
         };
         
         const mergedMetadata: Record<string, Record<string, any>> = {
-            'locales': {},
-            'collapsed': {},
-            'hidden': {},
-            'order': {}
+            locales: {},
+            collapsed: {},
+            hidden: {},
+            order: {},
         };
         
-        // Recursively collect all configurations from this directory and its subdirectories
         await this.recursivelyCollectConfigurations(
             lang,
             dirSignature,
             mergedConfigs,
             mergedMetadata,
             backupInfo,
-            ''  // relative path within the directory structure
+            ""
         );
         
-        // Write the merged config files
-        const configPath = path.join(packagePath, 'config');
+        const configPath = path.join(packagePath, "config");
         await this.fs.ensureDir(configPath);
         
-        const overrideTypes: JsonOverrideFileType[] = ['locales', 'collapsed', 'hidden', 'order'];
+        const overrideTypes: JsonOverrideFileType[] = [
+            "locales",
+            "collapsed",
+            "hidden",
+            "order",
+        ];
         for (const type of overrideTypes) {
             if (Object.keys(mergedConfigs[type]).length > 0) {
                 const configFilePath = path.join(configPath, `${type}.json`);
-                await this.fs.writeFile(configFilePath, JSON.stringify(mergedConfigs[type], null, 2));
+                await this.fs.writeFile(
+                    configFilePath,
+                    JSON.stringify(mergedConfigs[type], null, 2)
+                );
                 backupInfo.contents.config_files.push(`${type}.json`);
             }
         }
         
-        // Write the merged metadata files
-        const metadataPath = path.join(packagePath, 'metadata');
+        const metadataPath = path.join(packagePath, "metadata");
         await this.fs.ensureDir(metadataPath);
         
         for (const type of overrideTypes) {
             if (Object.keys(mergedMetadata[type]).length > 0) {
-                const metadataFilePath = path.join(metadataPath, `${type}.json`);
-                await this.fs.writeFile(metadataFilePath, JSON.stringify(mergedMetadata[type], null, 2));
+                const metadataFilePath = path.join(
+                    metadataPath,
+                    `${type}.json`
+                );
+                await this.fs.writeFile(
+                    metadataFilePath,
+                    JSON.stringify(mergedMetadata[type], null, 2)
+                );
                 backupInfo.contents.metadata_files.push(`${type}.json`);
             }
         }
         
-        // Write backup info
-        const backupInfoPath = path.join(packagePath, 'backup_info.json');
-        await this.fs.writeFile(backupInfoPath, JSON.stringify(backupInfo, null, 2));
+        const backupInfoPath = path.join(packagePath, "backup_info.json");
+        await this.fs.writeFile(
+            backupInfoPath,
+            JSON.stringify(backupInfo, null, 2)
+        );
         
-        // Create restore instructions
-        await this.createRestoreInstructions(packagePath, 'removed_directory', backupInfo);
+        await this.createRestoreInstructions(
+            packagePath,
+            "removed_directory",
+            backupInfo
+        );
         
-        // Update main README
         await this.updateMainReadme();
     }
     
     /**
-     * Recursively collects all configurations from a directory structure into merged objects.
+     * @method recursivelyCollectConfigurations
+     * @description Recursively collects all configurations from a directory structure into merged objects.
+     * @param {string} lang - Language code
+     * @param {string} configDirSignature - Configuration directory signature
+     * @param {Record<string, Record<string, any>>} mergedConfigs - Object to merge configurations into
+     * @param {Record<string, Record<string, any>>} mergedMetadata - Object to merge metadata into
+     * @param {any} backupInfo - Backup information object to update
+     * @param {string} relativePath - Relative path within directory structure
+     * @returns {Promise<void>}
+     * @private
      */
     private async recursivelyCollectConfigurations(
         lang: string,
@@ -148,85 +205,111 @@ export class BackupPackageService {
         backupInfo: any,
         relativePath: string
     ): Promise<void> {
-        const overrideTypes: JsonOverrideFileType[] = ['locales', 'collapsed', 'hidden', 'order'];
+        const overrideTypes: JsonOverrideFileType[] = [
+            "locales",
+            "collapsed",
+            "hidden",
+            "order",
+        ];
         
-        // Collect config files for current directory
         for (const type of overrideTypes) {
             try {
-                const sourceData = await this.jsonFileHandler.readJsonFile(type, lang, configDirSignature);
+                const sourceData = await this.jsonFileHandler.readJsonFile(
+                    type,
+                    lang,
+                    configDirSignature
+                );
                 
                 if (Object.keys(sourceData).length > 0) {
-                    // Merge data into the combined config, prefixing keys with relative path if needed
                     for (const [key, value] of Object.entries(sourceData)) {
-                        const fullKey = relativePath && key !== '_self_' 
+                        const fullKey =
+                            relativePath && key !== "_self_"
                             ? `${relativePath}${key}` 
-                            : relativePath && key === '_self_'
-                            ? `${relativePath}_self_`  // _self_ from subdirectory becomes "SubDir/_self_"
-                            : key;  // Root _self_ stays as "_self_"
+                                : relativePath && key === "_self_"
+                            ? `${relativePath}_self_`
+                            : key;
                         mergedConfigs[type][fullKey] = value;
                     }
                     
-                    // Delete original after backing up
-                    await this.jsonFileHandler.deleteJsonFile(type, lang, configDirSignature);
+                    await this.jsonFileHandler.deleteJsonFile(
+                        type,
+                        lang,
+                        configDirSignature
+                    );
                 }
-            } catch (error) {
-                // File might not exist, continue
-            }
+            } catch (error) {}
         }
         
-        // Collect metadata files for current directory
         for (const type of overrideTypes) {
             try {
-                const sourceMetadata = await this.metadataManager.readMetadata(type, lang, configDirSignature);
+                const sourceMetadata = await this.metadataManager.readMetadata(
+                    type,
+                    lang,
+                    configDirSignature
+                );
                 
                 if (Object.keys(sourceMetadata).length > 0) {
-                    // Merge metadata into the combined metadata, prefixing keys with relative path if needed
                     for (const [key, value] of Object.entries(sourceMetadata)) {
-                        const fullKey = relativePath && key !== '_self_' 
+                        const fullKey =
+                            relativePath && key !== "_self_"
                             ? `${relativePath}${key}` 
                             : key;
                         mergedMetadata[type][fullKey] = value;
                     }
                     
-                    // Delete original metadata after backing up
-                    await this.metadataManager.deleteMetadata(type, lang, configDirSignature);
+                    await this.metadataManager.deleteMetadata(
+                        type,
+                        lang,
+                        configDirSignature
+                    );
                 }
-            } catch (error) {
-                // File might not exist, continue
-            }
+            } catch (error) {}
         }
         
-        // Find and recursively collect from subdirectories
         try {
-            const configBasePath = normalizePathSeparators(path.join(
-                this.docsPath, '..', '.vitepress', 'config', 'sidebar', lang
-            ));
+            const configBasePath = normalizePathSeparators(
+                path.join(
+                    this.docsPath,
+                    "..",
+                    ".vitepress",
+                    "config",
+                    "sidebar",
+                    lang
+                )
+            );
             
-            const currentConfigPath = normalizePathSeparators(path.join(configBasePath, configDirSignature));
+            const currentConfigPath = normalizePathSeparators(
+                path.join(configBasePath, configDirSignature)
+            );
             
             if (await this.fs.exists(currentConfigPath)) {
                 const items = await this.fs.readDir(currentConfigPath);
                 
                 for (const item of items) {
-                    const itemName = typeof item === 'string' ? item : item.name;
+                    const itemName =
+                        typeof item === "string" ? item : item.name;
                     
-                    // Skip hidden files/directories
-                    if (itemName.startsWith('.')) {
+                    if (itemName.startsWith(".")) {
                         continue;
                     }
                     
-                    const itemPath = normalizePathSeparators(path.join(currentConfigPath, itemName));
+                    const itemPath = normalizePathSeparators(
+                        path.join(currentConfigPath, itemName)
+                    );
                     const stat = await this.fs.stat(itemPath);
                     
                     if (stat.isDirectory()) {
-                        const subDirSignature = normalizePathSeparators(path.join(configDirSignature, itemName));
+                        const subDirSignature = normalizePathSeparators(
+                            path.join(configDirSignature, itemName)
+                        );
                         const subRelativePath = relativePath 
                             ? `${relativePath}${itemName}/`
                             : `${itemName}/`;
                         
-                        backupInfo.contents.nested_directories.push(subDirSignature);
+                        backupInfo.contents.nested_directories.push(
+                            subDirSignature
+                        );
                         
-                        // Recursively collect from this subdirectory
                         await this.recursivelyCollectConfigurations(
                             lang,
                             subDirSignature,
@@ -239,70 +322,102 @@ export class BackupPackageService {
                 }
             }
         } catch (error) {
-            console.warn(`Error finding subdirectories in ${configDirSignature}:`, error);
+            console.warn(
+                `Error finding subdirectories in ${configDirSignature}:`,
+                error
+            );
         }
     }
     
     /**
-     * Creates a backup package for inactive entries that were cleaned up.
+     * @method createInactiveEntriesBackup
+     * @description Creates a backup package for inactive entries that were cleaned up.
+     * @param {string} lang - Language code
+     * @param {string} configDirSignature - Configuration directory signature
+     * @param {Record<string, Record<string, any>>} inactiveEntries - Inactive entries by type
+     * @param {string} [reason='Entries marked as inactive during cleanup'] - Reason for backup
+     * @returns {Promise<void>}
+     * @throws {Error} When backup creation fails
      */
     public async createInactiveEntriesBackup(
         lang: string,
         configDirSignature: string,
         inactiveEntries: Record<string, Record<string, any>>, // type -> entries
-        reason: string = 'Entries marked as inactive during cleanup'
+        reason: string = "Entries marked as inactive during cleanup"
     ): Promise<void> {
-        const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
-        const dirName = configDirSignature === '_root' ? 'root' : path.basename(configDirSignature);
+        const timestamp = new Date().toISOString().split("T")[0]; // YYYY-MM-DD format
+        const dirName =
+            configDirSignature === "_root"
+                ? "root"
+                : path.basename(configDirSignature);
         const packageName = `${dirName}_cleanup_${timestamp}`;
         
-        const packagePath = normalizePathSeparators(path.join(
-            this.archivePath, 'inactive_entries', packageName
-        ));
+        const packagePath = normalizePathSeparators(
+            path.join(this.archivePath, "inactive_entries", packageName)
+        );
         
-        // Ensure package directory exists
         await this.fs.ensureDir(packagePath);
         
-        // Create cleanup info
         const cleanupInfo = {
-            type: 'inactive_entries',
+            type: "inactive_entries",
             source_path: configDirSignature,
             language: lang,
             cleanup_date: new Date().toISOString(),
             reason: reason,
             package_name: packageName,
-            entries_count: Object.values(inactiveEntries).reduce((total, entries) => total + Object.keys(entries).length, 0),
+            entries_count: Object.values(inactiveEntries).reduce(
+                (total, entries) => total + Object.keys(entries).length,
+                0
+            ),
             entries_by_type: Object.fromEntries(
-                Object.entries(inactiveEntries).map(([type, entries]) => [type, Object.keys(entries).length])
-            )
+                Object.entries(inactiveEntries).map(([type, entries]) => [
+                    type,
+                    Object.keys(entries).length,
+                ])
+            ),
         };
+            
+        const archivedEntriesPath = path.join(
+            packagePath,
+            "archived_entries.json"
+        );
+        await this.fs.writeFile(
+            archivedEntriesPath,
+            JSON.stringify(inactiveEntries, null, 2)
+        );
         
-        // Create archived entries file
-        const archivedEntriesPath = path.join(packagePath, 'archived_entries.json');
-        await this.fs.writeFile(archivedEntriesPath, JSON.stringify(inactiveEntries, null, 2));
+        const cleanupInfoPath = path.join(packagePath, "cleanup_info.json");
+        await this.fs.writeFile(
+            cleanupInfoPath,
+            JSON.stringify(cleanupInfo, null, 2)
+        );
         
-        // Write cleanup info
-        const cleanupInfoPath = path.join(packagePath, 'cleanup_info.json');
-        await this.fs.writeFile(cleanupInfoPath, JSON.stringify(cleanupInfo, null, 2));
+        await this.createRestoreInstructions(
+            packagePath,
+            "inactive_entries",
+            cleanupInfo
+        );
         
-        // Create restore instructions
-        await this.createRestoreInstructions(packagePath, 'inactive_entries', cleanupInfo);
-        
-        // Update main README
         await this.updateMainReadme();
     }
     
     /**
-     * Creates restore instructions for a backup package.
+     * @method createRestoreInstructions
+     * @description Creates restore instructions for a backup package.
+     * @param {string} packagePath - Path to the backup package
+     * @param {'removed_directory' | 'inactive_entries'} backupType - Type of backup
+     * @param {any} info - Backup information object
+     * @returns {Promise<void>}
+     * @private
      */
     private async createRestoreInstructions(
         packagePath: string, 
-        backupType: 'removed_directory' | 'inactive_entries',
+        backupType: "removed_directory" | "inactive_entries",
         info: any
     ): Promise<void> {
-        let instructions = '';
+        let instructions = "";
         
-        if (backupType === 'removed_directory') {
+        if (backupType === "removed_directory") {
             instructions = `# Restore Instructions: ${info.package_name}
 
 ## What was backed up?
@@ -312,9 +427,11 @@ export class BackupPackageService {
 - **Reason**: ${info.reason}
 
 ## Contents
-- **Config files**: ${info.contents.config_files.join(', ') || 'None'}
-- **Metadata files**: ${info.contents.metadata_files.join(', ') || 'None'}
-- **Nested directories**: ${info.contents.nested_directories.length} subdirectories backed up recursively
+- **Config files**: ${info.contents.config_files.join(", ") || "None"}
+- **Metadata files**: ${info.contents.metadata_files.join(", ") || "None"}
+- **Nested directories**: ${
+                info.contents.nested_directories.length
+            } subdirectories backed up recursively
 
 ## Backup Structure
 This backup contains **merged JSON files** with all configurations from the removed directory and its subdirectories:
@@ -327,10 +444,13 @@ Each JSON file contains entries for all directories that were removed:
 - \`config/order.json\` - All ordering values (e.g., \`"Recipe/": 1, "LootTable/": 2\`)
 
 ### Nested directory structure
-${info.contents.nested_directories.length > 0 ? 
-    'The following subdirectories were also backed up:\n' + 
-    info.contents.nested_directories.map(dir => `- \`${dir}\``).join('\n') :
-    'No nested subdirectories found.'
+${
+    info.contents.nested_directories.length > 0
+        ? "The following subdirectories were also backed up:\n" +
+          info.contents.nested_directories
+              .map((dir) => `- \`${dir}\``)
+              .join("\n")
+        : "No nested subdirectories found."
 }
 
 ## How to restore?
@@ -345,16 +465,22 @@ ${info.contents.nested_directories.length > 0 ?
 2. Copy and split config entries back:
    \`\`\`bash
    # From config/locales.json, extract entries and place them in:
-   # .vitepress/config/sidebar/${info.language}/${info.original_path}/locales.json
+   # .vitepress/config/sidebar/${info.language}/${
+                info.original_path
+            }/locales.json
    # 
    # For nested entries like "Recipe/AddRecipe/": "添加配方", place them in:
-   # .vitepress/config/sidebar/${info.language}/${info.original_path}/Recipe/AddRecipe/locales.json
+   # .vitepress/config/sidebar/${info.language}/${
+                info.original_path
+            }/Recipe/AddRecipe/locales.json
    \`\`\`
 
 3. Copy and split metadata entries back:
    \`\`\`bash
    # From metadata/locales.json, extract entries and place them in:
-   # .vitepress/config/sidebar/.metadata/${info.language}/${info.original_path}/locales.json
+   # .vitepress/config/sidebar/.metadata/${info.language}/${
+                info.original_path
+            }/locales.json
    # 
    # For nested entries, split them to appropriate subdirectory metadata files
    \`\`\`
@@ -383,7 +509,9 @@ Create a restore script that automatically:
 - **Configurations are merged**: All subdirectory entries are combined into single JSON files with path prefixes
 - The backup preserves the complete nested directory structure as JSON entries
 - The backup is self-contained and portable
-- ${info.contents.nested_directories.length} nested subdirectories are included in this backup
+- ${
+                info.contents.nested_directories.length
+            } nested subdirectories are included in this backup
 
 ## Example of merged structure
 If you had:
@@ -415,7 +543,9 @@ config/locales.json: {
 - **Total entries**: ${info.entries_count}
 
 ## Entries by type
-${Object.entries(info.entries_by_type).map(([type, count]) => `- **${type}**: ${count} entries`).join('\n')}
+${Object.entries(info.entries_by_type)
+    .map(([type, count]) => `- **${type}**: ${count} entries`)
+    .join("\n")}
 
 ## How to restore?
 
@@ -446,15 +576,18 @@ You can create a script to automatically restore all or selected entries.
 `;
         }
         
-        const restoreInstructionsPath = path.join(packagePath, 'RESTORE.md');
+        const restoreInstructionsPath = path.join(packagePath, "RESTORE.md");
         await this.fs.writeFile(restoreInstructionsPath, instructions);
     }
     
     /**
-     * Updates the main README file in the archive root.
+     * @method updateMainReadme
+     * @description Updates the main README file in the archive root.
+     * @returns {Promise<void>}
+     * @private
      */
     private async updateMainReadme(): Promise<void> {
-        const readmePath = path.join(this.archivePath, 'README.md');
+        const readmePath = path.join(this.archivePath, "README.md");
         
         const readme = `# Sidebar Configuration Archive
 
@@ -497,10 +630,6 @@ Each backup package includes:
 ${new Date().toLocaleString()}
 `;
         
-        try {
             await this.fs.writeFile(readmePath, readme);
-        } catch (error) {
-            console.warn('Failed to update main README:', error);
-        }
     }
 } 

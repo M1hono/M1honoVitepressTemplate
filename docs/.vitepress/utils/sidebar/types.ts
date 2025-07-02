@@ -1,36 +1,64 @@
 /**
- * Represents a single item in the sidebar.
+ * @fileoverview Type definitions for the VitePress Sidebar Generator system.
+ * 
+ * This module contains all type definitions, interfaces, and enums used
+ * throughout the sidebar generation system. It provides comprehensive
+ * type safety for configuration objects, sidebar items, metadata tracking,
+ * and service interfaces.
+ * 
+ * @module SidebarTypes
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
+ */
+
+/**
+ * @interface SidebarItem
+ * @description Represents a single item in the sidebar.
+ * Contains all properties needed for rendering sidebar navigation items
+ * including text, links, children, and internal processing metadata.
  */
 export interface SidebarItem {
+    /** Display text for the sidebar item */
     text: string
+    /** Optional link URL for the item */
     link?: string
+    /** Array of child sidebar items for hierarchical structure */
     items?: SidebarItem[]
+    /** Whether the item should be collapsed by default */
     collapsed?: boolean
-    // Internal properties used during generation, might not be in final output
+    /** @internal Priority value for ordering (lower numbers appear first) */
     _priority?: number
-    _filePath?: string // Original file path for files
+    /** @internal Original file path for files */
+    _filePath?: string
+    /** @internal Whether this item represents a directory */
     _isDirectory?: boolean
-    _isRoot?: boolean // If this item represents a root defined by root:true
-    _hidden?: boolean // True if this item should be hidden from sidebar
-    _relativePathKey?: string // Key used for itemOrder lookups and JSON sync. 
-                             // For files/dirs: relative path from current sidebar root (e.g., 'concepts/file.md').
-                             // For groups (ordered by title): the group's title.
+    /** @internal Whether this item represents a root defined by root:true */
+    _isRoot?: boolean
+    /** @internal Whether this item should be hidden from sidebar */
+    _hidden?: boolean
+    /** @internal Key used for itemOrder lookups and JSON sync. For files/dirs: relative path from current sidebar root (e.g., 'concepts/file.md'). For groups (ordered by title): the group's title. */
+    _relativePathKey?: string
 }
 
 /**
- * Overall sidebar configuration structure used by VitePress for multiple sidebars.
+ * @type SidebarMulti
+ * @description Overall sidebar configuration structure used by VitePress for multiple sidebars.
  * Keys are base paths (e.g., '/guide/'), values are the array of sidebar items for that path.
  */
 export type SidebarMulti = Record<string, SidebarItem[]>;
 
 /**
- * The type VitePress ultimately accepts for its themeConfig.sidebar option.
+ * @type VitePressSidebar
+ * @description The type VitePress ultimately accepts for its themeConfig.sidebar option.
  * It can be a single sidebar array, a multi-sidebar object, or false to disable.
  */
 export type VitePressSidebar = SidebarItem[] | SidebarMulti | false;
 
 /**
- * Configuration for an external link in the sidebar.
+ * @interface ExternalLinkConfig
+ * @description Configuration for an external link in the sidebar.
+ * Used for adding external resources or cross-references that point outside the documentation.
  */
 export interface ExternalLinkConfig {
     /** Display text for the external link */
@@ -44,122 +72,180 @@ export interface ExternalLinkConfig {
 }
 
 /**
- * Configuration options for a directory, typically from index.md frontmatter.
+ * @interface DirectoryConfig
+ * @description Configuration options for a directory, typically from index.md frontmatter.
+ * Defines how a directory should be processed and displayed in the sidebar structure.
  */
 export interface DirectoryConfig {
+    /** Whether this directory defines a new sidebar root */
     root?: boolean
+    /** Custom title for the directory (overrides directory name) */
     title?: string
-    hidden?: boolean // True if this directory should be hidden from sidebar
-    priority?: number // For ordering among sibling directories/roots
+    /** Whether this directory should be hidden from sidebar */
+    hidden?: boolean
+    /** Priority for ordering among sibling directories/roots */
+    priority?: number
+    /** Maximum nesting depth for content within this directory */
     maxDepth?: number
-    collapsed?: boolean // Default collapsed state for this item if it's a directory
-    itemOrder?: string[] | Record<string, number> // Order of items within this directory
+    /** Default collapsed state for this item if it's a directory */
+    collapsed?: boolean
+    /** Order of items within this directory */
+    itemOrder?: string[] | Record<string, number>
+    /** Group configurations for splitting content into separate sections */
     groups?: GroupConfig[]
     /** External links to be added to this directory's sidebar */
     externalLinks?: ExternalLinkConfig[]
-    [key: string]: any // Allow other frontmatter fields
-}
-
-/**
- * Configuration for a group within an index.md's `groups` array.
- * Groups allow splitting content from a directory into separate sidebar sections.
- * The grouped content will be removed from the original parent and displayed as a separate top-level item.
- */
-export interface GroupConfig {
-    title: string // Display title for the group item in the sidebar
-    path: string // Relative path to the content directory to be grouped
-    priority?: number // Priority for ordering the group in the sidebar (higher = earlier)
-    maxDepth?: number // Maximum nesting depth for items within this group
-}
-
-/**
- * Configuration options from the global .sidebarrc.yml file.
- */
-export interface GlobalSidebarConfig {
-    defaults?: {
-        maxDepth?: number
-        collapsed?: boolean // Default for root items
-        itemOrder?: Record<string, number> | string[] // Global item order fallbacks
-        hidden?: boolean // Default hidden state for items if not specified
-    }
+    /** Allow other frontmatter fields */
     [key: string]: any
 }
 
 /**
- * The effective, merged configuration for a directory, after considering global, root, and local settings.
+ * @interface GroupConfig
+ * @description Configuration for a group within an index.md's `groups` array.
+ * Groups allow splitting content from a directory into separate sidebar sections.
+ * The grouped content will be removed from the original parent and displayed as a separate top-level item.
+ */
+export interface GroupConfig {
+    /** Display title for the group item in the sidebar */
+    title: string
+    /** Relative path to the content directory to be grouped */
+    path: string
+    /** Priority for ordering the group in the sidebar (higher = earlier) */
+    priority?: number
+    /** Maximum nesting depth for items within this group */
+    maxDepth?: number
+}
+
+/**
+ * @interface GlobalSidebarConfig
+ * @description Configuration options from the global .sidebarrc.yml file.
+ * Provides system-wide defaults and fallback values for sidebar generation.
+ */
+export interface GlobalSidebarConfig {
+    /** Default configuration values */
+    defaults?: {
+        /** Default maximum nesting depth */
+        maxDepth?: number
+        /** Default collapsed state for root items */
+        collapsed?: boolean
+        /** Global item order fallbacks */
+        itemOrder?: Record<string, number> | string[]
+        /** Default hidden state for items if not specified */
+        hidden?: boolean
+    }
+    /** Allow other configuration fields */
+    [key: string]: any
+}
+
+/**
+ * @interface EffectiveDirConfig
+ * @description The effective, merged configuration for a directory, after considering global, root, and local settings.
  * This is what the StructuralGeneratorService will primarily work with for a given directory.
+ * All optional values have been resolved to concrete defaults.
  */
 export interface EffectiveDirConfig {
-    root: boolean; // Resolved: true if it's a root, false otherwise
-    title: string; // Resolved title (e.g., from frontmatter or derived from dirname)
-    hidden: boolean; // Resolved hidden state
-    priority: number; // Resolved priority (e.g., from frontmatter or default)
-    maxDepth: number; // Resolved maxDepth (1-based for user config)
-    collapsed: boolean; // Resolved collapsed state for this directory's item
-    itemOrder: Record<string, number>; // RESOLVED to Record<string, number>, default {}
-    groups: GroupConfig[]; // Resolved groups, if any
-    externalLinks: ExternalLinkConfig[]; // Resolved external links, if any
-    path: string; // Absolute path to the directory this config is for
-    lang: string; // Language of this config
-    isDevMode: boolean; // Whether running in dev mode (affects draft status)
-    _baseRelativePathForChildren?: string; // Internal: base for relative keys of children
-    [key: string]: any; // Allow other merged fields
+    /** Resolved: true if it's a root, false otherwise */
+    root: boolean
+    /** Resolved title (e.g., from frontmatter or derived from dirname) */
+    title: string
+    /** Resolved hidden state */
+    hidden: boolean
+    /** Resolved priority (e.g., from frontmatter or default) */
+    priority: number
+    /** Resolved maxDepth (1-based for user config) */
+    maxDepth: number
+    /** Resolved collapsed state for this directory's item */
+    collapsed: boolean
+    /** RESOLVED to Record<string, number>, default {} */
+    itemOrder: Record<string, number>
+    /** Resolved groups, if any */
+    groups: GroupConfig[]
+    /** Resolved external links, if any */
+    externalLinks: ExternalLinkConfig[]
+    /** Absolute path to the directory this config is for */
+    path: string
+    /** Language of this config */
+    lang: string
+    /** Whether running in dev mode (affects draft status) */
+    isDevMode: boolean
+    /** @internal Base for relative keys of children */
+    _baseRelativePathForChildren?: string
+    /** Allow other merged fields */
+    [key: string]: any
 }
 
 /**
- * Configuration for an individual markdown file, from its frontmatter.
+ * @interface FileConfig
+ * @description Configuration for an individual markdown file, from its frontmatter.
+ * Controls how individual files are processed and displayed in the sidebar.
  */
 export interface FileConfig {
+    /** Custom title for the file (overrides filename) */
     title?: string
-    hidden?: boolean // True if this file should be hidden from sidebar
+    /** Whether this file should be hidden from sidebar */
+    hidden?: boolean
+    /** Priority for ordering this file among siblings */
     priority?: number
-    [key: string]: any // Allow other frontmatter fields
+    /** Allow other frontmatter fields */
+    [key: string]: any
 }
 
 /**
- * Represents a single entry in a metadata file, corresponding to a key in a JSON override file.
+ * @interface MetadataEntry
+ * @description Represents a single entry in a metadata file, corresponding to a key in a JSON override file.
+ * Used for tracking changes, user modifications, and structural relationships.
  */
 export interface MetadataEntry {
-    valueHash: string;      // Hash of the value in the corresponding JSON file (e.g., MD5 of the translated string)
-    isUserSet: boolean;     // True if the user created/significantly edited this entry, false if system-generated stub
-    isActiveInStructure: boolean; // True if this key currently maps to an item in the live declarative structure
-    lastSeen?: number;      // DEPRECATED: No longer actively maintained to prevent heavy git commits
+    /** Hash of the value in the corresponding JSON file (e.g., MD5 of the translated string) */
+    valueHash: string
+    /** True if the user created/significantly edited this entry, false if system-generated stub */
+    isUserSet: boolean
+    /** True if this key currently maps to an item in the live declarative structure */
+    isActiveInStructure: boolean
+    /** @deprecated No longer actively maintained to prevent heavy git commits */
+    lastSeen?: number
 }
 
 /**
- * Represents the content of a metadata file, which is a map of item keys to their metadata entries.
+ * @type JsonFileMetadata
+ * @description Represents the content of a metadata file, which is a map of item keys to their metadata entries.
+ * Used for tracking configuration changes and determining user vs system modifications.
  */
 export type JsonFileMetadata = Record<string, MetadataEntry>;
 
-// Re-exporting existing types if they are still relevant and used by the new services.
-// Ensure to remove or update any types that become obsolete with the refactor.
-
-// Example of a previously existing type that might be adjusted or kept:
-// export interface DiscoveredFile { ... }
-// export interface SidebarContext { ... }
-
-// Clean up old types not used by the new services based on the refactor plan.
-// The old `SidebarConfig` from the original `SidebarGenerator.ts` might be one such candidate for removal or major rework.
-
+/**
+ * @interface DiscoveredFile
+ * @description Represents a file or directory discovered during file system traversal.
+ * Used by the structural generator for building the initial sidebar hierarchy.
+ */
 export interface DiscoveredFile {
+    /** Filename or directory name */
     name: string
+    /** Absolute path to the file or directory */
     path: string
+    /** Type of the discovered entry */
     type: 'file' | 'directory'
-    // Use Partial<EffectiveDirConfig> as directory config might not be fully resolved yet
-    // or might not be applicable if it's a file.
+    /** Directory configuration if applicable (might not be fully resolved yet or might not be applicable if it's a file) */
     config?: Partial<EffectiveDirConfig> 
 }
 
+/**
+ * @interface SidebarContext
+ * @description Contextual information passed during sidebar generation.
+ * Provides necessary context for processing decisions and recursive operations.
+ */
 export interface SidebarContext {
+    /** Base path for the current sidebar section */
     basePath: string
+    /** Current path being processed */
     currentPath: string
-    // config is the fully resolved config for the current directory being processed
+    /** Fully resolved config for the current directory being processed */
     config: EffectiveDirConfig 
+    /** Current nesting depth (0-indexed) */
     depth: number
+    /** Language code being processed */
     lang: string
+    /** Whether running in development mode */
     isDevMode: boolean
-    // Add any other contextual information needed during generation
 }
-
-// Removed old SidebarConfig type and references 
 

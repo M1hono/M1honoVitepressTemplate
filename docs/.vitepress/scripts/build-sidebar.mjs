@@ -1,5 +1,6 @@
 import { getSidebar, getConfiguredLanguages, configureSidebar } from "../utils/sidebar/index.ts";
-import { getLanguageCodes, getSrcPath, getVitepressPath } from "@utils/config";
+import { getLanguageCodes } from "../config/project-config.js";
+import { getSrcPath, getVitepressPath } from "../utils/config/path-resolver.js";
 
 async function buildSidebars() {
     console.log("🚀 Starting sidebar generation...");

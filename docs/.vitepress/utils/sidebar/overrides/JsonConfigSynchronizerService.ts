@@ -1,13 +1,24 @@
+/**
+ * @fileoverview Main JSON configuration synchronization service orchestrator.
+ * 
+ * This module provides the primary orchestration service for JSON configuration
+ * synchronization across sidebar structures. It coordinates multiple specialized
+ * services to handle directory signatures, archival, cleanup, and recursive
+ * synchronization while maintaining GitBook compatibility and user customization
+ * preservation.
+ * 
+ * @module JsonConfigSynchronizerService
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
+ */
+
 import path from 'node:path';
 import {
     SidebarItem,
-    // EffectiveDirConfig, // May not be needed directly by this service anymore
     JsonFileMetadata,
-    // GlobalSidebarConfig, 
-    // DirectoryConfig 
 } from '../types';
 import { FileSystem } from '../shared/FileSystem';
-// import { ConfigReaderService } from '../config'; // ConfigReader might not be directly used here
 import { normalizePathSeparators, sanitizeTitleForPath } from '../shared/objectUtils';
 import { JsonFileHandler, JsonOverrideFileType } from './JsonFileHandler';
 import { MetadataManager } from './MetadataManager';
@@ -20,40 +31,84 @@ import { DirectoryCleanupService } from './DirectoryCleanupService';
 import { RecursiveSynchronizer } from './RecursiveSynchronizer';
 
 /**
- * @file JsonConfigSynchronizerService.ts
- * @description Lightweight orchestrator for JSON config synchronization using focused services.
+ * Primary orchestration service for JSON configuration synchronization.
+ * 
+ * Coordinates the complete JSON configuration synchronization process by
+ * orchestrating multiple specialized services. Handles the full lifecycle
+ * of synchronization including directory signature management, archival
+ * of outdated configurations, cleanup operations, and recursive processing
+ * while preserving user customizations and maintaining GitBook compatibility.
+ * 
+ * Key responsibilities:
+ * - Service orchestration and dependency injection
+ * - GitBook integration and exclusion handling
+ * - Directory signature management and active tracking
+ * - Outdated configuration identification and cleanup
+ * - Recursive synchronization coordination
+ * - User customization preservation throughout the process
+ * 
+ * @class JsonConfigSynchronizerService
+ * @since 1.0.0
+ * @public
+ * @example
+ * ```typescript
+ * const synchronizer = new JsonConfigSynchronizerService('/docs', fileSystem);
+ * 
+ * const synchronizedItems = await synchronizer.synchronize(
+ *   '/en/guide/',
+ *   sidebarItems,
+ *   'en',
+ *   false,
+ *   gitbookPaths
+ * );
+ * ```
  */
 export class JsonConfigSynchronizerService {
     private readonly docsPath: string;
     private readonly absDocsPath: string;
 
-    // Core services
     private jsonFileHandler: JsonFileHandler;
     private metadataManager: MetadataManager;
     private syncEngine: SyncEngine;
     private jsonItemSorter: JsonItemSorter;
 
-    // Specialized services
     private pathProcessor: PathKeyProcessor;
     private directorySignatureManager: DirectorySignatureManager;
     private archiveService: DirectoryArchiveService;
     private cleanupService: DirectoryCleanupService;
     private recursiveSynchronizer: RecursiveSynchronizer;
 
-    constructor(docsPath: string, fs: FileSystem /*, configReader: ConfigReaderService */) {
+    /**
+     * Creates an instance of JsonConfigSynchronizerService.
+     * 
+     * Initializes the synchronization service with comprehensive dependency
+     * injection and service coordination. Sets up all specialized services
+     * with proper configuration paths and shared dependencies for seamless
+     * operation across the synchronization process.
+     * 
+     * @param {string} docsPath - Absolute path to the docs directory
+     * @param {FileSystem} fs - File system interface for all file operations
+     * @since 1.0.0
+     * @example
+     * ```typescript
+     * const synchronizer = new JsonConfigSynchronizerService(
+     *   '/docs',
+     *   new NodeFileSystem()
+     * );
+     * ```
+     */
+    constructor(docsPath: string, fs: FileSystem) {
         this.absDocsPath = normalizePathSeparators(docsPath);
         this.docsPath = normalizePathSeparators(docsPath);
         
         const baseOverridesPath = normalizePathSeparators(path.join(this.docsPath, '..', '.vitepress', 'config', 'sidebar'));
         const metadataStorageBasePath = normalizePathSeparators(path.join(baseOverridesPath, '.metadata'));
 
-        // Initialize core services
         this.jsonFileHandler = new JsonFileHandler(fs, baseOverridesPath);
         this.metadataManager = new MetadataManager(fs, metadataStorageBasePath);
         this.syncEngine = new SyncEngine(); 
         this.jsonItemSorter = new JsonItemSorter();
 
-        // Initialize specialized services
         this.pathProcessor = new PathKeyProcessor();
         this.directorySignatureManager = new DirectorySignatureManager(fs, this.docsPath);
         this.archiveService = new DirectoryArchiveService(this.jsonFileHandler, this.metadataManager, fs, this.docsPath);
@@ -68,7 +123,46 @@ export class JsonConfigSynchronizerService {
     }
 
     /**
-     * Public facing method to synchronize an entire tree of sidebar items for a given language.
+     * Synchronizes an entire sidebar tree with JSON configuration files.
+     * 
+     * Orchestrates the complete synchronization process for a sidebar tree,
+     * including GitBook detection, directory signature management, cleanup
+     * operations, and recursive processing. Preserves user customizations
+     * while ensuring configuration files remain synchronized with the
+     * current sidebar structure.
+     * 
+     * The synchronization process:
+     * 1. Validates input and performs GitBook exclusion check
+     * 2. Collects active directory signatures from sidebar structure
+     * 3. Identifies and processes outdated configuration directories
+     * 4. Archives directories with user modifications
+     * 5. Cleans up directories with only system-generated content
+     * 6. Performs recursive synchronization of all items
+     * 7. Reapplies migrated values for final consistency
+     * 
+     * @param {string} rootPathKey - Root path key for the sidebar (e.g., '/en/guide/')
+     * @param {SidebarItem[]} sidebarTreeInput - Array of sidebar items to synchronize
+     * @param {string} lang - Language code for configuration organization
+     * @param {boolean} isDevMode - Whether running in development mode
+     * @param {string[]} langGitbookPaths - Array of GitBook paths to exclude from processing
+     * @returns {Promise<SidebarItem[]>} Promise resolving to synchronized sidebar items
+     * @since 1.0.0
+     * @public
+     * @example
+     * ```typescript
+     * const synchronizedTree = await synchronizer.synchronize(
+     *   '/en/guide/',
+     *   [
+     *     { text: 'Introduction', link: '/en/guide/intro' },
+     *     { text: 'Concepts', items: [...] }
+     *   ],
+     *   'en',
+     *   false,
+     *   ['/docs/en/gitbook-section']
+     * );
+     * 
+     * // Returns: Sidebar items with applied JSON configurations
+     * ```
      */
     public async synchronize(
         rootPathKey: string,
@@ -81,12 +175,10 @@ export class JsonConfigSynchronizerService {
             return []; 
         }
 
-        // Get root directory signature
         const rootConfigDirectorySignature = this.pathProcessor.getSignatureForRootView(rootPathKey, lang);
         
         const normalizedGitbookPaths = langGitbookPaths.map(p => normalizePathSeparators(p));
 
-        // Early check: If this root view itself is a GitBook root, skip all JSON processing
         const isGitBook = this.pathProcessor.isGitBookRoot(rootConfigDirectorySignature, lang, normalizedGitbookPaths, this.absDocsPath);
         
         if (isGitBook) {
@@ -95,7 +187,6 @@ export class JsonConfigSynchronizerService {
 
         const processedTree = sidebarTreeInput.map(item => JSON.parse(JSON.stringify(item))) as SidebarItem[];
         
-        // Collect all active directory signatures for cleanup
         const activeDirectorySignatures = new Set<string>();
         this.directorySignatureManager.collectActiveDirectorySignatures(
             processedTree, 
@@ -106,20 +197,16 @@ export class JsonConfigSynchronizerService {
             activeDirectorySignatures
         );
 
-        // Identify outdated directories
         const outdatedDirs = await this.directorySignatureManager.identifyOutdatedDirectories(
             rootConfigDirectorySignature, 
             lang, 
             activeDirectorySignatures
         );
 
-        // Archive outdated directories that have user modifications
         await this.archiveService.archiveOutdatedDirectories(outdatedDirs, lang);
 
-        // Clean up remaining outdated directories
         await this.cleanupService.cleanupOutdatedDirectories(outdatedDirs, lang);
         
-        // Synchronize items recursively
         await this.recursiveSynchronizer.synchronizeItemsRecursively(
             processedTree, 
             rootConfigDirectorySignature, 
@@ -129,7 +216,6 @@ export class JsonConfigSynchronizerService {
             true
         );
 
-        // Apply JSON overrides as final step to ensure all values are properly applied
         await this.recursiveSynchronizer.reapplyMigratedValues(
             processedTree, 
             rootConfigDirectorySignature, 

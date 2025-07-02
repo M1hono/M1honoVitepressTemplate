@@ -1,0 +1,60 @@
+[
+    {
+        "enabled": true
+    },
+    {
+        "name": "template-features",
+        "color": "#646cff",
+        "darkColor": "#747bff",
+        "snippets": [
+            "Feature-rich VitePress template",
+            "Out-of-the-box documentation solution",
+            "Modern theme design",
+            "Complete SEO optimization"
+        ]
+    },
+    {
+        "name": "markdown-enhancements",
+        "color": "#4fc08d",
+        "darkColor": "#42b883",
+        "snippets": [
+            "Extended Markdown syntax",
+            "Code groups and tabs",
+            "Mathematical formula rendering",
+            "Mermaid chart integration"
+        ]
+    },
+    {
+        "name": "search-integration",
+        "color": "#f7df1e",
+        "darkColor": "#f0d91d",
+        "snippets": [
+            "Algolia full-text search",
+            "Intelligent suggestions",
+            "Real-time search experience",
+            "Multi-language support"
+        ]
+    },
+    {
+        "name": "development-tools",
+        "color": "#dc2626",
+        "darkColor": "#f87171",
+        "snippets": [
+            "Auto-generated sidebar",
+            "Git integration features",
+            "Development toolchain",
+            "Performance optimization"
+        ]
+    },
+    {
+        "name": "deployment",
+        "color": "#7c3aed",
+        "darkColor": "#a78bfa",
+        "snippets": [
+            "GitHub Pages integration",
+            "Vercel one-click deployment",
+            "CI/CD workflow",
+            "Multi-platform support"
+        ]
+    }
+]

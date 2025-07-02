@@ -4,7 +4,6 @@
  */
 
 import { countWord } from './functions';
-import { collectTags } from './tagCollector';
 import * as navLinkType from './navLinkType';
 
 /**
@@ -20,13 +19,12 @@ export const text = {
 
 
 /**
- * Main content utilities export
+ * Main content utilities export (client-safe only)
  */
 export const contentUtils = {
   text,
   countWord,
   getReadingTime: text.getReadingTime,
-  collectTags,
   navLinkType,
 };
 

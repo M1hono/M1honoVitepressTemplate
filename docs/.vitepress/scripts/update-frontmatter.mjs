@@ -4,12 +4,9 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, relative, resolve } from "path";
 import glob from "fast-glob";
 import matter from "gray-matter";
-import { getSrcPath, getLanguageCodes } from "../config/project-config.ts";
+import { getLanguageCodes } from "../config/project-config.js";
+import { getSrcPath } from "../utils/config/path-resolver.js";
 
-/**
- * Powerful frontmatter editor for markdown files
- * Updates editor and authors fields across folders and subfolders
- */
 class FrontmatterUpdater {
     constructor() {
         this.processedFiles = 0;
@@ -22,9 +19,6 @@ class FrontmatterUpdater {
         this.languages = getLanguageCodes();
     }
 
-    /**
-     * Parse command line arguments
-     */
     parseArgs(args) {
         const config = {
             path: null,
@@ -225,16 +219,12 @@ SOURCE DIRECTORY: ${this.srcPath}
         `);
     }
 
-    /**
-     * Validate configuration
-     */
     validateConfig(config) {
         if (!config.path) {
             console.error("❌ Error: --path is required");
             return false;
         }
 
-        // 使用配置管理器中的路径
         const fullPath = resolve(this.srcPath, config.path);
         if (!existsSync(fullPath)) {
             console.error(
@@ -267,20 +257,15 @@ SOURCE DIRECTORY: ${this.srcPath}
         return true;
     }
 
-    /**
-     * Handle author updates with granular operations
-     */
     updateAuthors(parsed, config, changes) {
         let currentAuthors = parsed.data.authors || [];
         let hasChanges = false;
         const operations = [];
 
-        // Ensure currentAuthors is an array
         if (!Array.isArray(currentAuthors)) {
             currentAuthors = [];
         }
 
-        // Replace entire authors array
         if (config.authors) {
             if (!parsed.data.authors || config.force) {
                 const oldValue = parsed.data.authors || [];

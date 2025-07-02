@@ -1,37 +1,118 @@
+/**
+ * @fileoverview Path key processing utilities for JSON configuration synchronization.
+ * 
+ * This module provides sophisticated path key processing capabilities for sidebar
+ * configuration synchronization. It handles the extraction of relative keys,
+ * directory signature processing, and GitBook root detection while managing
+ * complex nested directory structures and content path relationships.
+ * 
+ * @module PathKeyProcessor
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
+ */
+
 import path from 'node:path';
 import { SidebarItem } from '../types';
 import { normalizePathSeparators, sanitizeTitleForPath } from '../shared/objectUtils';
 
 /**
- * @file PathKeyProcessor.ts
- * @description Handles path key processing and relative key extraction for JSON config synchronization.
+ * Advanced path key processor for sidebar configuration synchronization.
+ * 
+ * Provides comprehensive path key processing capabilities for JSON configuration
+ * synchronization. Handles complex scenarios including nested directory structures,
+ * content path extraction, relative key generation, and GitBook root detection.
+ * Essential for maintaining accurate configuration mappings across hierarchical
+ * sidebar structures.
+ * 
+ * Key capabilities:
+ * - Relative key extraction for current directory contexts
+ * - Content path detection and processing
+ * - Version pattern recognition for modded content structures
+ * - Directory signature generation for configuration files
+ * - GitBook root detection and handling
+ * - Cross-platform path normalization
+ * 
+ * @class PathKeyProcessor
+ * @since 1.0.0
+ * @public
+ * @example
+ * ```typescript
+ * const processor = new PathKeyProcessor();
+ * 
+ * // Extract relative key for current directory context
+ * const relativeKey = processor.extractRelativeKeyForCurrentDir(
+ *   sidebarItem,
+ *   'modpack/kubejs/1.20.1/Introduction'
+ * );
+ * 
+ * // Get signature for root view
+ * const signature = processor.getSignatureForRootView('/en/guide/', 'en');
+ * 
+ * // Check if item is GitBook root
+ * const isGitBook = processor.isGitBookRoot(
+ *   'my-gitbook',
+ *   'en',
+ *   gitbookPaths,
+ *   docsPath
+ * );
+ * ```
  */
 export class PathKeyProcessor {
     
     /**
-     * Extracts the relative key for the current directory from a full _relativePathKey.
-     * For example, if currentConfigDirSignature is "modpack/kubejs/1.20.1/Introduction/Addon" 
-     * and item._relativePathKey is "Introduction/Addon/ProbeJS/", this returns "ProbeJS/".
+     * Extracts the relative key for the current directory from a full path key.
      * 
-     * @param item The sidebar item to extract the key from
-     * @param currentConfigDirSignature The current directory signature (e.g., "concepts" or "modpack/kubejs/1.20.1/Introduction/Addon")
-     * @returns The relative key for the current directory context
+     * Processes complex path relationships to extract the immediate child component
+     * relative to the current directory context. Handles nested structures,
+     * version patterns, and maintains proper file/directory formatting with
+     * appropriate trailing slashes for directories and extension preservation
+     * for files.
+     * 
+     * The extraction process:
+     * 1. For root level (_root): Returns immediate child component
+     * 2. For nested directories: Analyzes path structure to find content portion
+     * 3. Uses version pattern detection (e.g., "1.20.1") as structural markers
+     * 4. Falls back to longest suffix matching for complex hierarchies
+     * 5. Preserves file extensions and directory trailing slashes
+     * 
+     * @param {SidebarItem} item - The sidebar item to extract the key from
+     * @param {string} currentConfigDirSignature - Current directory signature context
+     * @returns {string} Relative key for the current directory context
+     * @since 1.0.0
+     * @public
+     * @example
+     * ```typescript
+     * // Root level extraction
+     * const rootKey = processor.extractRelativeKeyForCurrentDir(
+     *   { _relativePathKey: 'Introduction/Concepts/', _isDirectory: true },
+     *   '_root'
+     * ); // Returns: "Introduction/"
+     * 
+     * // Nested directory extraction
+     * const nestedKey = processor.extractRelativeKeyForCurrentDir(
+     *   { _relativePathKey: 'Introduction/Addon/ProbeJS/', _isDirectory: true },
+     *   'modpack/kubejs/1.20.1/Introduction/Addon'
+     * ); // Returns: "ProbeJS/"
+     * 
+     * // File extraction
+     * const fileKey = processor.extractRelativeKeyForCurrentDir(
+     *   { _relativePathKey: 'Introduction/setup.md', _isDirectory: false },
+     *   'modpack/kubejs/1.20.1/Introduction'
+     * ); // Returns: "setup.md"
+     * ```
      */
     public extractRelativeKeyForCurrentDir(item: SidebarItem, currentConfigDirSignature: string): string {
         const fullKey = item._relativePathKey || sanitizeTitleForPath(item.text || 'untitled');
         
-        // If we're at root level, extract the immediate child component
         if (currentConfigDirSignature === '_root') {
             const parts = fullKey.split('/').filter(p => p.length > 0);
             let result: string;
             
             if (item._isDirectory) {
-                // Directories should have trailing slash: "Introduction/"
                 result = parts.length > 0 ? parts[0] + '/' : fullKey;
             } else {
-                // Files should NOT have trailing slash: "Description.md"
                 result = parts.length > 0 ? parts[0] : fullKey;
-                // Ensure file extensions are preserved
                 if (!result.includes('.') && item.text && item.text.includes('.')) {
                     result = item.text;
                 }
@@ -40,17 +121,10 @@ export class PathKeyProcessor {
             return result;
         }
         
-        // For nested directories, we need to find the content path portion of the config signature
-        // The config signature format is like "modpack/kubejs/1.20.1/Introduction/Addon"
-        // The content path portion is the part that appears in the fullKey
-        
-        // Split the config signature to find the content path
         const configParts = currentConfigDirSignature.split('/');
         
-        // Find where the content path starts by looking for version patterns or matching with fullKey
         let contentPathStartIndex = -1;
         
-        // Strategy 1: Look for version patterns (e.g., "1.20.1", "1.18.2")
         for (let i = 0; i < configParts.length; i++) {
             if (/^\d+\.\d+(\.\d+)?$/.test(configParts[i])) {
                 contentPathStartIndex = i + 1;
@@ -58,7 +132,6 @@ export class PathKeyProcessor {
             }
         }
         
-        // Strategy 2: If no version found, find the longest suffix that matches the start of fullKey
         if (contentPathStartIndex === -1) {
             for (let i = 1; i < configParts.length; i++) {
                 const testContentPath = configParts.slice(i).join('/');
@@ -70,24 +143,18 @@ export class PathKeyProcessor {
         }
         
         if (contentPathStartIndex >= 0 && contentPathStartIndex < configParts.length) {
-            // Extract the content path from the config signature
             const contentPath = configParts.slice(contentPathStartIndex).join('/');
             
-            // Remove the content path prefix from the fullKey to get the relative part
             if (fullKey.startsWith(contentPath + '/')) {
                 const relativePart = fullKey.substring(contentPath.length + 1);
                 
-                // Return only the immediate child portion
                 const parts = relativePart.split('/').filter(p => p.length > 0);
                 let result: string;
                 
                 if (item._isDirectory) {
-                    // Directories should have trailing slash
                     result = parts.length > 0 ? parts[0] + '/' : relativePart;
                 } else {
-                    // Files should NOT have trailing slash and preserve extensions
                     result = parts.length > 0 ? parts[0] : relativePart;
-                    // Remove trailing slash if present for files
                     if (result.endsWith('/')) {
                         result = result.slice(0, -1);
                     }
@@ -95,20 +162,16 @@ export class PathKeyProcessor {
                 
                 return result;
             } else if (fullKey === contentPath + '/') {
-                // This item represents the directory itself
                 return '';
             }
         }
         
-        // FALLBACK: Extract immediate child from fullKey
         const parts = fullKey.split('/').filter(p => p.length > 0);
         let result: string;
         
         if (item._isDirectory) {
-            // Directories should have trailing slash
             result = parts.length > 0 ? parts[parts.length - 1] + '/' : fullKey;
         } else {
-            // Files should NOT have trailing slash
             result = parts.length > 0 ? parts[parts.length - 1] : fullKey;
             if (result.endsWith('/')) {
                 result = result.slice(0, -1);
@@ -119,31 +182,60 @@ export class PathKeyProcessor {
     }
 
     /**
-     * Derives the directory path signature for the JSON config files of a given root view.
-     * @param rootPathKey The global path key for the sidebar root (e.g., '/en/guide/').
-     * @param lang The language code (e.g., 'en').
-     * @returns Path signature relative to the language folder (e.g., 'guide', '_root').
+     * Derives the directory path signature for JSON configuration files.
+     * 
+     * Converts a global sidebar root path key into a normalized directory
+     * signature suitable for organizing JSON configuration files. Handles
+     * language prefixes, path normalization, and special cases like root
+     * directories and single-language sites.
+     * 
+     * The signature generation process:
+     * 1. Normalizes path separators for cross-platform compatibility
+     * 2. Removes language prefixes to get path relative to language root
+     * 3. Handles special cases for root directories ('_root')
+     * 4. Manages both multi-language and single-language site structures
+     * 5. Removes trailing slashes for clean directory signatures
+     * 
+     * @param {string} rootPathKey - Global path key for the sidebar root (e.g., '/en/guide/')
+     * @param {string} lang - Language code (e.g., 'en', empty for single-language sites)
+     * @returns {string} Path signature relative to language folder (e.g., 'guide', '_root')
+     * @since 1.0.0
+     * @public
+     * @example
+     * ```typescript
+     * // Multi-language site
+     * const signature1 = processor.getSignatureForRootView('/en/guide/', 'en');
+     * // Returns: "guide"
+     * 
+     * // Root directory
+     * const signature2 = processor.getSignatureForRootView('/en/', 'en');
+     * // Returns: "_root"
+     * 
+     * // Single-language site
+     * const signature3 = processor.getSignatureForRootView('/guide/', '');
+     * // Returns: "guide"
+     * 
+     * // Complex nested path
+     * const signature4 = processor.getSignatureForRootView('/en/docs/api/v2/', 'en');
+     * // Returns: "docs/api/v2"
+     * ```
      */
     public getSignatureForRootView(rootPathKey: string, lang: string): string {
         let normalizedKey = normalizePathSeparators(rootPathKey);
-        const langPrefix = lang ? `/${lang}/` : '/'; // Handle empty lang for single-lang sites
+        const langPrefix = lang ? `/${lang}/` : '/';
         let pathRelativeToLangRoot: string;
 
         if (lang && normalizedKey.startsWith(langPrefix)) {
             pathRelativeToLangRoot = normalizedKey.substring(langPrefix.length);
         } else if (lang && normalizedKey === `/${lang}`) {
             pathRelativeToLangRoot = '';
-        } else if (!lang && normalizedKey.startsWith('/')) { // Single lang site, key is like /guide/
+        } else if (!lang && normalizedKey.startsWith('/')) {
             pathRelativeToLangRoot = normalizedKey.substring(1);
         } else if (lang && !normalizedKey.startsWith(langPrefix)){
-            // This case means rootPathKey might be like '/guide/' but lang is 'en'.
-            // This shouldn't happen if main.ts always provides full /en/guide/ style keys.
-            // As a fallback, if lang is present, assume key is already relative to lang dir or it's a malformed global key.
-            // For safety, if it starts with '/', remove it. This is best effort.
             pathRelativeToLangRoot = normalizedKey.startsWith('/') ? normalizedKey.substring(1) : normalizedKey;
 
-        } else { // lang is empty, and key is empty or not starting with /
-            pathRelativeToLangRoot = normalizedKey; // Treat as already relative or just empty
+        } else {
+            pathRelativeToLangRoot = normalizedKey;
         }
 
         if (pathRelativeToLangRoot.endsWith('/')) {
@@ -153,14 +245,55 @@ export class PathKeyProcessor {
     }
 
     /**
-     * Determines if a given sidebar item (by its content path relative to lang) is a GitBook root.
-     * @param itemContentPathRelativeToLang Path of the item, relative to the language folder (e.g., 'my-gitbook-folder').
-     * @param lang Current language.
-     * @param langGitbookPaths Absolute paths to GitBook directories for the current language.
-     * @param absDocsPath Absolute path to the docs directory.
+     * Determines if a sidebar item represents a GitBook root directory.
+     * 
+     * Checks whether a given sidebar item path corresponds to a GitBook root
+     * directory by comparing its absolute path against a list of known GitBook
+     * paths for the current language. This is essential for proper handling
+     * of GitBook integration and avoiding configuration conflicts.
+     * 
+     * The detection process:
+     * 1. Excludes '_root' signatures (cannot be GitBook paths)
+     * 2. Constructs absolute path from relative components
+     * 3. Normalizes path for cross-platform compatibility
+     * 4. Performs exact match against known GitBook directories
+     * 
+     * @param {string} itemContentPathRelativeToLang - Path relative to language folder (e.g., 'my-gitbook-folder')
+     * @param {string} lang - Current language code
+     * @param {string[]} langGitbookPaths - Array of absolute paths to GitBook directories for current language
+     * @param {string} absDocsPath - Absolute path to the docs directory
+     * @returns {boolean} True if the item represents a GitBook root directory
+     * @since 1.0.0
+     * @public
+     * @example
+     * ```typescript
+     * // Check if directory is GitBook root
+     * const isGitBook = processor.isGitBookRoot(
+     *   'my-gitbook-folder',
+     *   'en',
+     *   ['/docs/en/my-gitbook-folder', '/docs/en/another-gitbook'],
+     *   '/docs'
+     * ); // Returns: true
+     * 
+     * // Root directory check
+     * const isRootGitBook = processor.isGitBookRoot(
+     *   '_root',
+     *   'en',
+     *   gitbookPaths,
+     *   '/docs'
+     * ); // Returns: false (root cannot be GitBook)
+     * 
+     * // Non-GitBook directory
+     * const isRegular = processor.isGitBookRoot(
+     *   'regular-folder',
+     *   'en',
+     *   gitbookPaths,
+     *   '/docs'
+     * ); // Returns: false
+     * ```
      */
     public isGitBookRoot(itemContentPathRelativeToLang: string, lang: string, langGitbookPaths: string[], absDocsPath: string): boolean {
-        if (itemContentPathRelativeToLang === '_root') return false; // _root itself cannot be a gitbook path signature
+        if (itemContentPathRelativeToLang === '_root') return false;
         const itemAbsPath = normalizePathSeparators(path.join(absDocsPath, lang, itemContentPathRelativeToLang));
         return langGitbookPaths.includes(itemAbsPath);
     }

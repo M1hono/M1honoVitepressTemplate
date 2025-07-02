@@ -4,7 +4,8 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, basename, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import glob from 'fast-glob';
-import { getSrcPath, getLanguageCodes } from "../config/project-config.ts";
+import { getLanguageCodes } from "../config/project-config.js";
+import { getSrcPath } from "../utils/config/path-resolver.js";
 
 /**
  * Index.md Generator - Create index.md files for directories that don't have them

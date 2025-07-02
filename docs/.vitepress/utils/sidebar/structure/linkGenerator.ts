@@ -1,3 +1,17 @@
+/**
+ * @fileoverview Link generation utilities for sidebar items.
+ * 
+ * This module provides functionality for generating appropriate links for
+ * sidebar items, including directories with index.md files and groups.
+ * It handles URL normalization, path resolution, and link validation
+ * across different content types and language configurations.
+ * 
+ * @module LinkGenerator
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
+ */
+
 import path from "node:path";
 import { GroupConfig } from "../types";
 import { FileSystem } from "../shared/FileSystem";
@@ -5,11 +19,22 @@ import { normalizePathSeparators } from "../shared/objectUtils";
 
 /**
  * Generates a normalized URL link for a directory path relative to the language root.
- * Ensures it starts and ends with a slash.
- * Example: /path/to/dir/
- * @param dirAbsPath Absolute path to the directory.
- * @param docsAbsPath Absolute path to the /docs directory.
- * @param lang Current language code.
+ * 
+ * Converts an absolute directory path into a URL-safe link format appropriate
+ * for VitePress navigation. Handles language prefixes, path normalization,
+ * and ensures proper slash formatting for directory links.
+ * 
+ * @param {string} dirAbsPath - Absolute path to the directory
+ * @param {string} docsAbsPath - Absolute path to the /docs directory
+ * @param {string} lang - Current language code
+ * @returns {string} Normalized URL link (e.g., /en/path/to/dir/)
+ * @since 1.0.0
+ * @private
+ * @example
+ * ```typescript
+ * normalizeDirPathToUrl('/docs/en/guide', '/docs', 'en'); // '/en/guide/'
+ * normalizeDirPathToUrl('/docs/guide', '/docs', ''); // '/guide/'
+ * ```
  */
 function normalizeDirPathToUrl(
     dirAbsPath: string,
@@ -23,66 +48,91 @@ function normalizeDirPathToUrl(
         path.relative(langRootAbsPath, dirAbsPath)
     );
 
-    // If relativePath is empty, it means dirAbsPath is the langRootAbsPath itself.
     if (relativePath === "" || relativePath === ".") {
-        relativePath = ""; // Link to /lang/ or / if lang is empty
+        relativePath = "";
     } else {
         relativePath = relativePath + "/";
     }
 
     let link: string;
     if (!lang || lang === '') {
-        // For root directory (empty lang), don't add language prefix
         link = relativePath ? `/${relativePath}` : "/";
     } else {
-        // For specific languages, include language prefix
         link = `/${lang}/${relativePath}`;
     }
     
-    // Consolidate multiple slashes into one, but not for protocol (e.g. http://)
     link = link.replace(/([^:])\/\/+/g, "$1/");
     
-    // Ensure it ends with a slash if it has content beyond the root
     if (link !== "/" && !link.endsWith("/")) {
         link += "/";
     }
     
-    // Clean up any remaining double slashes
     link = link.replace(/\/\/+/g, "/");
 
     return link;
 }
 
 /**
- * Normalizes a group title or directory name into a slug for path matching.
- * Example: "Core Concepts" -> "core-concepts"
+ * Normalizes a group title or directory name into a URL-safe slug.
+ * 
+ * Converts human-readable titles into path-safe strings by converting to
+ * lowercase, replacing spaces with hyphens, removing unsafe characters,
+ * and cleaning up multiple consecutive hyphens.
+ * 
+ * @param {string} text - Text to convert to slug format
+ * @returns {string} URL-safe slug string
+ * @since 1.0.0
+ * @private
+ * @example
+ * ```typescript
+ * slugify("Core Concepts"); // "core-concepts"
+ * slugify("Getting Started!"); // "getting-started"
+ * ```
  */
 function slugify(text: string): string {
     return text
         .toString()
         .toLowerCase()
-        .replace(/\s+/g, "-") // Replace spaces with -
-        .replace(/[^\w-]+/g, "") // Remove all non-word chars (keeps underscore and hyphen)
-        .replace(/--+/g, "-") // Replace multiple - with single -
-        .replace(/^-+/, "") // Trim - from start of text
-        .replace(/-+$/, ""); // Trim - from end of text
+        .replace(/\s+/g, "-")
+        .replace(/[^\w-]+/g, "")
+        .replace(/--+/g, "-")
+        .replace(/^-+/, "")
+        .replace(/-+$/, "");
 }
 
 /**
- * Generates a link for a directory or a group item based on defined rules.
- * @param itemName The name of the directory (e.g., "concepts") or group title (e.g., "Core Concepts").
- * @param itemType 'directory' or 'group'.
- * @param currentDirAbsPath Absolute FS path to the directory where the item (or group definition) resides.
- * @param docsAbsPath Absolute path to the 'docs' directory.
- * @param lang Current language code.
- * @param fs FileSystem instance.
- * @param groupConfig Optional. The configuration of the group if generating a link for a group.
- * @returns The link string if clickable (e.g., /en/guide/concepts/), or null if not.
+ * Generates a link for a directory or group item based on content and configuration.
+ * 
+ * Creates appropriate links for sidebar items by checking for the presence of
+ * index.md files, resolving group configurations, and applying proper URL
+ * formatting. Returns null for items that should not be clickable.
+ * 
+ * @param {string} itemName - The name of the directory (e.g., "concepts") or group title (e.g., "Core Concepts")
+ * @param {"directory" | "group"} itemType - Type of item: 'directory' or 'group'
+ * @param {string} currentDirAbsPath - Absolute FS path to the directory where the item resides
+ * @param {string} docsAbsPath - Absolute path to the 'docs' directory
+ * @param {string} lang - Current language code
+ * @param {FileSystem} fs - FileSystem instance for file operations
+ * @param {GroupConfig} [groupConfig] - Optional group configuration if generating a link for a group
+ * @returns {Promise<string | null>} The link string if clickable (e.g., /en/guide/concepts/), or null if not
+ * @since 1.0.0
+ * @public
+ * @example
+ * ```typescript
+ * const link = await generateLink(
+ *   'concepts',
+ *   'directory',
+ *   '/docs/en/guide',
+ *   '/docs',
+ *   'en',
+ *   fs
+ * );
+ * ```
  */
 export async function generateLink(
-    itemName: string, // For directories, this is the dir name. For groups, this is the group title.
+    itemName: string,
     itemType: "directory" | "group",
-    currentDirAbsPath: string, // For a dir, its parent. For a group, dir of index.md defining it.
+    currentDirAbsPath: string,
     docsAbsPath: string,
     lang: string,
     fs: FileSystem,
@@ -92,21 +142,8 @@ export async function generateLink(
         normalizePathSeparators(currentDirAbsPath);
 
     if (itemType === "group" && groupConfig) {
-        // if (typeof groupConfig.link === "string") {
-        //     return groupConfig.link.startsWith("/") ||
-        //         groupConfig.link.startsWith("http")
-        //         ? groupConfig.link
-        //         : normalizePathSeparators(
-        //                 path.join("/", lang, groupConfig.link)
-        //           ); // Assume relative to lang root if not absolute
-        // }
-        // if (groupConfig.link === false) {
-        //     return null; // Explicitly not linkable
-        // }
-
         let targetDirForGroupIndexMdAbs: string | null = null;
 
-        // 1. Check groupConfig.path
         if (groupConfig.path) {
             targetDirForGroupIndexMdAbs = normalizePathSeparators(
                 path.resolve(normalizedCurrentDirAbsPath, groupConfig.path)
@@ -124,7 +161,6 @@ export async function generateLink(
             }
         }
 
-        // 2. Check groupConfig.title match if path didn't lead to a linkable index.md
         const sluggedTitle = slugify(groupConfig.title);
         if (sluggedTitle) {
             const potentialDirFromTitleAbs = normalizePathSeparators(
@@ -140,11 +176,10 @@ export async function generateLink(
                 );
             }
         }
-        return null; // Group is not clickable if no explicit link and no target dir with index.md found
+        return null;
     }
 
     if (itemType === "directory") {
-        // itemName here is the directory name itself.
         const directoryFullPathAbs = normalizePathSeparators(
             path.join(currentDirAbsPath, itemName)
         );

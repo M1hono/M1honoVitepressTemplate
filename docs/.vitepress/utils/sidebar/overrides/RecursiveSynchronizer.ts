@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Handles recursive synchronization of sidebar items with JSON overrides, ensuring proper hierarchy management and configuration preservation.
+ * @module RecursiveSynchronizer
+ * @version 1.0.0
+ * @author M1hono
+ * @since 2024
+ */
 import path from 'node:path';
 import { SidebarItem, JsonFileMetadata } from '../types';
 import { normalizePathSeparators, isDeepEqual } from '../shared/objectUtils';
@@ -8,8 +15,10 @@ import { JsonItemSorter } from './JsonItemSorter';
 import { PathKeyProcessor } from './PathKeyProcessor';
 
 /**
- * @file RecursiveSynchronizer.ts
+ * @class RecursiveSynchronizer
  * @description Handles recursive synchronization of sidebar items with JSON overrides.
+ * Manages configuration hierarchy, ensures data preservation, and maintains consistency
+ * between physical file structure and configuration data.
  */
 export class RecursiveSynchronizer {
     private jsonFileHandler: JsonFileHandler;
@@ -19,6 +28,14 @@ export class RecursiveSynchronizer {
     private pathProcessor: PathKeyProcessor;
     private absDocsPath: string;
 
+    /**
+     * @constructor
+     * @param {JsonFileHandler} jsonFileHandler - Handler for JSON file operations
+     * @param {MetadataManager} metadataManager - Manager for metadata operations
+     * @param {SyncEngine} syncEngine - Engine for synchronizing configurations
+     * @param {JsonItemSorter} jsonItemSorter - Sorter for JSON items
+     * @param {string} absDocsPath - Absolute path to the docs directory
+     */
     constructor(
         jsonFileHandler: JsonFileHandler,
         metadataManager: MetadataManager,
@@ -35,13 +52,16 @@ export class RecursiveSynchronizer {
     }
 
     /**
-     * Recursively synchronizes an array of sidebar items and their children.
-     * @param items The current array of SidebarItems to process.
-     * @param currentConfigDirSignature Path signature for the parent's JSON config directory (e.g., '_root', 'guide/concepts').
-     * @param lang The language code.
-     * @param isDevMode Development mode flag.
-     * @param langGitbookPaths Absolute paths to GitBook directories to exclude.
-     * @param isTopLevelCall To know if items are direct children of the root view
+     * @method synchronizeItemsRecursively
+     * @description Recursively synchronizes an array of sidebar items and their children.
+     * @param {SidebarItem[]} items - The current array of SidebarItems to process
+     * @param {string} currentConfigDirSignature - Path signature for the parent's JSON config directory (e.g., '_root', 'guide/concepts')
+     * @param {string} lang - The language code
+     * @param {boolean} isDevMode - Development mode flag
+     * @param {string[]} langGitbookPaths - Absolute paths to GitBook directories to exclude
+     * @param {boolean} [isTopLevelCall=false] - To know if items are direct children of the root view
+     * @returns {Promise<void>}
+     * @throws {Error} When synchronization fails
      */
     public async synchronizeItemsRecursively(
         items: SidebarItem[],
@@ -51,49 +71,43 @@ export class RecursiveSynchronizer {
         langGitbookPaths: string[],
         isTopLevelCall: boolean = false
     ): Promise<void> {
-        // Skip GitBook directories
         if (!isTopLevelCall && this.pathProcessor.isGitBookRoot(currentConfigDirSignature, lang, langGitbookPaths, this.absDocsPath)) {
             return;
         }
 
-        // Check for flattened root structure (single root item containing all content)
         const isFlattenedRootStructure = isTopLevelCall && items.length === 1 && items[0]._isRoot && items[0].items && items[0].items.length > 0;
 
         if (isFlattenedRootStructure) {
-
-            // Process the root item's _self_ properties
             const rootItem = items[0];
             await this.processSelfProperties(rootItem, currentConfigDirSignature, lang, isDevMode);
-
-            // Process the flattened children using the simplified approach
             await this.processDirectChildren(rootItem.items!, currentConfigDirSignature, lang, isDevMode);
-
-            // Recursively process subdirectories
             await this.processSubdirectoriesRecursively(rootItem.items!, currentConfigDirSignature, lang, isDevMode, langGitbookPaths);
 
-            // Apply order to the root item's children
             const orderData = await this.jsonFileHandler.readJsonFile('order', lang, currentConfigDirSignature);
             rootItem.items = this.jsonItemSorter.sortItems(rootItem.items!, orderData);
         } else {
-            // Process direct children at current level
             await this.processDirectChildren(items, currentConfigDirSignature, lang, isDevMode);
-
-            // Recursively process subdirectories
             await this.processSubdirectoriesRecursively(items, currentConfigDirSignature, lang, isDevMode, langGitbookPaths);
 
-            // Apply order to current level items
             const orderData = await this.jsonFileHandler.readJsonFile('order', lang, currentConfigDirSignature);
             const sortedItems = this.jsonItemSorter.sortItems(items, orderData);
             items.length = 0;
             items.push(...sortedItems);
         }
 
-        // CRUCIAL: Clean up orphaned configurations after processing
         await this.cleanupOrphanedConfigurations(currentConfigDirSignature, lang, items);
     }
 
     /**
-     * Recursively processes subdirectories, creating their _self_ properties and processing their children.
+     * @method processSubdirectoriesRecursively
+     * @description Recursively processes subdirectories, creating their _self_ properties and processing their children.
+     * @param {SidebarItem[]} items - Array of sidebar items to process
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {boolean} isDevMode - Development mode flag
+     * @param {string[]} langGitbookPaths - GitBook paths to exclude
+     * @returns {Promise<void>}
+     * @private
      */
     private async processSubdirectoriesRecursively(
         items: SidebarItem[],
@@ -103,34 +117,23 @@ export class RecursiveSynchronizer {
         langGitbookPaths: string[]
     ): Promise<void> {
         for (const item of items) {
-            // FIXED: Process ALL directories, even those with only files (no subdirectories)
-            // This ensures that file-only directories like flandre/ get their JSON configs generated
             if (item._isDirectory) {
-                // Calculate the next config directory signature
                 const itemRelativeKey = this.pathProcessor.extractRelativeKeyForCurrentDir(item, currentConfigDirSignature);
                 const nextConfigDirSignature = currentConfigDirSignature === '_root' 
-                    ? itemRelativeKey.replace(/\/$/, '') // Remove trailing slash for root-level items
+                    ? itemRelativeKey.replace(/\/$/, '')
                     : normalizePathSeparators(path.join(currentConfigDirSignature, itemRelativeKey.replace(/\/$/, '')));
 
-
-
-                // Skip GitBook directories
                 if (this.pathProcessor.isGitBookRoot(nextConfigDirSignature, lang, langGitbookPaths, this.absDocsPath)) {
                     continue; 
                 }
 
-                // ALWAYS process _self_ properties for ALL directories (file-only or not)
                 await this.processSelfProperties(item, nextConfigDirSignature, lang, isDevMode);
 
-                // Process children if they exist (both files and subdirectories)
                 if (item.items && item.items.length > 0) {
-
-                    // First process order for the current directory's items
                     const orderData = await this.jsonFileHandler.readJsonFile('order', lang, nextConfigDirSignature);
                     const sortedItems = this.jsonItemSorter.sortItems(item.items, orderData);
                     item.items = sortedItems;
                     
-                    // Then recursively process the sorted items
                     await this.synchronizeItemsRecursively(item.items, nextConfigDirSignature, lang, isDevMode, langGitbookPaths, false);
                 }
             }
@@ -138,8 +141,15 @@ export class RecursiveSynchronizer {
     }
 
     /**
-     * Processes direct children of a directory for JSON config synchronization.
+     * @method processDirectChildren
+     * @description Processes direct children of a directory for JSON config synchronization.
      * This method only handles immediate children, not nested content.
+     * @param {SidebarItem[]} items - Array of sidebar items to process
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {boolean} isDevMode - Development mode flag
+     * @returns {Promise<void>}
+     * @private
      */
     private async processDirectChildren(
         items: SidebarItem[],
@@ -147,23 +157,23 @@ export class RecursiveSynchronizer {
         lang: string,
         isDevMode: boolean
     ): Promise<void> {
-        // Process locales (text overrides) for direct children
         await this.processChildrenLocales(items, currentConfigDirSignature, lang, isDevMode);
-        
-        // Process collapsed states for direct children
         await this.processChildrenCollapsed(items, currentConfigDirSignature, lang, isDevMode);
-        
-        // Process hidden states for direct children
         await this.processChildrenHidden(items, currentConfigDirSignature, lang, isDevMode);
-        
-        // Process order for direct children
         await this.processCurrentItemsOrder(items, currentConfigDirSignature, lang, isDevMode);
     }
 
     /**
-     * Re-applies migrated values to ensure migrated values are reflected in the final sidebar.
+     * @method reapplyMigratedValues
+     * @description Re-applies migrated values to ensure migrated values are reflected in the final sidebar.
      * This is also used as a final pass to ensure all JSON overrides are properly applied.
      * Priority: JSON configs > sub config > root config > global config
+     * @param {SidebarItem[]} items - Array of sidebar items to process
+     * @param {string} rootConfigDirSignature - Root configuration directory signature
+     * @param {string} lang - Language code
+     * @param {string[]} langGitbookPaths - GitBook paths to exclude
+     * @returns {Promise<void>}
+     * @public
      */
     public async reapplyMigratedValues(
         items: SidebarItem[],
@@ -171,7 +181,6 @@ export class RecursiveSynchronizer {
         lang: string,
         langGitbookPaths: string[]
     ): Promise<void> {
-        // Apply overrides for current level items
         const localesData = await this.jsonFileHandler.readJsonFile('locales', lang, rootConfigDirSignature);
         const collapsedData = await this.jsonFileHandler.readJsonFile('collapsed', lang, rootConfigDirSignature);
         const hiddenData = await this.jsonFileHandler.readJsonFile('hidden', lang, rootConfigDirSignature);
@@ -180,9 +189,7 @@ export class RecursiveSynchronizer {
         for (const item of items) {
             const itemKey = this.pathProcessor.extractRelativeKeyForCurrentDir(item, rootConfigDirSignature);
             
-            // Special handling for flattened root structures
             if (item._isRoot && items.length === 1) {
-                // This is a flattened root structure - apply _self_ override to the root section
                 if (localesData.hasOwnProperty('_self_')) {
                     item.text = localesData['_self_'];
                 }
@@ -190,51 +197,41 @@ export class RecursiveSynchronizer {
                     item.collapsed = collapsedData['_self_'];
                 }
                 
-                // Recursively apply to children
                 if (item.items && item.items.length > 0) {
                     await this.reapplyMigratedValues(item.items, rootConfigDirSignature, lang, langGitbookPaths);
                 }
             } else {
-                // Normal hierarchical structure processing
-                
-                // STEP 1: Apply parent-level overrides (HIGHEST PRIORITY)
-                // These take absolute precedence over anything else
                 let parentOverrideApplied = {
                     text: false,
                     collapsed: false,
                     hidden: false
                 };
                 
-                // Apply locales override from parent if it exists
                 if (localesData.hasOwnProperty(itemKey)) {
                     item.text = localesData[itemKey];
                     parentOverrideApplied.text = true;
                 }
                 
-                // Apply collapsed override from parent if it exists
                 if (collapsedData.hasOwnProperty(itemKey) && item._isDirectory) {
                     item.collapsed = collapsedData[itemKey];
                     parentOverrideApplied.collapsed = true;
                 }
                 
-                // Apply hidden override from parent if it exists
                 if (hiddenData.hasOwnProperty(itemKey)) {
-                    (item as any)._hidden = hiddenData[itemKey];
+                    const hiddenValue = hiddenData[itemKey];
+                    (item as any)._hidden = hiddenValue === true ? true : false;
                     parentOverrideApplied.hidden = true;
                 } else {
                     (item as any)._hidden = false;
                 }
                 
-                // STEP 2: If this item is a directory, process its children and apply _self_ values ONLY if no parent override
                 if (item._isDirectory && item.items && item.items.length > 0) {
                     const nextConfigDirSignature = rootConfigDirSignature === '_root' 
                         ? itemKey.replace(/\/$/, '') 
                         : normalizePathSeparators(path.join(rootConfigDirSignature, itemKey.replace(/\/$/, '')));
                     
-                    // Skip GitBook directories
                     if (!this.pathProcessor.isGitBookRoot(nextConfigDirSignature, lang, langGitbookPaths, this.absDocsPath)) {
                         
-                        // Apply _self_ text value ONLY if parent didn't override it
                         if (!parentOverrideApplied.text) {
                         const itemLocalesData = await this.jsonFileHandler.readJsonFile('locales', lang, nextConfigDirSignature);
                         if (itemLocalesData.hasOwnProperty('_self_')) {
@@ -242,7 +239,6 @@ export class RecursiveSynchronizer {
                             }
                         }
                         
-                        // Apply _self_ collapsed value ONLY if parent didn't override it
                         if (!parentOverrideApplied.collapsed) {
                         const itemCollapsedData = await this.jsonFileHandler.readJsonFile('collapsed', lang, nextConfigDirSignature);
                         if (itemCollapsedData.hasOwnProperty('_self_')) {
@@ -250,10 +246,8 @@ export class RecursiveSynchronizer {
                             }
                         }
                         
-                        // Recursively apply to children
                             await this.reapplyMigratedValues(item.items, nextConfigDirSignature, lang, langGitbookPaths);
                             
-                            // Apply order to children after all other overrides
                             const childOrderData = await this.jsonFileHandler.readJsonFile('order', lang, nextConfigDirSignature);
                             item.items = this.jsonItemSorter.sortItems(item.items, childOrderData);
                     }
@@ -261,28 +255,31 @@ export class RecursiveSynchronizer {
             }
         }
         
-        // Apply order to current level items last (only for non-flattened structures)
         if (items.length > 0 && !(items.length === 1 && items[0]._isRoot)) {
             const sortedItems = this.jsonItemSorter.sortItems(items, orderData);
             items.length = 0;
             items.push(...sortedItems);
         }
 
-        // Filter out hidden items as the final step
         const isFlattened = items.length === 1 && items[0]._isRoot;
         if (isFlattened && items[0].items) {
-            // For flattened structures, filter the children
             await this.filterHiddenItems(items[0].items, rootConfigDirSignature, lang, true);
         } else {
-            // For normal structures, filter the current items
             await this.filterHiddenItems(items, rootConfigDirSignature, lang, false);
         }
     }
 
     /**
-     * Applies hidden states to items in the sidebar structure.
+     * @method filterHiddenItems
+     * @description Applies hidden states to items in the sidebar structure.
      * Since hidden values are now correctly applied by applyHierarchyAwareOverrides with proper hierarchy awareness,
      * this method simply checks the _hidden property that was already set.
+     * @param {SidebarItem[]} items - Array of sidebar items to filter
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {boolean} [isFlattened=false] - Whether the structure is flattened
+     * @returns {Promise<void>}
+     * @private
      */
     private async filterHiddenItems(
         items: SidebarItem[],
@@ -290,44 +287,42 @@ export class RecursiveSynchronizer {
         lang: string,
         isFlattened: boolean = false
     ): Promise<void> {
-        // For flattened structures, hidden values are already applied by applyHierarchyAwareOverrides
-        // For normal structures, we still need to apply hidden values using the appropriate config
         if (!isFlattened) {
-            // Only apply hidden data for non-flattened structures
         const hiddenData = await this.jsonFileHandler.readJsonFile('hidden', lang, currentConfigDirSignature);
 
         for (let i = 0; i < items.length; i++) {
             const item = items[i];
                 const itemKey = this.pathProcessor.extractRelativeKeyForCurrentDir(item, currentConfigDirSignature);
 
-                // Apply hidden state from the appropriate config
             if (hiddenData[itemKey] === true) {
                 (item as any)._hidden = true;
             } else {
                 (item as any)._hidden = false;
             }
             
-            // Recursively apply hidden states to children if they exist
             if (item.items && item.items.length > 0) {
                 if (item._isDirectory) {
-                    // For directories, use their own config directory signature
                     const nextConfigDirSignature = currentConfigDirSignature === '_root' 
                         ? itemKey 
                         : normalizePathSeparators(path.join(currentConfigDirSignature, itemKey));
                     await this.filterHiddenItems(item.items, nextConfigDirSignature, lang, false);
                 } else {
-                    // For non-directories with children, continue with current config
                         await this.filterHiddenItems(item.items, currentConfigDirSignature, lang, false);
     }
                 }
             }
         }
-        // For flattened structures, _hidden is already set by applyHierarchyAwareOverrides
-        // No additional processing needed since hierarchy-aware approach was already applied
     }
 
     /**
-     * Processes children's locales (text overrides).
+     * @method processChildrenLocales
+     * @description Processes children's locales (text overrides).
+     * @param {SidebarItem[]} items - Array of sidebar items to process
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {boolean} isDevMode - Development mode flag
+     * @returns {Promise<void>}
+     * @private
      */
     private async processChildrenLocales(
         items: SidebarItem[],
@@ -347,7 +342,6 @@ export class RecursiveSynchronizer {
             this.metadataManager
         );
         
-        // CONSERVATIVE: Only write if there are actual changes
         const hasJsonChanges = !isDeepEqual(parentLocalesData, localeSyncResultForChildren.updatedJsonData);
         const hasMetadataChanges = !isDeepEqual(parentLocalesMetadata, localeSyncResultForChildren.updatedMetadata);
 
@@ -361,7 +355,14 @@ export class RecursiveSynchronizer {
     }
 
     /**
-     * Processes children's collapsed states.
+     * @method processChildrenCollapsed
+     * @description Processes children's collapsed states.
+     * @param {SidebarItem[]} items - Array of sidebar items to process
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {boolean} isDevMode - Development mode flag
+     * @returns {Promise<void>}
+     * @private
      */
     private async processChildrenCollapsed(
         items: SidebarItem[],
@@ -381,7 +382,6 @@ export class RecursiveSynchronizer {
             this.metadataManager
         );
         
-        // CONSERVATIVE: Only write if there are actual changes
         const hasJsonChanges = !isDeepEqual(parentCollapsedData, collapsedSyncResultForChildren.updatedJsonData);
         const hasMetadataChanges = !isDeepEqual(parentCollapsedMetadata, collapsedSyncResultForChildren.updatedMetadata);
 
@@ -394,7 +394,14 @@ export class RecursiveSynchronizer {
     }
 
     /**
-     * Processes children's hidden states.
+     * @method processChildrenHidden
+     * @description Processes children's hidden states.
+     * @param {SidebarItem[]} items - Array of sidebar items to process
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {boolean} isDevMode - Development mode flag
+     * @returns {Promise<void>}
+     * @private
      */
     private async processChildrenHidden(
         items: SidebarItem[],
@@ -414,7 +421,6 @@ export class RecursiveSynchronizer {
             this.metadataManager
         );
         
-        // CONSERVATIVE: Only write if there are actual changes
         const hasJsonChanges = !isDeepEqual(parentHiddenData, hiddenSyncResultForChildren.updatedJsonData);
         const hasMetadataChanges = !isDeepEqual(parentHiddenMetadata, hiddenSyncResultForChildren.updatedMetadata);
 
@@ -427,9 +433,16 @@ export class RecursiveSynchronizer {
     }
 
     /**
-     * Processes _self_ properties for a directory item.
+     * @method processSelfProperties
+     * @description Processes _self_ properties for a directory item.
      * This method is CONSERVATIVE - it only creates _self_ entries if they don't exist,
      * and never modifies existing user configurations.
+     * @param {SidebarItem} currentItem - The sidebar item to process
+     * @param {string} nextConfigDirSignature - Next configuration directory signature
+     * @param {string} lang - Language code
+     * @param {boolean} isDevMode - Development mode flag
+     * @returns {Promise<void>}
+     * @private
      */
     private async processSelfProperties(
         currentItem: SidebarItem,
@@ -443,12 +456,10 @@ export class RecursiveSynchronizer {
             const itemOwnJsonData = await this.jsonFileHandler.readJsonFile(type, lang, nextConfigDirSignature);
             const itemOwnMetadata = await this.metadataManager.readMetadata(type, lang, nextConfigDirSignature);
             
-            // If _self_ already exists in the JSON, NEVER touch it
             if (itemOwnJsonData.hasOwnProperty('_self_')) {
                 continue;
             }
 
-            // Only create _self_ entry if it doesn't exist
             let defaultSelfValue: any;
             if (type === 'locales') {
                 defaultSelfValue = currentItem.text;
@@ -465,7 +476,6 @@ export class RecursiveSynchronizer {
                     '_self_': this.metadataManager.createNewMetadataEntry(defaultSelfValue, false, true) 
                 };
 
-                // CONSERVATIVE: Only write if _self_ was actually added
                 await this.jsonFileHandler.writeJsonFile(type, lang, nextConfigDirSignature, updatedJsonData);
                 await this.metadataManager.writeMetadata(type, lang, nextConfigDirSignature, updatedMetadata);
             }
@@ -473,7 +483,14 @@ export class RecursiveSynchronizer {
     }
 
     /**
-     * Processes order for children of a directory item.
+     * @method processChildrenOrder
+     * @description Processes order for children of a directory item.
+     * @param {SidebarItem[]} children - Array of child sidebar items
+     * @param {string} configDirSignature - Configuration directory signature
+     * @param {string} lang - Language code
+     * @param {boolean} isDevMode - Development mode flag
+     * @returns {Promise<void>}
+     * @private
      */
     private async processChildrenOrder(
         children: SidebarItem[],
@@ -490,7 +507,6 @@ export class RecursiveSynchronizer {
             this.metadataManager
         );
         
-        // CONSERVATIVE: Only write if there are actual changes
         const hasJsonChanges = !isDeepEqual(itemOwnOrderJson, orderSyncResult.updatedJsonData);
         const hasMetadataChanges = !isDeepEqual(itemOwnOrderMetadata, orderSyncResult.updatedMetadata);
 
@@ -503,7 +519,14 @@ export class RecursiveSynchronizer {
     }
 
     /**
-     * Processes order for the current list of items.
+     * @method processCurrentItemsOrder
+     * @description Processes order for the current list of items.
+     * @param {SidebarItem[]} items - Array of sidebar items to process
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {boolean} isDevMode - Development mode flag
+     * @returns {Promise<void>}
+     * @private
      */
     private async processCurrentItemsOrder(
         items: SidebarItem[],
@@ -523,7 +546,6 @@ export class RecursiveSynchronizer {
             this.metadataManager
         );
         
-        // CONSERVATIVE: Only write if there are actual changes
         const hasJsonChanges = !isDeepEqual(parentOrderJsonData, orderSyncResultForCurrentItems.updatedJsonData);
         const hasMetadataChanges = !isDeepEqual(parentOrderMetadata, orderSyncResultForCurrentItems.updatedMetadata);
 
@@ -534,15 +556,21 @@ export class RecursiveSynchronizer {
         await this.metadataManager.writeMetadata('order', lang, currentConfigDirSignature, orderSyncResultForCurrentItems.updatedMetadata);
         }
         
-        // Apply sorting regardless of whether we wrote new files
         const sortedItems = this.jsonItemSorter.sortItems(items, orderSyncResultForCurrentItems.updatedJsonData);
         items.length = 0;
         items.push(...sortedItems);
     }
 
     /**
-     * Cleans up orphaned configuration directories and JSON entries that don't correspond to physical directories.
+     * @method cleanupOrphanedConfigurations
+     * @description Cleans up orphaned configuration directories and JSON entries that don't correspond to physical directories.
      * This ensures the config structure stays in sync with the actual file structure.
+     * SECURITY: Enhanced with metadata checking to prevent user configuration loss.
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {SidebarItem[]} items - Array of sidebar items for context
+     * @returns {Promise<void>}
+     * @private
      */
     private async cleanupOrphanedConfigurations(
         currentConfigDirSignature: string,
@@ -550,22 +578,18 @@ export class RecursiveSynchronizer {
         items: SidebarItem[]
     ): Promise<void> {
         try {
-            // Get the config directory path
             const configDirPath = currentConfigDirSignature === '_root'
                 ? normalizePathSeparators(path.join(this.absDocsPath, '..', '.vitepress', 'config', 'sidebar', lang))
                 : normalizePathSeparators(path.join(this.absDocsPath, '..', '.vitepress', 'config', 'sidebar', lang, currentConfigDirSignature));
 
-            // Get the metadata directory path
             const metadataDirPath = currentConfigDirSignature === '_root'
                 ? normalizePathSeparators(path.join(this.absDocsPath, '..', '.vitepress', 'config', 'sidebar', '.metadata', lang))
                 : normalizePathSeparators(path.join(this.absDocsPath, '..', '.vitepress', 'config', 'sidebar', '.metadata', lang, currentConfigDirSignature));
 
-            // Get the physical directory path
             const physicalDirPath = currentConfigDirSignature === '_root'
                 ? normalizePathSeparators(path.join(this.absDocsPath, lang))
                 : normalizePathSeparators(path.join(this.absDocsPath, lang, currentConfigDirSignature));
 
-            // Get list of actual physical directories
             const physicalDirectories = new Set<string>();
             if (await this.jsonFileHandler.getFileSystem().exists(physicalDirPath)) {
                 const physicalItems = await this.jsonFileHandler.getFileSystem().readDir(physicalDirPath);
@@ -580,16 +604,13 @@ export class RecursiveSynchronizer {
                 }
             }
 
-            // Collect orphaned directories from both config and metadata
             const orphanedDirectories = new Set<string>();
 
-            // Check config directories
             if (await this.jsonFileHandler.getFileSystem().exists(configDirPath)) {
                 const configItems = await this.jsonFileHandler.getFileSystem().readDir(configDirPath);
                 for (const item of configItems) {
                     const itemName = typeof item === 'string' ? item : item.name;
 
-                    // Skip JSON files and hidden directories
                     if (itemName.endsWith('.json') || itemName.startsWith('.')) {
                         continue;
                     }
@@ -603,13 +624,11 @@ export class RecursiveSynchronizer {
                 }
             }
 
-            // Check metadata directories
             if (await this.jsonFileHandler.getFileSystem().exists(metadataDirPath)) {
                 const metadataItems = await this.jsonFileHandler.getFileSystem().readDir(metadataDirPath);
                 for (const item of metadataItems) {
                     const itemName = typeof item === 'string' ? item : item.name;
                     
-                    // Skip JSON files and hidden directories
                     if (itemName.endsWith('.json') || itemName.startsWith('.')) {
                         continue;
                     }
@@ -623,12 +642,10 @@ export class RecursiveSynchronizer {
                 }
             }
 
-            // Archive all orphaned directories (both config and metadata)
             for (const orphanedDirName of orphanedDirectories) {
                 await this.archiveOrphanedConfigAndMetadata(configDirPath, metadataDirPath, currentConfigDirSignature, lang, orphanedDirName);
             }
 
-            // Clean up orphaned JSON entries
             await this.cleanupOrphanedJsonEntries(currentConfigDirSignature, lang, physicalDirectories);
 
         } catch (error) {
@@ -637,7 +654,15 @@ export class RecursiveSynchronizer {
     }
 
     /**
-     * Archives both the config and metadata directories for an orphaned directory.
+     * @method archiveOrphanedConfigAndMetadata
+     * @description Archives both the config and metadata directories for an orphaned directory.
+     * @param {string} configDirPath - Path to configuration directory
+     * @param {string} metadataDirPath - Path to metadata directory
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {string} dirName - Directory name to archive
+     * @returns {Promise<void>}
+     * @private
      */
     private async archiveOrphanedConfigAndMetadata(
         configDirPath: string,
@@ -649,14 +674,12 @@ export class RecursiveSynchronizer {
         try {
             const timestamp = new Date().toISOString().split('T')[0];
             
-            // Create archive directory structure
             const archiveBasePath = normalizePathSeparators(path.join(
                 this.absDocsPath, '..', '.vitepress', 'config', 'sidebar', '.archive',
                 'removed_directories',
                 `${dirName}_removed_${timestamp}`
             ));
 
-            // Create archive directories
             await this.jsonFileHandler.getFileSystem().ensureDir(archiveBasePath);
             
             const configArchivePath = normalizePathSeparators(path.join(archiveBasePath, 'config'));
@@ -665,10 +688,8 @@ export class RecursiveSynchronizer {
             await this.jsonFileHandler.getFileSystem().ensureDir(configArchivePath);
             await this.jsonFileHandler.getFileSystem().ensureDir(metadataArchivePath);
 
-            // Use Node.js fs directly for the move operations
             const fs = await import('node:fs/promises');
             
-            // Archive config directory if it exists
             const sourceConfigPath = normalizePathSeparators(path.join(configDirPath, dirName));
             if (await this.jsonFileHandler.getFileSystem().exists(sourceConfigPath)) {
                 const targetConfigPath = normalizePathSeparators(path.join(configArchivePath, dirName));
@@ -681,7 +702,6 @@ export class RecursiveSynchronizer {
                 }
             }
 
-            // Archive metadata directory if it exists
             const sourceMetadataPath = normalizePathSeparators(path.join(metadataDirPath, dirName));
             if (await this.jsonFileHandler.getFileSystem().exists(sourceMetadataPath)) {
                 const targetMetadataPath = normalizePathSeparators(path.join(metadataArchivePath, dirName));
@@ -694,7 +714,6 @@ export class RecursiveSynchronizer {
                 }
             }
 
-            // Create a comprehensive README in the archive
             const readmePath = normalizePathSeparators(path.join(archiveBasePath, 'README.md'));
             const readmeContent = `# Archived Directory: ${dirName}
 
@@ -739,7 +758,15 @@ ${dirName}_removed_${timestamp}/
     }
 
     /**
-     * Cleans up orphaned entries in JSON files that don't correspond to physical directories.
+     * @method cleanupOrphanedJsonEntries
+     * @description Cleans up orphaned entries in JSON files that don't correspond to physical directories.
+     * SECURITY ENHANCEMENT: Now checks metadata to determine if entries are user-modified before deletion.
+     * This prevents accidental loss of user configurations during temporary directory states.
+     * @param {string} currentConfigDirSignature - Current configuration directory signature
+     * @param {string} lang - Language code
+     * @param {Set<string>} physicalDirectories - Set of existing physical directories
+     * @returns {Promise<void>}
+     * @private
      */
     private async cleanupOrphanedJsonEntries(
         currentConfigDirSignature: string,
@@ -751,27 +778,30 @@ ${dirName}_removed_${timestamp}/
         for (const type of overrideTypes) {
             try {
                 const currentData = await this.jsonFileHandler.readJsonFile(type, lang, currentConfigDirSignature);
+                const metadata = await this.metadataManager.readMetadata(type, lang, currentConfigDirSignature);
                 const updatedData = { ...currentData };
                 let hasChanges = false;
 
-                // Check each JSON entry
                 for (const [key, value] of Object.entries(currentData)) {
-                    // NEVER remove _self_ entries - they are directory self-references
                     if (key === '_self_') {
                         continue;
                     }
 
-                    // Extract directory name from key (remove trailing slash)
                     const dirName = key.endsWith('/') ? key.slice(0, -1) : key.replace(/\.(md|html)$/, '');
                     
-                    // Check if this entry corresponds to a physical directory
                     if (key.endsWith('/') && !physicalDirectories.has(dirName)) {
-                        delete updatedData[key];
-                        hasChanges = true;
+                        const entryMetadata = metadata[key];
+                        const isUserModified = entryMetadata && entryMetadata.isUserSet === true;
+                        
+                        if (!isUserModified) {
+                            delete updatedData[key];
+                            hasChanges = true;
+                        } else {
+                            console.warn(`Preserving user-modified entry '${key}' even though directory '${dirName}' doesn't exist`);
+                        }
                     }
                 }
 
-                // Write updated data if changes were made
                 if (hasChanges) {
                     await this.jsonFileHandler.writeJsonFile(type, lang, currentConfigDirSignature, updatedData);
                 }

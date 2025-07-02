@@ -3,7 +3,7 @@
  * Extracted from Buttons component and other navigation components
  */
 
-import type { ScrollPosition, TranslationDictionary } from '../types';
+import type { ScrollPosition, TranslationDictionary } from '../content/types';
 
 /**
  * Scroll utilities

@@ -1,4 +1,4 @@
-import { getLanguages } from './project-config';
+import { getLanguages } from '../../config/project-config';
 
 const languageModules: Record<string, any> = {};
 const searchModules: Record<string, any> = {};

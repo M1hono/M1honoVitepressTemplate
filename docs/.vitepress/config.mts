@@ -4,8 +4,8 @@ import { commonConfig } from './config/common-config';
 import { 
     buildVitePressConfig,
     getSearchLocales,
-    isFeatureEnabled 
 } from "./utils/config";
+import { isFeatureEnabled } from "./config/project-config";
 
 const vitePressConfig = buildVitePressConfig();
 

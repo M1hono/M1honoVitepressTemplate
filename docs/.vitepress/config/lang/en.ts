@@ -1,6 +1,6 @@
 import type { DefaultTheme } from 'vitepress';
 import { getSidebarSync } from '../../utils/sidebar';
-import { getProjectInfo } from '../../utils/config';
+import { getProjectInfo } from '../project-config';
 
 const projectInfo = getProjectInfo();
 
@@ -11,13 +11,8 @@ export const en_US = <DefaultTheme.Config>{
     title: projectInfo.name,
     description: projectInfo.description,
     themeConfig: {
-        nav: [
-            { text: "Home", link: "/en/" },
-            { text: "Test Page", link: "/en/test" },
-            { text: "Guide", link: "/en/guide/" },
-            { text: "API Reference", link: "/en/api/" },
-        ],
-        sidebar: getSidebarSync("en"),
+        nav: [],
+        sidebar: getSidebarSync("en-US"),
         outline: {
             level: "deep",
             label: "Page Content",

@@ -8,7 +8,6 @@ import type StateCore from "markdown-it/lib/rules_core/state_core.mjs";
 import type StateInline from "markdown-it/lib/rules_inline/state_inline.mjs";
 import type Token from "markdown-it/lib/token.mjs";
 
-// Dialog environment interface
 interface DialogEnv {
     dialogs?: {
         definitions?: Record<string, DialogDefinition>;
@@ -49,9 +48,6 @@ interface DialogStateCore extends StateCore {
     tokens: Token[];
 }
 
-/**
- * Parse dialog pages from content - improved version
- */
 function parseDialogPages(content: string, md: any, env: any): Array<{
     title?: string;
     content: string;
@@ -78,7 +74,6 @@ function parseDialogPages(content: string, md: any, env: any): Array<{
         }
 
         if (content) {
-            // Parse the markdown content into tokens for later rendering
             const tokens: Token[] = [];
             try {
                 md.block.parse(content, md, env, tokens);
@@ -97,7 +92,6 @@ function parseDialogPages(content: string, md: any, env: any): Array<{
         }
     }
 
-    // If no pages found, treat entire content as single page
     if (pages.length === 0 && content.trim()) {
         const tokens: Token[] = [];
         try {
@@ -125,17 +119,14 @@ function parseDialogArgs(argsStr: string): Record<string, any> {
 
     if (!argsStr.trim()) return args;
 
-    // Handle JSON-like configuration
     try {
         if (argsStr.trim().startsWith('{') && argsStr.trim().endsWith('}')) {
             return JSON.parse(argsStr);
         }
     } catch (error) {
         console.warn('Failed to parse JSON config:', argsStr, error);
-        // Fall through to key-value parsing
     }
 
-    // Handle key-value pairs like "title": "Dialog Title" "width": "500" "persistent": true
     const kvMatches = argsStr.matchAll(/"([^"]+)":\s*(?:"([^"]+)"|([a-zA-Z]+)|(\d+))/g);
     for (const match of kvMatches) {
         const key = match[1];
@@ -165,10 +156,8 @@ const dialogDef: RuleBlock = (state: DialogStateBlock, startLine, endLine, silen
     let pos = state.bMarks[startLine] + state.tShift[startLine];
     const max = state.eMarks[startLine];
 
-    // Check for @@@ marker
     if (pos + markerCount > max) return false;
 
-    // Verify marker
     for (let i = 0; i < markerCount; i++) {
         if (marker.charCodeAt(i) !== state.src.charCodeAt(pos + i)) {
             return false;
@@ -177,19 +166,15 @@ const dialogDef: RuleBlock = (state: DialogStateBlock, startLine, endLine, silen
 
     pos += markerCount;
 
-    // Skip whitespace
     while (pos < max && state.src.charCodeAt(pos) === 0x20) pos++;
 
-    // Check for dialog-def# syntax
     const afterMarker = state.src.slice(pos, max).trim();
     if (!afterMarker.startsWith('dialog-def#')) return false;
 
-    // Parse ID and configuration
-    const configStr = afterMarker.slice(11).trim(); // Remove "dialog-def#"
+    const configStr = afterMarker.slice(11).trim();
     let id = '';
     let configPart = '';
 
-    // Extract ID (until space or end)
     let i = 0;
     while (i < configStr.length && configStr[i] !== ' ' && configStr[i] !== '{') {
         id += configStr[i];
@@ -198,14 +183,12 @@ const dialogDef: RuleBlock = (state: DialogStateBlock, startLine, endLine, silen
 
     if (!id) return false;
 
-    // Extract configuration if present
     if (i < configStr.length) {
         configPart = configStr.slice(i).trim();
     }
 
     if (silent) return true;
 
-    // Find closing marker
     let nextLine = startLine;
     let autoClose = false;
 
@@ -231,7 +214,6 @@ const dialogDef: RuleBlock = (state: DialogStateBlock, startLine, endLine, silen
 
     if (!autoClose) return false;
 
-    // Extract content
     const contentLines: string[] = [];
     const indentToTrim = state.sCount[startLine];
     for (let i = startLine + 1; i < nextLine; i++) {
@@ -241,7 +223,6 @@ const dialogDef: RuleBlock = (state: DialogStateBlock, startLine, endLine, silen
         const lineIndent = state.sCount[i];
 
         if (lineIndent >= indentToTrim) {
-            // Basic dedent, assumes spaces
             let pos = 0;
             while(pos < indentToTrim && line.charCodeAt(pos) === 0x20) {
                 pos++;
@@ -256,7 +237,6 @@ const dialogDef: RuleBlock = (state: DialogStateBlock, startLine, endLine, silen
     const props = parseDialogArgs(configPart);
     const pages = parseDialogPages(fullContent, state.md, state.env);
 
-    // Store definition
     state.env.dialogs ??= {};
     state.env.dialogs.definitions ??= {};
     state.env.dialogs.definitions[id] = {
@@ -265,8 +245,6 @@ const dialogDef: RuleBlock = (state: DialogStateBlock, startLine, endLine, silen
         pages,
         title: props.title
     };
-
-    // console.log(`Defined dialog: ${id}`, { props, pageCount: pages.length });
 
     state.line = nextLine + (autoClose ? 1 : 0);
     return true;
@@ -280,7 +258,6 @@ const dialogRef: RuleInline = (state: DialogStateInline, silent) => {
     const start = state.pos;
     const max = state.posMax;
 
-    // Check for ::: dialog# syntax
     if (
         start + 10 >= max ||
         state.src.slice(start, start + 3) !== ':::'
@@ -288,13 +265,11 @@ const dialogRef: RuleInline = (state: DialogStateInline, silent) => {
         return false;
     }
 
-    // Look for dialog# after :::
     const afterMarker = state.src.slice(start + 3);
     if (!afterMarker.startsWith('dialog#')) {
         return false;
     }
 
-    // Find closing :::
     let contentEnd = start + 3;
     let foundClose = false;
     
@@ -308,16 +283,13 @@ const dialogRef: RuleInline = (state: DialogStateInline, silent) => {
 
     if (!foundClose) return false;
 
-    // Parse content: dialog#id{config}Display Text
     const inlineContent = state.src.slice(start + 3, contentEnd).trim();
-    const contentAfterDialog = inlineContent.slice(7); // Remove "dialog#"
+    const contentAfterDialog = inlineContent.slice(7);
     
-    // Extract ID and configuration
     let id = '';
     let configStr = '';
     let displayText = '';
     
-    // Find where ID ends
     let i = 0;
     while (i < contentAfterDialog.length && 
            contentAfterDialog[i] !== '{' && 
@@ -328,7 +300,6 @@ const dialogRef: RuleInline = (state: DialogStateInline, silent) => {
 
     if (!id) return false;
 
-    // Parse configuration if present
     if (i < contentAfterDialog.length && contentAfterDialog[i] === '{') {
         let braceCount = 0;
         let configStart = i;
@@ -347,16 +318,13 @@ const dialogRef: RuleInline = (state: DialogStateInline, silent) => {
         }
     }
 
-    // Remaining text is display text
     displayText = contentAfterDialog.slice(i).trim();
     if (!displayText) displayText = 'Click here';
 
     if (silent) return true;
 
-    // Parse inline configuration
     const inlineProps = configStr ? parseDialogArgs(configStr) : {};
 
-    // Add to references list
     state.env.dialogs ??= {};
     state.env.dialogs.list ??= [];
     
@@ -370,9 +338,6 @@ const dialogRef: RuleInline = (state: DialogStateInline, silent) => {
     const refIndex = state.env.dialogs.list.length;
     state.env.dialogs.list.push(dialogItem);
 
-    // console.log(`Dialog reference: ${id}`, { displayText, inlineProps });
-
-    // Create reference token
     const refToken = state.push('dialog_ref', '', 0);
     refToken.meta = { refIndex, id, displayText, inlineProps };
 
@@ -502,13 +467,11 @@ function escapeHtml(value: string): string {
  * Click :::dialog#my-dialog{"variant": "button"}this text::: to open dialog.
  */
 export const dialogPlugin: PluginSimple = (md) => {
-    // Register parsing rules
     md.block.ruler.before('paragraph', 'dialog_def', dialogDef, {
         alt: ['paragraph', 'reference', 'blockquote', 'list']
     });
 
     md.inline.ruler.before('text', 'dialog_ref', dialogRef);
 
-    // Register core rule for processing dialog tokens
     md.core.ruler.after('inline', 'dialog_tail', dialogTail);
 };

@@ -8,16 +8,31 @@ import { generatePathKey } from "./pathKeyGenerator";
 import { normalizePathSeparators } from "../shared/objectUtils";
 
 /**
- * @file itemProcessor.ts
- * @description Core processor for individual file system entries in sidebar generation.
- * Handles both files and directories, applying configurations and creating SidebarItem objects.
+ * @fileoverview Core processor for individual file system entries in sidebar generation.
+ * 
+ * This module provides the main processing logic for converting file system
+ * entries (files and directories) into sidebar items. It handles configuration
+ * application, link generation, depth management, and hierarchical structure
+ * creation while respecting visibility and priority settings.
+ * 
+ * @module ItemProcessor
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
  */
 
 /**
  * Checks if an absolute path is excluded due to GitBook restrictions.
- * @param absPath The absolute path to check
- * @param exclusionList Array of absolute paths to excluded GitBook directories
- * @returns True if the path should be excluded
+ * 
+ * Determines whether a given path falls within any of the globally excluded
+ * GitBook directories by comparing normalized paths. Used to filter out
+ * GitBook-specific directories that should not appear in the sidebar.
+ * 
+ * @param {string} absPath - The absolute path to check for exclusion
+ * @param {string[]} exclusionList - Array of absolute paths to excluded GitBook directories
+ * @returns {boolean} True if the path should be excluded, false otherwise
+ * @since 1.0.0
+ * @private
  */
 function isGitBookExcluded(absPath: string, exclusionList: string[]): boolean {
     const normalizedAbsPath = normalizePathSeparators(absPath);
@@ -30,14 +45,22 @@ function isGitBookExcluded(absPath: string, exclusionList: string[]): boolean {
 
 /**
  * Processes a markdown file entry and creates a SidebarItem.
- * @param entryName The filename (e.g., 'my-doc.md')
- * @param normalizedItemAbsPath Normalized absolute path to the file
- * @param itemRelativePathKey The relative path key for this file
- * @param docsAbsPath Absolute path to the /docs directory
- * @param lang Current language code
- * @param fs FileSystem instance
- * @param parentViewEffectiveConfig Config of the parent directory providing context
- * @returns A SidebarItem for the file or null if it should be excluded
+ * 
+ * Handles individual markdown files by reading their frontmatter, extracting
+ * configuration like title and priority, generating appropriate links, and
+ * creating SidebarItem objects. Automatically skips non-markdown files and
+ * index.md files (which represent directories).
+ * 
+ * @param {string} entryName - The filename (e.g., 'my-doc.md')
+ * @param {string} normalizedItemAbsPath - Normalized absolute path to the file
+ * @param {string} itemRelativePathKey - The relative path key for this file
+ * @param {string} docsAbsPath - Absolute path to the /docs directory
+ * @param {string} lang - Current language code
+ * @param {FileSystem} fs - FileSystem instance for file operations
+ * @param {EffectiveDirConfig} parentViewEffectiveConfig - Config of the parent directory providing context
+ * @returns {Promise<SidebarItem | null>} A SidebarItem for the file or null if it should be excluded
+ * @since 1.0.0
+ * @private
  */
 async function processFileEntry(
     entryName: string,
@@ -48,7 +71,6 @@ async function processFileEntry(
     fs: FileSystem,
     parentViewEffectiveConfig: EffectiveDirConfig
 ): Promise<SidebarItem | null> {
-    // Skip non-markdown files
     if (!entryName.toLowerCase().endsWith('.md')) {
         return null;
     }
@@ -63,7 +85,6 @@ async function processFileEntry(
         fileFrontmatter = matter(fileContent).data as Partial<FileConfig>;
     } catch (e: any) {
         if (e.code !== "ENOENT") {
-            // File exists but couldn't be read - continue with defaults
         }
     }
 
@@ -80,7 +101,6 @@ async function processFileEntry(
     let link = `/${lang}/${relativeToLangRoot.replace(/\.md$/i, ".html")}`.replace(/\/+/g, "/");
     if (link.startsWith("//")) link = link.substring(1);
 
-    // Get priority from frontmatter or itemOrder
     let priority = fileFrontmatter.priority;
     if (priority === undefined && parentViewEffectiveConfig.itemOrder) {
         const fileKey = entryName.replace(/\.md$/i, "");
@@ -102,14 +122,22 @@ async function processFileEntry(
 
 /**
  * Creates a link-only item for a subdirectory that defines a new sidebar root.
- * @param entryName The directory name
- * @param normalizedItemAbsPath Normalized absolute path to the directory
- * @param itemRelativePathKey The relative path key for this directory
- * @param dirEffectiveConfig The effective configuration for this directory
- * @param docsAbsPath Absolute path to the /docs directory
- * @param lang Current language code
- * @param fs FileSystem instance
- * @returns A SidebarItem representing the root link or null if not linkable
+ * 
+ * When a subdirectory has `root: true` in its frontmatter, it should be treated
+ * as an independent sidebar section. This function creates a link-only item
+ * that points to the root directory without expanding its contents in the
+ * current sidebar context.
+ * 
+ * @param {string} entryName - The directory name
+ * @param {string} normalizedItemAbsPath - Normalized absolute path to the directory
+ * @param {string} itemRelativePathKey - The relative path key for this directory
+ * @param {EffectiveDirConfig} dirEffectiveConfig - The effective configuration for this directory
+ * @param {string} docsAbsPath - Absolute path to the /docs directory
+ * @param {string} lang - Current language code
+ * @param {FileSystem} fs - FileSystem instance for operations
+ * @returns {Promise<SidebarItem | null>} A SidebarItem representing the root link or null if not linkable
+ * @since 1.0.0
+ * @private
  */
 async function createRootLinkItem(
     entryName: string,
@@ -148,10 +176,18 @@ async function createRootLinkItem(
 
 /**
  * Recursively checks if a directory contains any markdown files at any depth.
- * @param dirPath Absolute path to the directory
- * @param fs FileSystem instance
- * @param maxDepth Maximum depth to search (prevents infinite recursion)
- * @returns True if any .md files are found at any depth
+ * 
+ * Performs a depth-limited search through directory structures to determine
+ * if there are any markdown files (excluding index.md) that would justify
+ * including the directory in the sidebar. Used to avoid empty directory
+ * items that would confuse navigation.
+ * 
+ * @param {string} dirPath - Absolute path to the directory to search
+ * @param {FileSystem} fs - FileSystem instance for directory operations
+ * @param {number} [maxDepth=5] - Maximum depth to search (prevents infinite recursion)
+ * @returns {Promise<boolean>} True if any .md files are found at any depth, false otherwise
+ * @since 1.0.0
+ * @private
  */
 async function hasNestedMarkdownContent(
     dirPath: string,
@@ -179,27 +215,34 @@ async function hasNestedMarkdownContent(
                 }
             }
         }
-    } catch (e: any) {
-        // If we can't read the directory, assume no content
-    }
+            } catch (e: any) {
+        }
     
     return false;
 }
 
 /**
  * Processes a directory entry and creates a SidebarItem with children.
- * @param entryName The directory name
- * @param normalizedItemAbsPath Normalized absolute path to the directory
- * @param itemRelativePathKey The relative path key for this directory
- * @param dirEffectiveConfig The effective configuration for this directory
- * @param parentViewEffectiveConfig Configuration from the parent directory
- * @param currentLevelDepth Current recursion depth (0-indexed)
- * @param lang Current language code
- * @param isDevMode Whether running in development mode
- * @param docsAbsPath Absolute path to the /docs directory
- * @param fs FileSystem instance
- * @param recursiveGenerator Function for recursive sidebar generation
- * @returns A SidebarItem for the directory or null if it should be excluded
+ * 
+ * Handles directory processing by reading its configuration, recursively
+ * generating content for subdirectories within depth limits, determining
+ * appropriate links, and creating hierarchical sidebar structures. Manages
+ * the relationship between parent and child configurations.
+ * 
+ * @param {string} entryName - The directory name
+ * @param {string} normalizedItemAbsPath - Normalized absolute path to the directory
+ * @param {string} itemRelativePathKey - The relative path key for this directory
+ * @param {EffectiveDirConfig} dirEffectiveConfig - The effective configuration for this directory
+ * @param {EffectiveDirConfig} parentViewEffectiveConfig - Configuration from the parent directory
+ * @param {number} currentLevelDepth - Current recursion depth (0-indexed)
+ * @param {string} lang - Current language code
+ * @param {boolean} isDevMode - Whether running in development mode
+ * @param {string} docsAbsPath - Absolute path to the /docs directory
+ * @param {FileSystem} fs - FileSystem instance for operations
+ * @param {Function} recursiveGenerator - Function for recursive sidebar generation
+ * @returns {Promise<SidebarItem | null>} A SidebarItem for the directory or null if it should be excluded
+ * @since 1.0.0
+ * @private
  */
 async function processDirectoryEntry(
     entryName: string,
@@ -246,7 +289,6 @@ async function processDirectoryEntry(
         fs
     );
 
-    // If no immediate content and no link, check for nested markdown content
     if (subItems.length === 0 && !linkToDir) {
         const hasNestedContent = await hasNestedMarkdownContent(normalizedItemAbsPath, fs);
         if (!hasNestedContent) {
@@ -263,7 +305,7 @@ async function processDirectoryEntry(
     return {
         text: directoryTitle,
         link: linkToDir || undefined,
-        items: subItems.length > 0 ? subItems : undefined,
+        items: subItems.length > 0 ? subItems : [],
         collapsed: dirEffectiveConfig.collapsed,
         _priority: dirEffectiveConfig.priority,
         _relativePathKey: itemRelativePathKey,
@@ -275,11 +317,19 @@ async function processDirectoryEntry(
 
 /**
  * Determines the appropriate title for a directory.
- * Priority: 1. Directory's own frontmatter title, 2. Directory name
- * @param entryName The directory name
- * @param normalizedItemAbsPath Normalized absolute path to the directory
- * @param fs FileSystem instance
- * @returns The resolved directory title
+ * 
+ * Resolves the display title for a directory by checking its index.md file
+ * for a frontmatter title. Falls back to the directory name if no custom
+ * title is found or if the index.md file cannot be read.
+ * 
+ * Priority order: 1. Directory's own frontmatter title, 2. Directory name
+ * 
+ * @param {string} entryName - The directory name (fallback title)
+ * @param {string} normalizedItemAbsPath - Normalized absolute path to the directory
+ * @param {FileSystem} fs - FileSystem instance for reading index.md
+ * @returns {Promise<string>} The resolved directory title
+ * @since 1.0.0
+ * @private
  */
 async function getDirectoryTitle(
     entryName: string,
@@ -298,29 +348,51 @@ async function getDirectoryTitle(
             }
         }
     } catch (e: any) {
-        // If can't read index.md, fallback to directory name
     }
 
     return directoryTitle;
 }
 
 /**
- * Processes a single file system entry (file or directory) and returns a SidebarItem or null.
- * This is the main entry point for processing individual items in the sidebar generation.
+ * Processes a single file system entry and returns a SidebarItem or null.
  * 
- * @param entryName Filename (e.g., 'my-doc.md') or dirname (e.g., 'concepts')
- * @param itemAbsPath Absolute path to the file or directory
- * @param isDir Whether the entry is a directory
- * @param parentViewEffectiveConfig Config of the parent directory providing context
- * @param lang Current language code
- * @param currentLevelDepth 0-indexed recursion depth
- * @param isDevMode Whether running in development mode
- * @param configReader Instance for reading directory configurations
- * @param fs FileSystem instance
- * @param recursiveGenerator Main generateSidebarView method for recursion
- * @param globalGitBookExclusionList Array of absolute paths to excluded GitBook directories
- * @param docsAbsPath Absolute path to the /docs directory
- * @returns A SidebarItem for the entry or null if it should be excluded
+ * This is the main entry point for processing individual items in the sidebar
+ * generation. It coordinates between file and directory processing, handles
+ * configuration resolution, applies exclusion rules, and manages the recursive
+ * generation of hierarchical sidebar structures.
+ * 
+ * @param {string} entryName - Filename (e.g., 'my-doc.md') or dirname (e.g., 'concepts')
+ * @param {string} itemAbsPath - Absolute path to the file or directory
+ * @param {boolean} isDir - Whether the entry is a directory
+ * @param {EffectiveDirConfig} parentViewEffectiveConfig - Config of the parent directory providing context
+ * @param {string} lang - Current language code
+ * @param {number} currentLevelDepth - 0-indexed recursion depth
+ * @param {boolean} isDevMode - Whether running in development mode
+ * @param {ConfigReaderService} configReader - Instance for reading directory configurations
+ * @param {FileSystem} fs - FileSystem instance for file operations
+ * @param {Function} recursiveGenerator - Main generateSidebarView method for recursion
+ * @param {string[]} globalGitBookExclusionList - Array of absolute paths to excluded GitBook directories
+ * @param {string} docsAbsPath - Absolute path to the /docs directory
+ * @returns {Promise<SidebarItem | null>} A SidebarItem for the entry or null if it should be excluded
+ * @since 1.0.0
+ * @public
+ * @example
+ * ```typescript
+ * const item = await processItem(
+ *   'guide.md',
+ *   '/docs/en/guide.md',
+ *   false,
+ *   effectiveConfig,
+ *   'en',
+ *   0,
+ *   false,
+ *   configReader,
+ *   fs,
+ *   recursiveGenerator,
+ *   [],
+ *   '/docs'
+ * );
+ * ```
  */
 export async function processItem(
     entryName: string,
@@ -349,10 +421,10 @@ export async function processItem(
     }
 
     const parentKeyForChildren = parentViewEffectiveConfig._baseRelativePathForChildren ?? "";
+    const parentDirAbsPath = path.dirname(normalizedItemAbsPath);
     const itemRelativePathKey = generatePathKey(
-        entryName,
-        isDir ? "directory" : "file",
-        parentKeyForChildren
+        normalizedItemAbsPath,
+        parentDirAbsPath
     );
 
     if (!isDir) {

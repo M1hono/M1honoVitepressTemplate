@@ -6,11 +6,15 @@
         onUnmounted,
         ref,
         nextTick,
+        computed,
     } from "vue";
     import type { DefaultTheme } from "vitepress/theme";
     import VPButton from "vitepress/dist/client/theme-default/components/VPButton.vue";
     import VPImage from "vitepress/dist/client/theme-default/components/VPImage.vue";
     import { motion } from "motion-v";
+    
+    import defaultSnippets from "../../config/defaultSnippets.json";
+    import customSnippets from "../../config/snippets.json";
 
     export interface HeroAction {
         theme?: "brand" | "alt";
@@ -20,7 +24,20 @@
         rel?: string;
     }
 
-    defineProps<{
+    export interface CodeSnippetCategory {
+        name: string;
+        snippets: string[];
+        color?: string;
+        darkColor?: string;
+    }
+
+    export interface SnippetControl {
+        enabled: boolean;
+    }
+
+    export type SnippetConfig = CodeSnippetCategory | SnippetControl;
+
+    const props = defineProps<{
         name?: string;
         text?: string;
         tagline?: string;
@@ -32,57 +49,159 @@
         "hero-image-slot-exists"
     ) as Ref<boolean>;
 
-    /**
-     * Get code snippet by category and index
-     * @param category - The category of code snippet
-     * @param index - The index within the category
-     */
-    const getCodeSnippet = (category: string, index: number): string => {
-        const snippets: Record<string, string[]> = {
-            // "kubejs-events": [
-            //     "ServerEvents.recipes(event => {})",
-            //     "PlayerEvents.tick(event => {})",
-            //     "ItemEvents.rightClicked(event => {})",
-            //     "BlockEvents.broken(event => {})",
-            //     'StartupEvents.registry("item", event => {})',
-            //     "ServerEvents.loaded(event => {})",
-            // ],
-            // "kubejs-recipes": [
-            //     'event.shaped("item", ["ABC", "DEF"])',
-            //     'event.shapeless("output", ["input1", "input2"])',
-            //     'event.smelting("output", "input")',
-            //     'event.remove({id: "minecraft:stick"})',
-            //     'event.replaceInput({}, "old", "new")',
-            //     'event.stonecutting("output", "input")',
-            // ],
-            // "minecraft-api": [
-            //     "Level level = player.level()",
-            //     "BlockPos pos = new BlockPos(x, y, z)",
-            //     "ItemStack stack = new ItemStack(Items.DIAMOND)",
-            //     "BlockState state = level.getBlockState(pos)",
-            // ],
-            // "forge-modding": [
-            //     '@Mod("modid")',
-            //     '@EventBusSubscriber(modid = "modid")',
-            //     "@SubscribeEvent",
-            //     'ForgeRegistries.ITEMS.register("item", item)',
-            // ],
-            // "minecraft-commands": [
-            //     "/give @p minecraft:diamond 64",
-            //     "/tp @a 0 100 0",
-            //     "/gamemode creative @s",
-            //     "/effect give @p minecraft:speed 60 2",
-            // ],
-        };
+    const snippetIndices = ref<Record<string, number[]>>({});
 
-        const categorySnippets =
-            snippets[category] || snippets["kubejs-events"];
-        return categorySnippets[index % categorySnippets.length];
+    const initializeSnippetIndices = () => {
+        const indices: Record<string, number[]> = {};
+        snippetCategories.value.forEach((category) => {
+            indices[category.name] = [0, 1];
+        });
+        snippetIndices.value = indices;
     };
 
+    const getCodeSnippet = (category: CodeSnippetCategory, slot: number): string => {
+        if (!category.snippets || category.snippets.length === 0) {
+            return "";
+        }
+        
+        const indices = snippetIndices.value[category.name];
+        if (!indices || indices.length <= slot) {
+            return category.snippets[slot % category.snippets.length];
+        }
+        
+        const index = indices[slot];
+        return category.snippets[index % category.snippets.length];
+    };
 
+    const snippetCategories = computed<CodeSnippetCategory[]>(() => {
+        const merged: CodeSnippetCategory[] = [];
+        
+        const defaultConfig = defaultSnippets as SnippetConfig[];
+        let defaultEnabled = true;
+        
+        if (defaultConfig.length > 0 && 'enabled' in defaultConfig[0]) {
+            defaultEnabled = (defaultConfig[0] as SnippetControl).enabled;
+        }
+        
+        if (defaultEnabled) {
+            const snippetItems = defaultConfig.filter((item): item is CodeSnippetCategory => 
+                'name' in item && 'snippets' in item
+            );
+            merged.push(...snippetItems);
+        }
+        
+        const customConfig = customSnippets as SnippetConfig[];
+        if (customConfig && customConfig.length > 0) {
+            const customSnippetItems = customConfig.filter((item): item is CodeSnippetCategory => 
+                'name' in item && 'snippets' in item
+            );
+            merged.push(...customSnippetItems);
+        }
+        
+        return merged;
+    });
 
-    // Slice-by-slice reveal animations
+    const shouldShowFloatingWords = computed(() => {
+        return snippetCategories.value.length > 0;
+    });
+
+    const morphText = (element: HTMLElement, fromText: string, toText: string, duration: number = 1200) => {
+        const steps = 60;
+        const stepTime = duration / steps;
+        let currentStep = 0;
+        
+        const maxLength = Math.max(fromText.length, toText.length);
+        const charStartTimes = Array.from({ length: maxLength }, (_, i) => 
+            0.2 + (i / maxLength) * 0.6
+        );
+        
+        const interval = setInterval(() => {
+            currentStep++;
+            const globalProgress = currentStep / steps;
+            
+            if (globalProgress >= 1) {
+                element.textContent = toText;
+                clearInterval(interval);
+                return;
+            }
+            
+            let result = '';
+            
+            for (let i = 0; i < maxLength; i++) {
+                const fromChar = fromText[i] || '';
+                const toChar = toText[i] || '';
+                const charStartTime = charStartTimes[i];
+                const charProgress = Math.max(0, Math.min(1, (globalProgress - charStartTime) / 0.3));
+                
+                if (fromChar === toChar) {
+                    result += fromChar;
+                } else if (charProgress >= 1) {
+                    result += toChar;
+                } else if (charProgress > 0) {
+                    if (charProgress < 0.7) {
+                        const flickerChars = '!@#$%^&*()[]{}|;:,.<>?';
+                        const randomChar = flickerChars[Math.floor(Math.random() * flickerChars.length)];
+                        result += Math.random() < 0.5 ? randomChar : fromChar;
+                    } else {
+                        result += Math.random() < 0.8 ? toChar : fromChar;
+                    }
+                } else {
+                    result += fromChar;
+                }
+            }
+            
+            element.textContent = result;
+        }, stepTime);
+    };
+
+    const rotateSnippets = () => {
+        const newIndices: Record<string, number[]> = {};
+        
+        snippetCategories.value.forEach((category) => {
+            const currentIndices = snippetIndices.value[category.name] || [0, 1];
+            const snippetCount = category.snippets.length;
+            
+            if (snippetCount > 2) {
+                newIndices[category.name] = [
+                    (currentIndices[0] + 2) % snippetCount,
+                    (currentIndices[1] + 2) % snippetCount
+                ];
+            } else {
+                newIndices[category.name] = [
+                    (currentIndices[0] + 1) % Math.max(snippetCount, 1),
+                    (currentIndices[1] + 1) % Math.max(snippetCount, 1)
+                ];
+            }
+        });
+
+        const floatingWords = document.querySelectorAll('.floating-word');
+        floatingWords.forEach((wordElement, index) => {
+            const element = wordElement as HTMLElement;
+            const currentText = element.textContent || '';
+            
+            setTimeout(() => {
+                const categoryIndex = Math.floor(index / 2);
+                const slotIndex = index % 2;
+                const category = snippetCategories.value[categoryIndex];
+                
+                if (category) {
+                    const oldIndices = snippetIndices.value[category.name] || [0, 1];
+                    const newIndices_cat = newIndices[category.name];
+                    const newIndex = newIndices_cat[slotIndex];
+                    const newText = category.snippets[newIndex % category.snippets.length];
+                    
+                    if (currentText !== newText) {
+                        morphText(element, currentText, newText, 1000);
+                    }
+                }
+            }, index * 100);
+        });
+        
+        setTimeout(() => {
+            snippetIndices.value = newIndices;
+        }, 1000);
+    };
+
     const heroContainerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -95,7 +214,6 @@
         },
     };
 
-    // Slice reveal effect for letters - like cutting through
     const letterVariants = {
         hidden: {
             opacity: 0,
@@ -118,7 +236,6 @@
         }),
     };
 
-    // Word slice animation - reveals like unfolding
     const wordVariants = {
         hidden: {
             opacity: 0,
@@ -231,7 +348,6 @@
         },
     };
 
-    // Image slice reveal - appears in slices from top to bottom
     const imageVariants = {
         hidden: {
             opacity: 0,
@@ -260,10 +376,11 @@
         },
     };
 
-    // Simple parallax for floating words
     const parallaxContainer = ref<HTMLElement | null>(null);
     const floatingWords = ref<HTMLElement[]>([]);
     const isMobile = ref(false);
+    
+    const rotationTimer = ref<NodeJS.Timeout | null>(null);
 
     const handleMouseMove = (event: MouseEvent) => {
         if (!parallaxContainer.value || window.innerWidth < 768) return;
@@ -289,6 +406,14 @@
 
     onMounted(() => {
         nextTick(() => {
+            initializeSnippetIndices();
+            
+            if (shouldShowFloatingWords.value) {
+                rotationTimer.value = setInterval(() => {
+                    rotateSnippets();
+                }, 4000);
+            }
+
             parallaxContainer.value = document.querySelector(".hero-bg");
             floatingWords.value = Array.from(
                 document.querySelectorAll(".floating-word")
@@ -307,6 +432,11 @@
     });
 
     onUnmounted(() => {
+        if (rotationTimer.value) {
+            clearInterval(rotationTimer.value);
+            rotationTimer.value = null;
+        }
+
         if (typeof window !== "undefined") {
             window.removeEventListener("mousemove", handleMouseMove);
             window.removeEventListener("resize", checkMobile);
@@ -319,36 +449,30 @@
         class="VPHero hero-enhanced"
         :class="{ 'has-image': image || heroImageSlotExists }"
     >
-        <!-- Fantasy background with floating code snippets -->
         <div class="hero-bg" ref="parallaxContainer">
             <div class="bg-gradient"></div>
 
-            <!-- Fantasy floating code snippets -->
-            <div class="floating-words">
+            <div v-if="shouldShowFloatingWords" class="floating-words">
                 <div
-                    v-for="(category, catIndex) in [
-                        'kubejs-events',
-                        'kubejs-recipes',
-                        'minecraft-api',
-                        'forge-modding',
-                        'minecraft-commands',
-                    ]"
-                    :key="category"
+                    v-for="(category, catIndex) in snippetCategories"
+                    :key="category.name"
                     class="word-group"
-                    :class="category"
+                    :class="category.name"
                 >
                     <span
-                        v-for="i in 2"
-                        :key="`${category}-${i}`"
+                        v-for="slot in 2"
+                        :key="`${category.name}-${slot}`"
                         class="floating-word"
-                        :data-intensity="3 + (i % 2)"
+                        :data-intensity="3 + (slot % 2)"
                         :style="{
-                            animationDelay: `${catIndex * 3 + i * 1.5}s`,
-                            '--float-duration': `${20 + i * 6}s`,
+                            animationDelay: `${catIndex * 3 + slot * 1.5}s`,
+                            '--float-duration': `${20 + slot * 6}s`,
                             '--hue-offset': `${catIndex * 72}deg`,
+                            '--custom-color': category.color,
+                            '--custom-dark-color': category.darkColor,
                         }"
                     >
-                        {{ getCodeSnippet(category, i - 1) }}
+                        {{ getCodeSnippet(category, slot - 1) }}
                     </span>
                 </div>
             </div>
@@ -365,10 +489,9 @@
                 <slot name="home-hero-info-before" />
                 <slot name="home-hero-info">
                     <div class="heading">
-                        <!-- Slice reveal title -->
-                        <h1 v-if="name" class="name">
+                        <h1 v-if="props.name" class="name">
                             <motion.span
-                                v-for="(word, wordIndex) in name.split(' ')"
+                                v-for="(word, wordIndex) in props.name.split(' ')"
                                 :key="`word-${wordIndex}`"
                                 class="word-wrapper"
                                 :variants="wordVariants"
@@ -396,25 +519,25 @@
                         </h1>
 
                         <motion.h2
-                            v-if="text"
+                            v-if="props.text"
                             class="text"
                             :variants="subtitleVariants"
                             initial="hidden"
                             :whileInView="'visible'"
                             :viewport="{ once: true, margin: '-100px' }"
-                            v-html="text"
+                            v-html="props.text"
                         />
                     </div>
 
-                    <motion.p
-                        v-if="tagline"
-                        class="tagline"
-                        :variants="taglineVariants"
-                        initial="hidden"
-                        :whileInView="'visible'"
-                        :viewport="{ once: true, margin: '-100px' }"
-                        v-html="tagline"
-                    />
+                                    <motion.p
+                    v-if="props.tagline"
+                    class="tagline"
+                    :variants="taglineVariants"
+                    initial="hidden"
+                    :whileInView="'visible'"
+                    :viewport="{ once: true, margin: '-100px' }"
+                    v-html="props.tagline"
+                />
                 </slot>
                 <slot name="home-hero-info-after" />
 
@@ -448,7 +571,6 @@
                 <slot name="home-hero-actions-after" />
             </motion.div>
 
-            <!-- Mobile image without motion animations -->
             <div
                 v-if="(image || heroImageSlotExists) && isMobile"
                 class="image image-mobile"
@@ -459,8 +581,6 @@
                     </slot>
                 </div>
             </div>
-
-            <!-- Desktop image with motion animations -->
             <motion.div
                 v-else-if="image || heroImageSlotExists"
                 class="image"
@@ -478,7 +598,6 @@
             </motion.div>
         </div>
 
-        <!-- Multi-layered bottom wave -->
         <div class="hero-wave">
             <svg
                 viewBox="0 0 1200 120"
@@ -580,6 +699,17 @@
         letter-spacing: -0.02em;
         font-family: "Inter", "SF Pro Display", -apple-system,
             BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        position: relative;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        color: var(--vp-c-brand-1);
+    }
+
+    .name::before {
+        content: "";
+        position: absolute;
+        inset: 0;
         background: linear-gradient(
             135deg,
             var(--vp-c-brand-1) 0%,
@@ -592,10 +722,33 @@
         -webkit-background-clip: text;
         background-clip: text;
         -webkit-text-fill-color: transparent;
-        text-rendering: optimizeLegibility;
-        -webkit-font-smoothing: antialiased;
+        color: transparent;
+        pointer-events: none;
+    }
+
+    .name .letter {
         position: relative;
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+        display: inline-block;
+        color: inherit;
+    }
+    @supports not (-webkit-background-clip: text) {
+        .name::before {
+            display: none;
+        }
+        .name {
+            background: linear-gradient(
+                135deg,
+                var(--vp-c-brand-1) 0%,
+                var(--vp-c-brand-2) 30%,
+                var(--vp-c-brand-3) 60%,
+                var(--vp-c-brand-1) 100%
+            );
+            background-size: 300% 300%;
+            animation: gradient-flow 6s ease-in-out infinite;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     }
 
     @keyframes gradient-flow {
@@ -1063,18 +1216,17 @@
 
     .floating-word {
         position: absolute;
-        font-family: "Fira Code", "JetBrains Mono", "SF Mono", "Consolas",
-            monospace;
+        font-family: "Consolas", "Monaco", "Lucida Console", "Liberation Mono", "DejaVu Sans Mono", "Bitstream Vera Sans Mono", "Courier New", monospace;
         font-weight: 500;
         font-size: 14px;
         opacity: 0;
-        color: var(--vp-c-text-3);
+        color: var(--custom-color, var(--vp-c-text-3));
         pointer-events: none;
         user-select: none;
         white-space: nowrap;
         transform-origin: center;
         animation: float-curve var(--float-duration, 20s) ease-in-out infinite;
-        transition: all 0.3s ease;
+        animation-fill-mode: both;
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
         filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
         backdrop-filter: blur(1px);
@@ -1082,79 +1234,23 @@
 
     .dark .floating-word {
         opacity: 0;
-        color: var(--vp-c-text-2);
+        color: var(--custom-dark-color, var(--custom-color, var(--vp-c-text-2)));
         text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
         filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
     }
 
-    /* Light theme colors - proper visibility */
-    .word-group.kubejs-events .floating-word {
-        color: #7c3aed;
-    }
-    .word-group.kubejs-recipes .floating-word {
-        color: #059669;
-    }
-    .word-group.minecraft-api .floating-word {
-        color: #d97706;
-    }
-    .word-group.forge-modding .floating-word {
-        color: #dc2626;
-    }
-    .word-group.minecraft-commands .floating-word {
-        color: #2563eb;
-    }
-
-    /* Different colors for different categories in dark theme */
-    .dark .word-group.kubejs-events .floating-word {
-        color: #a78bfa;
-    }
-    .dark .word-group.kubejs-recipes .floating-word {
-        color: #34d399;
-    }
-    .dark .word-group.minecraft-api .floating-word {
-        color: #fbbf24;
-    }
-    .dark .word-group.forge-modding .floating-word {
-        color: #f87171;
-    }
-    .dark .word-group.minecraft-commands .floating-word {
-        color: #60a5fa;
-    }
-
-    /* Alternate curved paths for visual variety */
-    .word-group.kubejs-events .floating-word:nth-child(odd) {
+    .word-group:nth-child(odd) .floating-word:nth-child(odd) {
         animation-name: float-curve;
     }
-    .word-group.kubejs-events .floating-word:nth-child(even) {
+    .word-group:nth-child(odd) .floating-word:nth-child(even) {
         animation-name: float-curve-bottom;
     }
 
-    .word-group.kubejs-recipes .floating-word:nth-child(odd) {
+    .word-group:nth-child(even) .floating-word:nth-child(odd) {
         animation-name: float-curve-bottom;
     }
-    .word-group.kubejs-recipes .floating-word:nth-child(even) {
+    .word-group:nth-child(even) .floating-word:nth-child(even) {
         animation-name: float-curve;
-    }
-
-    .word-group.minecraft-api .floating-word:nth-child(odd) {
-        animation-name: float-curve;
-    }
-    .word-group.minecraft-api .floating-word:nth-child(even) {
-        animation-name: float-curve-bottom;
-    }
-
-    .word-group.forge-modding .floating-word:nth-child(odd) {
-        animation-name: float-curve-bottom;
-    }
-    .word-group.forge-modding .floating-word:nth-child(even) {
-        animation-name: float-curve;
-    }
-
-    .word-group.minecraft-commands .floating-word:nth-child(odd) {
-        animation-name: float-curve;
-    }
-    .word-group.minecraft-commands .floating-word:nth-child(even) {
-        animation-name: float-curve-bottom;
     }
 
     @keyframes float-curve {
@@ -1194,9 +1290,6 @@
         }
     }
 
-
-
-    /* Bottom curved path animation for variety */
     @keyframes float-curve-bottom {
         0% {
             transform: translateX(-150px) translateY(-20px) rotate(5deg)
@@ -1234,50 +1327,49 @@
         }
     }
 
-    /* Clear positioning for different code categories */
-    .word-group.kubejs-events .floating-word:nth-child(1) {
-        top: 15%;
-        left: 8%;
+    .word-group:nth-child(1) .floating-word:nth-child(1) {
+        top: 20%;
+        left: 15%;
     }
-    .word-group.kubejs-events .floating-word:nth-child(2) {
-        top: 60%;
-        left: 85%;
-    }
-
-    .word-group.kubejs-recipes .floating-word:nth-child(1) {
-        top: 25%;
-        left: 75%;
-    }
-    .word-group.kubejs-recipes .floating-word:nth-child(2) {
-        top: 70%;
-        left: 12%;
-    }
-
-    .word-group.minecraft-api .floating-word:nth-child(1) {
-        top: 35%;
-        left: 50%;
-    }
-    .word-group.minecraft-api .floating-word:nth-child(2) {
-        top: 80%;
-        left: 40%;
-    }
-
-    .word-group.forge-modding .floating-word:nth-child(1) {
-        top: 10%;
-        left: 30%;
-    }
-    .word-group.forge-modding .floating-word:nth-child(2) {
+    .word-group:nth-child(1) .floating-word:nth-child(2) {
         top: 75%;
+        left: 80%;
+    }
+
+    .word-group:nth-child(2) .floating-word:nth-child(1) {
+        top: 30%;
         left: 70%;
     }
+    .word-group:nth-child(2) .floating-word:nth-child(2) {
+        top: 85%;
+        left: 25%;
+    }
 
-    .word-group.minecraft-commands .floating-word:nth-child(1) {
+    .word-group:nth-child(3) .floating-word:nth-child(1) {
         top: 45%;
         left: 85%;
     }
-    .word-group.minecraft-commands .floating-word:nth-child(2) {
-        top: 85%;
-        left: 15%;
+    .word-group:nth-child(3) .floating-word:nth-child(2) {
+        top: 65%;
+        left: 10%;
+    }
+
+    .word-group:nth-child(4) .floating-word:nth-child(1) {
+        top: 15%;
+        left: 45%;
+    }
+    .word-group:nth-child(4) .floating-word:nth-child(2) {
+        top: 55%;
+        left: 50%;
+    }
+
+    .word-group:nth-child(5) .floating-word:nth-child(1) {
+        top: 35%;
+        left: 20%;
+    }
+    .word-group:nth-child(5) .floating-word:nth-child(2) {
+        top: 90%;
+        left: 60%;
     }
 
     .hero-wave {
@@ -1310,6 +1402,23 @@
 
     .dark .name {
         filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
+        color: var(--vp-c-brand-1);
+    }
+
+    .dark .name::before {
+        background: linear-gradient(
+            135deg,
+            var(--vp-c-brand-1) 0%,
+            var(--vp-c-brand-2) 30%,
+            var(--vp-c-brand-3) 60%,
+            var(--vp-c-brand-1) 100%
+        );
+        background-size: 300% 300%;
+        animation: gradient-flow 6s ease-in-out infinite;
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
     }
 
     .dark .text {
@@ -1322,7 +1431,6 @@
         filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15));
     }
 
-    /* Responsive design */
     @media (max-width: 768px) {
         .VPHero.hero-enhanced {
             min-height: 90vh;
@@ -1335,11 +1443,6 @@
 
         .floating-word {
             font-size: 11px !important;
-            opacity: 0.1 !important;
-        }
-
-        .dark .floating-word {
-            opacity: 0.2 !important;
         }
 
         .main {
@@ -1417,7 +1520,6 @@
         }
     }
 
-    /* Accessibility */
     @media (prefers-reduced-motion: reduce) {
         * {
             animation-duration: 0.01ms !important;

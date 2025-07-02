@@ -5,7 +5,6 @@ import DefaultTheme from 'vitepress/theme-without-fonts'
 import vitepressNprogress from "vitepress-plugin-nprogress";
 import { useData, useRoute, inBrowser } from "vitepress";
 import "./styles/index.css";
-import "./styles/base/fonts.css";
 import 'virtual:group-icons.css'
 import { enhanceAppWithTabs } from "vitepress-plugin-tabs/client";
 import vuetify from "./vuetify";
@@ -32,7 +31,6 @@ import { setupLanguageControl } from "@utils/i18n/languageControl";
 import { initMermaidConfig } from "@utils/charts/mermaid";
 import { registerComponents } from "@utils/vitepress/components";
 
-// Theme configuration
 export default {
     extends: DefaultTheme,
     Layout: () => {
@@ -83,11 +81,11 @@ export default {
         
         onMounted(() => {
             if (!import.meta.env.SSR) {
-                // setupLanguageControl();
+                setupLanguageControl();
                 initMermaidConfig();
                 mermaid.init(undefined, ".mermaid");
                 bindFancybox();
-                // watch(() => route.path, setupLanguageControl);
+                watch(() => route.path, setupLanguageControl);
             }
         });
         

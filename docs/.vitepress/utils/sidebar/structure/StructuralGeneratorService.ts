@@ -1,34 +1,73 @@
+/**
+ * @fileoverview Main structural generator service for sidebar creation.
+ * 
+ * This module provides the central service responsible for generating the complete
+ * sidebar item structure for individual sidebar root views. It orchestrates the
+ * entire process including configuration resolution, recursive directory processing,
+ * file handling, group extraction, depth management, and hierarchical organization.
+ * 
+ * @module StructuralGeneratorService
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
+ */
+
 import path from 'node:path';
 import { SidebarItem, EffectiveDirConfig, FileConfig, GroupConfig, ExternalLinkConfig } from '../types';
-import { ConfigReaderService } from '../config'; // To check if a subdir is a new root
-import { FileSystem } from '../shared/FileSystem'; // Or direct fs, to check for index.md
+import { ConfigReaderService } from '../config';
+import { FileSystem } from '../shared/FileSystem';
 import { normalizePathSeparators } from '../shared/objectUtils';
 import { ItemProcessorFunction, RecursiveViewGeneratorFunction } from './groupProcessor';
 import { processItem } from './itemProcessor';
 import { sortItems } from './itemSorter';
-// import { generateLink } from './linkGenerator'; // Placeholder for helper
-// import { generatePathKey } from './pathKeyGenerator'; // Placeholder for helper
 
 /**
- * @file StructuralGeneratorService.ts
- * @description Service responsible for generating the raw sidebar item structure 
- * for a single sidebar root view. It uses an effective declarative configuration
- * to recursively process files and directories, handle internal groups, manage
- * conditional linking, apply depth limits, and perform initial sorting.
- * It identifies subdirectories that are new roots and creates link-only items for them.
+ * Service responsible for generating hierarchical sidebar item structures.
+ * 
+ * The StructuralGeneratorService coordinates the entire sidebar generation process
+ * for individual sidebar root views. It manages recursive directory processing,
+ * configuration resolution, file handling, group extraction, external link
+ * processing, and hierarchical organization while respecting depth limits,
+ * visibility settings, and ordering configurations.
+ * 
+ * @class StructuralGeneratorService
+ * @since 1.0.0
+ * @public
+ * @example
+ * ```typescript
+ * const service = new StructuralGeneratorService(
+ *   '/docs',
+ *   configReader,
+ *   fileSystem,
+ *   gitBookExclusions
+ * );
+ * 
+ * const sidebarItems = await service.generateSidebarView(
+ *   '/docs/en/guide',
+ *   effectiveConfig,
+ *   'en',
+ *   0,
+ *   false
+ * );
+ * ```
  */
 export class StructuralGeneratorService {
     private readonly configReader: ConfigReaderService;
-    private readonly fs: FileSystem; // Or use direct fs from 'node:fs/promises'
+    private readonly fs: FileSystem;
     private readonly globalGitBookExclusionList: string[];
-    private readonly docsPath: string; // Absolute path to /docs
+    private readonly docsPath: string;
 
     /**
      * Creates an instance of StructuralGeneratorService.
-     * @param docsPath Absolute path to the /docs directory.
-     * @param configReader An instance of ConfigReaderService to fetch configurations.
-     * @param fileSystem An instance of a FileSystem implementation.
-     * @param globalGitBookExclusionList An array of absolute paths to GitBook directories to exclude.
+     * 
+     * Initializes the service with necessary dependencies for sidebar generation.
+     * All paths are normalized for cross-platform compatibility during construction.
+     * 
+     * @param {string} docsPath - Absolute path to the /docs directory
+     * @param {ConfigReaderService} configReader - Instance for reading directory configurations
+     * @param {FileSystem} fileSystem - File system interface for file operations
+     * @param {string[]} [globalGitBookExclusionList=[]] - Array of absolute paths to GitBook directories to exclude
+     * @since 1.0.0
      */
     constructor(
         docsPath: string,
@@ -43,9 +82,15 @@ export class StructuralGeneratorService {
     }
 
     /**
-     * Checks if a given absolute path is within any of the globally excluded GitBook directories.
-     * @param absPath The absolute path to check.
-     * @returns True if the path is excluded, false otherwise.
+     * Checks if an absolute path is within any globally excluded GitBook directories.
+     * 
+     * Determines whether a given path falls within any of the configured GitBook
+     * exclusion directories by comparing normalized paths. Used to filter out
+     * GitBook-specific content that should not appear in generated sidebars.
+     * 
+     * @param {string} absPath - The absolute path to check for exclusion
+     * @returns {boolean} True if the path is excluded, false otherwise
+     * @since 1.0.0
      * @private
      */
     private isGitBookExcluded(absPath: string): boolean {
@@ -57,9 +102,16 @@ export class StructuralGeneratorService {
 
     /**
      * Validates and processes external links from configuration.
-     * @param externalLinks Array of external link configurations
-     * @param baseRelativePathKey Base relative path for generating keys
-     * @returns Array of valid SidebarItems for external links
+     * 
+     * Converts external link configurations into valid SidebarItems while
+     * performing validation on URLs, text content, and visibility settings.
+     * Generates unique keys for external links and filters out invalid
+     * or hidden entries.
+     * 
+     * @param {ExternalLinkConfig[]} externalLinks - Array of external link configurations
+     * @param {string} baseRelativePathKey - Base relative path for generating unique keys
+     * @returns {SidebarItem[]} Array of valid SidebarItems for external links
+     * @since 1.0.0
      * @private
      */
     private processExternalLinks(
@@ -73,24 +125,20 @@ export class StructuralGeneratorService {
         const externalLinkItems: SidebarItem[] = [];
 
         for (const linkConfig of externalLinks) {
-            // Skip hidden links
             if (linkConfig.hidden) {
                 continue;
             }
 
-            // Validate external link
             if (!linkConfig.text || !linkConfig.link) {
                 console.warn('External link must have both text and link properties:', linkConfig);
                 continue;
             }
 
-            // Ensure it's actually an external link
             if (!linkConfig.link.startsWith('http://') && !linkConfig.link.startsWith('https://')) {
                 console.warn('External link must start with http:// or https://:', linkConfig.link);
                 continue;
             }
 
-            // Generate unique key for external link
             const linkKey = `external:${linkConfig.text}`;
             const relativePathKey = baseRelativePathKey ? `${baseRelativePathKey}${linkKey}` : linkKey;
 
@@ -111,13 +159,19 @@ export class StructuralGeneratorService {
     }
 
     /**
-     * Generates flattened content for a root directory by collecting all subdirectory content
-     * into a single array instead of creating separate top-level items.
-     * @param rootContentPath Absolute path to the root directory.
-     * @param rootConfig The effective configuration for the root directory.
-     * @param lang Current language code.
-     * @param isDevMode Boolean indicating if running in development mode.
-     * @returns A promise resolving to a single SidebarItem with all content flattened.
+     * Generates flattened content for a root directory.
+     * 
+     * Creates a single root section that contains all subdirectory content
+     * flattened into a unified hierarchy instead of separate top-level items.
+     * This approach is used for root directories to create cleaner sidebar
+     * structures with better organization and navigation flow.
+     * 
+     * @param {string} rootContentPath - Absolute path to the root directory
+     * @param {EffectiveDirConfig} rootConfig - The effective configuration for the root directory
+     * @param {string} lang - Current language code
+     * @param {boolean} isDevMode - Boolean indicating if running in development mode
+     * @returns {Promise<SidebarItem>} Promise resolving to a single SidebarItem with all content flattened
+     * @since 1.0.0
      * @private
      */
     private async generateRootSectionWithFlattenedContent(
@@ -128,7 +182,6 @@ export class StructuralGeneratorService {
     ): Promise<SidebarItem> {
         const normalizedRootPath = normalizePathSeparators(rootContentPath);
         
-        // Create the root section container
         const rootSection: SidebarItem = {
             text: rootConfig.title || "Untitled",
             items: [],
@@ -140,7 +193,6 @@ export class StructuralGeneratorService {
             _hidden: rootConfig.hidden || false
         };
 
-        // Get all entries in the root directory
         let entries: { name: string; path: string; dirent?: any; isDirectory(): boolean; isFile(): boolean; }[] = [];
         try {
             const dirents = await this.fs.readDir(normalizedRootPath); 
@@ -154,26 +206,22 @@ export class StructuralGeneratorService {
         } catch (error: any) {
         }
 
-        // Flatten all content from subdirectories and files into the root section
         const flattenedContent = await this.flattenDirectoryContent(
             entries,
             normalizedRootPath,
             rootConfig,
             lang,
-            0, // Start at depth 0 for root
+            0,
             isDevMode
         );
 
-        // Add external links to the root section
         const externalLinkItems = this.processExternalLinks(
             rootConfig.externalLinks || [],
             rootConfig._baseRelativePathForChildren ?? ""
         );
 
-        // Combine flattened content with external links
         const allContent = [...flattenedContent, ...externalLinkItems];
 
-        // Sort all items together
         const sortedContent = sortItems(allContent, rootConfig.itemOrder);
 
         rootSection.items = sortedContent;
@@ -182,13 +230,20 @@ export class StructuralGeneratorService {
 
     /**
      * Recursively flattens content from directories and files into a single array.
-     * @param entries Array of directory entries to process.
-     * @param currentPath Current directory path being processed.
-     * @param parentConfig Configuration from parent directory.
-     * @param lang Current language code.
-     * @param currentDepth Current recursion depth.
-     * @param isDevMode Boolean indicating if running in development mode.
-     * @returns A promise resolving to an array of flattened SidebarItems.
+     * 
+     * Processes directory entries to create a flattened hierarchy where content
+     * from nested directories is promoted to create cleaner navigation structures.
+     * Handles both files and directories, respects configuration settings,
+     * manages depth limits, and maintains proper hierarchical relationships.
+     * 
+     * @param {Array} entries - Array of directory entries to process
+     * @param {string} currentPath - Current directory path being processed
+     * @param {EffectiveDirConfig} parentConfig - Configuration from parent directory
+     * @param {string} lang - Current language code
+     * @param {number} currentDepth - Current recursion depth
+     * @param {boolean} isDevMode - Boolean indicating if running in development mode
+     * @returns {Promise<SidebarItem[]>} Promise resolving to an array of flattened SidebarItems
+     * @since 1.0.0
      * @private
      */
     private async flattenDirectoryContent(
@@ -210,7 +265,6 @@ export class StructuralGeneratorService {
             }
 
             if (entry.isFile()) {
-                // Process files directly - skip index.md files as they represent directories
                 if (entry.name.toLowerCase() === "index.md") {
                     continue;
                 }
@@ -218,7 +272,7 @@ export class StructuralGeneratorService {
                 const fileItem = await processItem(
                     entry.name,
                     itemAbsPath,
-                    false, // isDir
+                    false,
                     parentConfig,
                     lang,
                     currentDepth,
@@ -234,7 +288,6 @@ export class StructuralGeneratorService {
                     flattenedItems.push(fileItem);
                 }
             } else {
-                // For directories, check if they are nested roots first
                 const dirIndexPath = path.join(itemAbsPath, "index.md");
                 const dirEffectiveConfig = await this.configReader.getEffectiveConfig(
                     dirIndexPath,
@@ -242,12 +295,10 @@ export class StructuralGeneratorService {
                     isDevMode
                 );
 
-                // Skip hidden directories
                 if (dirEffectiveConfig.hidden) {
                     continue;
                 }
 
-                // If this is a nested root and we're at depth > 0, create a link-only item
                 if (dirEffectiveConfig.root && currentDepth > 0) {
                     const rootLinkItem = await processItem(
                         entry.name,
@@ -432,19 +483,32 @@ export class StructuralGeneratorService {
     }
 
     /**
-     * Generates the `SidebarItem[]` for a single, specific sidebar root view.
-     * This method orchestrates the processing of groups and individual file/directory entries.
-     * It is recursive for subdirectories that are not new roots themselves.
-     *
-     * @param currentContentPath Absolute path to the directory currently being processed for this view.
-     * @param effectiveConfigForThisView The effective configuration governing this specific view/path.
-     *                                    Must have `_baseRelativePathForChildren` set by the caller 
-     *                                    (e.g., `main.ts` sets it to '' for top-level roots, 
-     *                                    `itemProcessor` sets it for subdirectories).
-     * @param lang Current language code.
-     * @param currentLevelDepth Internal 0-indexed recursion depth for items within this view.
-     * @param isDevMode Boolean indicating if running in development mode (for draft status).
-     * @returns A promise resolving to an array of `SidebarItem` objects for the current path.
+     * Generates the complete SidebarItem array for a single sidebar root view.
+     * 
+     * This is the main public method that orchestrates the entire sidebar generation
+     * process for a specific directory path. It handles root directory processing
+     * with content flattening, regular directory processing with groups, file
+     * processing, external links, and hierarchical organization. The method is
+     * recursive for subdirectories that are not new roots themselves.
+     * 
+     * @param {string} currentContentPath - Absolute path to the directory currently being processed
+     * @param {EffectiveDirConfig} effectiveConfigForThisView - The effective configuration governing this view
+     * @param {string} lang - Current language code
+     * @param {number} currentLevelDepth - Internal 0-indexed recursion depth for items within this view
+     * @param {boolean} isDevMode - Boolean indicating if running in development mode (for draft status)
+     * @returns {Promise<SidebarItem[]>} Promise resolving to an array of SidebarItem objects for the current path
+     * @since 1.0.0
+     * @public
+     * @example
+     * ```typescript
+     * const sidebarItems = await service.generateSidebarView(
+     *   '/docs/en/guide',
+     *   effectiveConfig,
+     *   'en',
+     *   0,
+     *   false
+     * );
+     * ```
      */
     public async generateSidebarView(
         currentContentPath: string,
@@ -455,11 +519,9 @@ export class StructuralGeneratorService {
     ): Promise<SidebarItem[]> {
         const normalizedCurrentContentPath = normalizePathSeparators(currentContentPath);
         
-        // Check if this is a root directory processing call (depth 0 and has root: true)
         const isRootDirectoryProcessing = currentLevelDepth === 0 && effectiveConfigForThisView.root;
         
         if (isRootDirectoryProcessing) {
-            // Use flattening mode for root directories
             const rootSection = await this.generateRootSectionWithFlattenedContent(
                 normalizedCurrentContentPath,
                 effectiveConfigForThisView,
@@ -470,26 +532,15 @@ export class StructuralGeneratorService {
             return [rootSection];
         }
 
-        // Original logic for non-root directory processing (recursive calls, groups, etc.)
         const generatedItems: SidebarItem[] = [];
         
-        // Ensure _baseRelativePathForChildren is initialized for items at this level.
-        // This property is crucial for generating correct relative keys for children.
-        // For the very first call to generateSidebarView for a root, main.ts should ensure this is ''.
-        // For recursive calls (e.g. from itemProcessor for a subdirectory), the caller sets it.
         const baseRelativePathKeyForChildrenInThisScope = effectiveConfigForThisView._baseRelativePathForChildren ?? '';
         
-        // Create a version of the current config that explicitly carries this base path for its children.
-        // This is what gets passed down as 'parentViewEffectiveConfig' to itemProcessor/groupProcessor.
         const currentScopeConfigWithBaseKey: EffectiveDirConfig = {
             ...effectiveConfigForThisView,
             _baseRelativePathForChildren: baseRelativePathKeyForChildrenInThisScope
         };
 
-        // Groups are now handled at the main.ts level through reorganization
-        // to avoid config regeneration issues
-
-        // 1. Entry Processing
         let entries: { name: string; path: string; dirent?: any; isDirectory(): boolean; isFile(): boolean; }[] = [];
         
         try {
@@ -549,7 +600,5 @@ export class StructuralGeneratorService {
         
         return sortedItems;
     }
-
-
 } 
 

@@ -4,7 +4,8 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import matter from 'gray-matter'
-import { getLanguageCodes, getSrcPath, getVitepressPath } from "../config/project-config.ts";
+import { getLanguageCodes } from "../config/project-config.js";
+import { getSrcPath, getVitepressPath } from "../utils/config/path-resolver.js";
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)

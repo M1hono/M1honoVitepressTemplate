@@ -23,6 +23,10 @@
     const isPaused = ref(false);
     
     const extendedFeatures = computed(() => {
+        if (!props.features || !Array.isArray(props.features)) {
+            return [];
+        }
+        
         if (props.features.length < 8) {
             const repeatCount = Math.ceil(12 / props.features.length);
             return Array(repeatCount).fill(props.features).flat();
@@ -31,6 +35,10 @@
     });
 
     const grid = computed(() => {
+        if (!props.features || !Array.isArray(props.features)) {
+            return;
+        }
+        
         const length = props.features.length;
 
         if (!length) {
@@ -127,7 +135,7 @@
 </script>
 
 <template>
-    <div v-if="features" class="VPFeatures features-enhanced">
+    <div v-if="features && Array.isArray(features) && features.length > 0" class="VPFeatures features-enhanced">
         <div class="container" ref="containerRef">
             <motion.div
                 class="scroll-container"

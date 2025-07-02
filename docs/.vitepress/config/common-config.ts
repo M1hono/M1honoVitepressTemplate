@@ -1,7 +1,13 @@
 import type { DefaultTheme, HeadConfig, UserConfig } from "vitepress";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
-import { projectConfig, getProjectInfo, isFeatureEnabled, getLanguageCodes, getSrcPath, getVitepressPath } from "../utils/config";
+import { 
+    projectConfig, 
+    getProjectInfo, 
+    isFeatureEnabled, 
+    getLanguageCodes, 
+} from "./project-config";
+import { getSrcPath, getVitepressPath } from "../utils/config/path-resolver";
 import { getSidebarSync, sidebarPlugin } from "../utils/sidebar/";
 import { markdown } from "./markdown-plugins";
 import {
@@ -105,6 +111,12 @@ export const commonConfig = {
                 "vitepress-plugin-tabs",
                 "shiki-magic-move"
             ],
+            external: [
+                "path",
+                "fs",
+                "fast-glob",
+                "gray-matter"
+            ]
         },
         css: {
             preprocessorOptions: {

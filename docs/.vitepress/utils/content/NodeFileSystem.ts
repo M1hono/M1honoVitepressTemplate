@@ -15,7 +15,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path'; // Import path module
 import { Dirent, Stats } from 'node:fs'; // Import types directly
 import { FileSystem } from './FileSystem';
-import { normalizePathSeparators } from './objectUtils';
+import { normalizePathSeparators } from '../sidebar/shared/objectUtils';
 
 /**
  * Node.js implementation of the FileSystem interface.

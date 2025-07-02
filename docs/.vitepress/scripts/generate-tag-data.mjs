@@ -1,5 +1,6 @@
 import { generateAllLanguageTagData } from "../utils/content/tagCollector.js";
-import { getSrcPath, getPaths } from "../utils/config/project-config.ts";
+import { getSrcPath } from "../utils/config/path-resolver.js";
+import { getPaths } from "../config/project-config.js";
 
 async function main() {
     const args = process.argv.slice(2);

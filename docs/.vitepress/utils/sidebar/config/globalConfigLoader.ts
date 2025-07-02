@@ -1,34 +1,49 @@
+/**
+ * @fileoverview Global configuration loader for sidebar generation.
+ * 
+ * This module provides functionality to load and parse global configuration
+ * from .sidebarrc.yml files. It handles YAML parsing, error cases, and
+ * provides fallback mechanisms for missing or invalid configuration files.
+ * 
+ * @module GlobalConfigLoader
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
+ */
+
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import yaml from 'js-yaml';
 import { GlobalSidebarConfig } from '../types';
 
 /**
- * Loads and parses the global .sidebarrc.yml file from the docs root.
- * @param docsPath Absolute path to the root of the 'docs' directory.
- * @returns The parsed GlobalSidebarConfig object, or null if the file is not found or a parse error occurs.
+ * @function loadGlobalConfig
+ * @description Loads and parses global configuration from `.sidebarrc.yml` file.
+ * Searches for the configuration file in the docs directory root and parses it as YAML.
+ * Returns null if the file doesn't exist, is invalid, or parsing fails.
+ * @param {string} docsPath - Absolute path to the docs directory root
+ * @returns {Promise<GlobalSidebarConfig | null>} A promise resolving to parsed global configuration,
+ *          or null if the file doesn't exist or parsing fails
+ * @public
+ * @example
+ * ```typescript
+ * const globalConfig = await loadGlobalConfig('/path/to/docs');
+ * // Returns: { defaults: { maxDepth: 3, collapsed: false }, ... } or null
+ * ```
  */
 export async function loadGlobalConfig(docsPath: string): Promise<GlobalSidebarConfig | null> {
-    const globalConfigPath = path.join(docsPath, '.sidebarrc.yml');
+    const configFilePath = path.join(docsPath, '.sidebarrc.yml');
+    
     try {
-        const fileContent = await fs.readFile(globalConfigPath, 'utf-8');
+        const fileContent = await fs.readFile(configFilePath, 'utf-8');
         const parsedConfig = yaml.load(fileContent) as GlobalSidebarConfig;
-        // Ensure it's an object, even if the YAML file is empty but valid (yaml.load might return undefined/null for empty string)
+        
         if (parsedConfig && typeof parsedConfig === 'object') {
             return parsedConfig;
         }
-        // If file is empty or not a valid object structure after parsing (e.g. empty file parsed to null/undefined by js-yaml)
-        // console.warn(`[ConfigReader/GlobalLoader] '.sidebarrc.yml' at ${globalConfigPath} is empty or not a valid object. Using no global defaults.`);
-        return {}; // Return an empty object to signify loaded but empty/invalid config, allows defaults merging to proceed
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-            // File not found is an expected case, no need to log an error, just return null.
-            // The ConfigReaderService will treat null as "no global config found".
-        } else {
-            // Log other errors like YAML parsing errors.
-
-        }
-        return null; // Indicates not found or error during load/parse
+        
+        return null;
+    } catch (error) {
+        return null;
     }
 } 
-

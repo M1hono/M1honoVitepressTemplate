@@ -1,31 +1,42 @@
+/**
+ * @fileoverview Frontmatter parsing utilities for sidebar configuration.
+ * 
+ * This module provides functionality to parse frontmatter content from markdown files
+ * and extract configuration data. It handles error cases gracefully and provides
+ * fallback mechanisms for invalid or missing frontmatter.
+ * 
+ * @module FrontmatterParser
+ * @version 1.0.0
+ * @author M1hono
+ * @since 1.0.0
+ */
+
 import fs from 'node:fs/promises';
 import matter from 'gray-matter';
 import { DirectoryConfig } from '../types';
 
 /**
- * Loads and parses frontmatter from a given index.md file.
- * @param absoluteIndexMdPath Absolute path to the index.md file.
- * @returns A Partial<DirectoryConfig> object from the frontmatter data, 
- *          or an empty object if the file is not found, has no frontmatter, 
- *          or an error occurs during parsing.
+ * @function loadFrontmatter
+ * @description Loads and parses frontmatter from a markdown file.
+ * Reads the specified index.md file and extracts frontmatter configuration data.
+ * Returns an empty object if the file doesn't exist, has no frontmatter, or parsing fails.
+ * @param {string} absoluteIndexMdPath - Absolute path to the index.md file to parse
+ * @returns {Promise<Partial<DirectoryConfig>>} A promise resolving to parsed frontmatter as DirectoryConfig,
+ *          or an empty object if parsing fails or file doesn't exist
+ * @public
+ * @example
+ * ```typescript
+ * const frontmatter = await loadFrontmatter('/docs/en/guide/index.md');
+ * // Returns: { title: "Guide", collapsed: true, priority: 1, ... }
+ * ```
  */
 export async function loadFrontmatter(absoluteIndexMdPath: string): Promise<Partial<DirectoryConfig>> {
     try {
-        const fileContent = await fs.readFile(absoluteIndexMdPath, 'utf-8');
-        const { data } = matter(fileContent);
-        // Ensure data is an object, even if frontmatter is empty or not an object (e.g. just ---)
-        if (data && typeof data === 'object') {
-            return data as Partial<DirectoryConfig>;
-        }
-        return {}; // No frontmatter data or not an object
-    } catch (error: any) {
-        if (error.code === 'ENOENT') {
-            // File not found is expected for optional index.md files.
-        } else {
-            // Log other errors (e.g., permission issues, though gray-matter usually doesn't throw for parse errors)
-
-        }
-        return {}; // Return empty object on error or if file not found
+        const content = await fs.readFile(absoluteIndexMdPath, 'utf-8');
+        const parsed = matter(content);
+        return parsed.data as Partial<DirectoryConfig>;
+    } catch (error) {
+        return {};
     }
 } 
 
