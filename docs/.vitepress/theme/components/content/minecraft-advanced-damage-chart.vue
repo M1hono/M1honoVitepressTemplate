@@ -1,10 +1,12 @@
 <script setup lang="ts">
-    import { ref, computed, watch, onMounted, nextTick } from "vue";
-    import { useData } from "vitepress";
-    import { defineAsyncComponent } from "vue";
+// @i18n
+import { ref, computed, watch, onMounted, nextTick } from "vue";
+import { useData } from "vitepress";
+import { defineAsyncComponent } from "vue";
+import { useI18n } from "../../../utils/i18n/locale";
 
-    // Async import for vue-echarts to avoid SSR issues
-    const VChart = defineAsyncComponent(async () => {
+// Async import for vue-echarts to avoid SSR issues
+const VChart = defineAsyncComponent(async () => {
         const { default: VChart } = await import("vue-echarts");
         const { use } = await import("echarts/core");
         const { LineChart } = await import("echarts/charts");
@@ -28,6 +30,19 @@
         return VChart;
     });
 
+    const { t } = useI18n({
+        incomingDamage: "Incoming Damage",
+        armorToughness: "Armor Toughness",
+        minDamage: "Min Damage",
+        maxDamage: "Max Damage",
+        actualDamage: "Actual Damage",
+        damageReduction: "Damage Reduction (%)",
+        armorPoints: "Armor Points",
+        maxArmorPoints: "Max Armor Points",
+        javaEdition: "Java Edition",
+        bedrockEdition: "Bedrock Edition",
+    });
+
     const props = defineProps({
         mode: {
             type: String,
@@ -41,35 +56,6 @@
         maxDamage: { type: Number, default: 200 },
         maxArmorPoints: { type: Number, default: 50 },
         isJavaEdition: { type: Boolean, default: true },
-        translations: {
-            type: Object,
-            default: () => ({
-                "en-US": {
-                    incomingDamage: "Incoming Damage",
-                    armorToughness: "Armor Toughness",
-                    minDamage: "Min Damage",
-                    maxDamage: "Max Damage",
-                    actualDamage: "Actual Damage",
-                    damageReduction: "Damage Reduction (%)",
-                    armorPoints: "Armor Points",
-                    maxArmorPoints: "Max Armor Points",
-                    javaEdition: "Java Edition",
-                    bedrockEdition: "Bedrock Edition",
-                },
-                "zh-CN": {
-                    incomingDamage: "初始伤害",
-                    armorToughness: "护甲韧性",
-                    minDamage: "最小伤害",
-                    maxDamage: "最大伤害",
-                    actualDamage: "实际伤害",
-                    damageReduction: "伤害减免 (%)",
-                    armorPoints: "护甲值",
-                    maxArmorPoints: "最大护甲值",
-                    javaEdition: "Java版",
-                    bedrockEdition: "基岩版",
-                },
-            }),
-        },
     });
 
     const { isDark, lang } = useData();
@@ -84,10 +70,6 @@
     const debugInfo = ref("");
     const chartRef = ref(null);
     const isChartReady = ref(false);
-
-    const localText = computed(
-        () => props.translations[lang.value] || props.translations["en-US"]
-    );
 
     /**
      * Calculate damage based on armor points, toughness, and edition
@@ -159,8 +141,8 @@
             },
             legend: {
                 data: [
-                    localText.value.actualDamage,
-                    localText.value.damageReduction,
+                    t.value.actualDamage,
+                    t.value.damageReduction,
                 ],
                 textStyle: {
                     color: textColor,
@@ -176,7 +158,7 @@
                 type: "category",
                 boundaryGap: false,
                 data: labels,
-                name: localText.value.armorPoints,
+                name: t.value.armorPoints,
                 nameTextStyle: {
                     color: textColor,
                 },
@@ -197,7 +179,7 @@
             yAxis: [
                 {
                     type: "value",
-                    name: localText.value.actualDamage,
+                    name: t.value.actualDamage,
                     position: "left",
                     nameTextStyle: {
                         color: textColor,
@@ -218,7 +200,7 @@
                 },
                 {
                     type: "value",
-                    name: localText.value.damageReduction,
+                    name: t.value.damageReduction,
                     position: "right",
                     min: 0,
                     max: 100,
@@ -241,7 +223,7 @@
             ],
             series: [
                 {
-                    name: localText.value.actualDamage,
+                    name: t.value.actualDamage,
                     type: "line",
                     yAxisIndex: 0,
                     data: actualDamage,
@@ -277,7 +259,7 @@
                     },
                 },
                 {
-                    name: localText.value.damageReduction,
+                    name: t.value.damageReduction,
                     type: "line",
                     yAxisIndex: 1,
                     data: damageReduction,
@@ -370,7 +352,7 @@
                 ]"
                 :key="key"
             >
-                <label :for="key">{{ localText[key] }}</label>
+                <label :for="key">{{ t[key] }}</label>
                 <input
                     :id="key"
                     type="number"
@@ -399,8 +381,8 @@
                 >
                     {{
                         isJavaEditionRef
-                            ? localText.javaEdition
-                            : localText.bedrockEdition
+                            ? t.javaEdition
+                            : t.bedrockEdition
                     }}
                 </button>
             </div>

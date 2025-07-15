@@ -1,63 +1,21 @@
 <script setup lang="ts">
+    // @i18n
     import { ref, onMounted, computed } from "vue";
     import { useData } from "vitepress";
     import { Motion } from "motion-v";
+    import { useI18n } from "@utils/i18n/locale/useI18n";
 
-    /**
-     * Contributors Display Component
-     * @description Displays all project contributors with cached avatar support
-     * @version 1.0.0
-     * @author CrychicDoc Team
-     */
-
-    // Internationalization
-    interface ContributorsI18n {
-        title: string;
-        contributors: string;
-        totalContributions: string;
-        contributions: string;
-        loading: string;
-        viewProfile: string;
-        retry: string;
-        noContributors: string;
-        times: string;
-    }
-
-    const translations: Record<string, ContributorsI18n> = {
-        "zh-CN": {
-            title: "项目贡献者",
-            contributors: "贡献者",
-            totalContributions: "总贡献",
-            contributions: "次贡献",
-            loading: "正在加载贡献者信息...",
-            viewProfile: "查看资料",
-            retry: "重试",
-            noContributors: "暂无贡献者信息",
-            times: "次",
-        },
-        "en-US": {
-            title: "Contributors",
-            contributors: "Contributors",
-            totalContributions: "Total Contributions",
-            contributions: "contributions",
-            loading: "Loading contributors...",
-            viewProfile: "View Profile",
-            retry: "Retry",
-            noContributors: "No contributors found",
-            times: "",
-        },
-        en: {
-            title: "Contributors",
-            contributors: "Contributors",
-            totalContributions: "Total Contributions",
-            contributions: "contributions",
-            loading: "Loading contributors...",
-            viewProfile: "View Profile",
-            retry: "Retry",
-            noContributors: "No contributors found",
-            times: "",
-        },
-    };
+    const { t } = useI18n({
+        title: 'Contributors',
+        contributors: 'Contributors',
+        totalContributions: 'Total Contributions',
+        contributions: 'contributions',
+        loading: 'Loading contributors...',
+        viewProfile: 'View Profile',
+        retry: 'Retry',
+        noContributors: 'No contributors found',
+        githubError: 'GitHub API Error. Rate limit may have been exceeded.'
+    });
 
     interface Contributor {
         id: number;
@@ -69,19 +27,12 @@
     }
 
     interface Props {
-        /** GitHub repository owner */
         owner?: string;
-        /** GitHub repository name */
         repo?: string;
-        /** Maximum number of contributors to display */
         maxCount?: number;
-        /** Show contribution count */
         showContributions?: boolean;
-        /** Enable avatar caching */
         enableCache?: boolean;
-        /** Custom title for the component */
         title?: string;
-        /** Language locale */
         locale?: string;
     }
 
@@ -96,45 +47,17 @@
 
     const { site } = useData();
 
-    // Internationalization
-    const getCurrentLocale = (): string => {
-        if (props.locale) return props.locale;
-
-        // Try to get locale from VitePress
-        if (site.value?.lang) {
-            return site.value.lang;
-        }
-
-        // Fallback to browser language or default
-        if (typeof window !== "undefined") {
-            const browserLang = navigator.language || "zh-CN";
-            return browserLang;
-        }
-
-        return "zh-CN";
-    };
-
-    const t = computed((): ContributorsI18n => {
-        const locale = getCurrentLocale();
-        return translations[locale] || translations["zh-CN"];
-    });
-
-    // Reactive state
     const contributors = ref<Contributor[]>([]);
     const loading = ref(true);
     const error = ref<string | null>(null);
     const loadingAvatars = ref(new Set<string>());
 
-    // Computed properties
     const sortedContributors = computed(() =>
         contributors.value
             .sort((a, b) => b.contributions - a.contributions)
             .slice(0, props.maxCount)
     );
 
-    /**
-     * Separate owner and regular contributors with smart grouping
-     */
     const ownerContributor = computed(() => 
         sortedContributors.value.find(c => c.login.toLowerCase() === props.owner.toLowerCase())
     );
@@ -143,30 +66,31 @@
         sortedContributors.value.filter(c => c.login.toLowerCase() !== props.owner.toLowerCase())
     );
 
-    /**
-     * Group contributors with smart sizing and variable group sizes based on rank
-     */
+    interface ContributorGroup {
+        id: number;
+        contributors: Contributor[];
+        sizeTier: 'large' | 'medium' | 'small';
+        groupSize: number;
+        delay: number;
+    }
+
     const contributorGroups = computed(() => {
-        const groups = [];
+        const groups: ContributorGroup[] = [];
         const contributors = regularContributors.value;
         let currentIndex = 0;
         let groupId = 0;
         
         while (currentIndex < contributors.length) {
-            // Determine group size and tier based on position
             let groupSize: number;
             let sizeTier: 'large' | 'medium' | 'small';
             
             if (groupId === 0) {
-                // First group: 5 large contributors (rank 1-5)
                 groupSize = 5;
                 sizeTier = 'large';
             } else if (groupId === 1) {
-                // Second group: 5 medium contributors (rank 6-10)
                 groupSize = 5;
                 sizeTier = 'medium';
             } else {
-                // All remaining groups: 10 small contributors each (rank 11+)
                 groupSize = 10;
                 sizeTier = 'small';
             }
@@ -179,7 +103,7 @@
                     contributors: group,
                     sizeTier,
                     groupSize,
-                    delay: groupId * 0.1 // Staggered animation delay
+                    delay: groupId * 0.1
                 });
             }
             
@@ -197,16 +121,10 @@
         )
     );
 
-    /**
-     * Get cached avatar path
-     */
     const getCachedAvatarPath = (login: string): string => {
         return `/contributors/${login}.png`;
     };
 
-    /**
-     * Check if cached avatar exists
-     */
     const checkCachedAvatar = async (login: string): Promise<boolean> => {
         if (!props.enableCache) return false;
 
@@ -220,9 +138,6 @@
         }
     };
 
-    /**
-     * Get avatar URL with fallback to cached version
-     */
     const getAvatarUrl = async (contributor: Contributor): Promise<string> => {
         const { login, avatar_url } = contributor;
 
@@ -233,7 +148,6 @@
         loadingAvatars.value.add(login);
 
         try {
-            // First try to fetch the real avatar
             const response = await fetch(`${avatar_url}&s=100`, {
                 method: "HEAD",
                 cache: "no-cache",
@@ -247,16 +161,12 @@
             console.warn(`Failed to fetch avatar for ${login}:`, error);
         }
 
-        // Fallback to cached avatar
         const hasCached = await checkCachedAvatar(login);
         loadingAvatars.value.delete(login);
 
         return hasCached ? getCachedAvatarPath(login) : `${avatar_url}&s=100`;
     };
 
-    /**
-     * Fetch contributors from GitHub API
-     */
     const fetchContributors = async () => {
         loading.value = true;
         error.value = null;
@@ -279,24 +189,17 @@
 
             const data: Contributor[] = await response.json();
 
-            // Filter out bots if needed
             contributors.value = data.filter(
                 (contributor) => contributor.type !== "Bot"
             );
         } catch (err) {
             console.error("Failed to fetch contributors:", err);
-            error.value =
-                err instanceof Error
-                    ? err.message
-                    : "Failed to fetch contributors";
+            error.value = t.value.githubError;
         } finally {
             loading.value = false;
         }
     };
 
-    /**
-     * Handle avatar load error
-     */
     const handleAvatarError = async (
         event: Event,
         contributor: Contributor
@@ -304,7 +207,6 @@
         const img = event.target as HTMLImageElement;
         const cachedPath = getCachedAvatarPath(contributor.login);
 
-        // If current src is not the cached version, try cached version
         if (img.src !== `${location.origin}${cachedPath}`) {
             const hasCached = await checkCachedAvatar(contributor.login);
             if (hasCached) {
@@ -313,13 +215,9 @@
             }
         }
 
-        // Final fallback to GitHub's default avatar
         img.src = `https://github.com/identicons/${contributor.login}.png`;
     };
 
-    /**
-     * Open contributor profile
-     */
     const openProfile = (url: string) => {
         window.open(url, "_blank", "noopener,noreferrer");
     };
@@ -500,7 +398,6 @@
         margin-left: 50%;
         transform: translateX(-50%);
         padding: 0;
-        /* Fixed background colors */
         background: #ffffff;
         position: relative;
         overflow: hidden;
@@ -511,7 +408,7 @@
     }
 
     .contributors-content {
-        max-width: 1800px; /* Made very wide like CommitsCounter */
+        max-width: 1800px;
         margin: 0 auto;
         padding: 60px 24px;
         background: transparent;
@@ -581,7 +478,6 @@
         font-weight: bold;
     }
 
-    /* Loading state */
     .loading-container {
         display: flex;
         flex-direction: column;
@@ -611,7 +507,6 @@
         }
     }
 
-    /* Error state */
     .error-container {
         display: flex;
         flex-direction: column;
@@ -651,7 +546,6 @@
         box-shadow: 0 4px 12px rgba(var(--vp-c-brand-rgb), 0.4);
     }
 
-    /* Owner Section */
     .owner-section {
         margin: 32px 0 48px 0;
         text-align: center;
@@ -715,7 +609,6 @@
         width: 100%;
     }
 
-    /* Master grid container for perfect alignment */
     .contributors-layout {
         display: flex;
         flex-direction: column;
@@ -744,7 +637,6 @@
         align-items: start;
     }
 
-    /* Large Group - responsive columns */
     .group-large .group-grid {
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
         gap: var(--grid-gap);
@@ -796,7 +688,6 @@
         margin: 0;
     }
 
-    /* Medium Group - responsive columns */
     .group-medium .group-grid {
         grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
         gap: var(--grid-gap);
@@ -847,7 +738,6 @@
         margin: 0;
     }
 
-    /* Small Group - responsive columns */
     .group-small .group-grid {
         grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
         gap: var(--grid-gap);
@@ -904,7 +794,6 @@
         display: none;
     }
 
-    /* Medium screens */
     @media (min-width: 768px) {
         .contributors-layout {
             --container-padding: 32px;
@@ -945,7 +834,6 @@
         }
     }
 
-    /* Large screens */
     @media (min-width: 1200px) {
         .contributors-layout {
             --container-max-width: 1400px;
@@ -1006,7 +894,6 @@
         }
     }
 
-    /* Extra large screens */
     @media (min-width: 1600px) {
         .contributors-layout {
             --container-max-width: 1600px;

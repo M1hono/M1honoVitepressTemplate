@@ -1,43 +1,33 @@
 <script setup lang="ts">
-    import { useData } from "vitepress";
-    import { computed } from "vue";
+// @i18n
+import { useData } from "vitepress";
+import { computed } from "vue";
+import { useI18n } from "@utils/i18n/locale/useI18n";
 
-    const { isDark, lang, frontmatter } = useData();
-    
-    const translations = {
-        "en-US": {
-            editorLabel: "Responsible Editor:",
-        },
-        "zh-CN": {
-            editorLabel: "本文责任编辑:",
-        },
-    };
-    
-    const editorLabel = computed(() => {
-        return (
-            translations[lang.value as keyof typeof translations]
-                ?.editorLabel || translations["en-US"].editorLabel
-        );
-    });
+const { t } = useI18n({
+    editorLabel: "Responsible Editor:",
+});
 
-    const editor = computed(() => {
-        return frontmatter.value?.editor ?? "PickAID";
-    });
+const { isDark, lang, frontmatter } = useData();
 
-    function getAvatarUrl(name: string) {
-        return `https://github.com/${name}.png`;
-    }
+const editor = computed(() => {
+    return frontmatter.value?.editor ?? "PickAID";
+});
 
-    function getGitHubLink(name: string) {
-        return `https://github.com/${name}`;
-    }
+function getAvatarUrl(name: string) {
+    return `https://github.com/${name}.png`;
+}
+
+function getGitHubLink(name: string) {
+    return `https://github.com/${name}`;
+}
 </script>
 
 <template>
     <v-card v-if="editor" variant="plain">
         <v-row align="center" class="align-center gap-4 con" no-gutters>
             <v-col cols="auto">
-                <p class="vp-main-color">{{ editorLabel }}</p>
+                <p class="vp-main-color">{{ t.editorLabel }}</p>
             </v-col>
             <v-col cols="auto">
                 <a

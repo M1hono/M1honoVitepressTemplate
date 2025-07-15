@@ -64,30 +64,7 @@ export function getSearchLocales() {
         if (searchConfig) {
             Object.assign(locales, searchConfig);
         } else {
-            const key = lang.isDefault ? 'root' : lang.code;
-            locales[key] = {
-                translations: {
-                    button: {
-                        buttonText: lang.code === 'zh' ? '搜索' : 'Search',
-                        buttonAriaLabel: lang.code === 'zh' ? '搜索' : 'Search'
-                    },
-                    modal: {
-                        displayDetails: lang.code === 'zh' ? '显示详细列表' : 'Display detailed list',
-                        resetButtonTitle: lang.code === 'zh' ? '清除查询条件' : 'Clear the query',
-                        backButtonTitle: lang.code === 'zh' ? '返回' : 'Back',
-                        noResultsText: lang.code === 'zh' ? '无法找到相关结果' : 'No results for',
-                        footer: {
-                            selectText: lang.code === 'zh' ? '选择' : 'to select',
-                            selectKeyAriaLabel: lang.code === 'zh' ? '输入' : 'enter',
-                            navigateText: lang.code === 'zh' ? '切换' : 'to navigate',
-                            navigateUpKeyAriaLabel: lang.code === 'zh' ? '向上' : 'up arrow',
-                            navigateDownKeyAriaLabel: lang.code === 'zh' ? '向下' : 'down arrow',
-                            closeText: lang.code === 'zh' ? '关闭' : 'to close',
-                            closeKeyAriaLabel: lang.code === 'zh' ? '退出' : 'escape'
-                        }
-                    }
-                }
-            };
+            console.warn(`No search configuration found for language: ${lang.code}`);
         }
     });
     

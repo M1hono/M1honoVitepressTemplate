@@ -1,0 +1,10 @@
+[
+    {
+    "date": "2025-07-01",
+    "exchanged-amount": 216.35,
+    "target": "测试目标",
+    "operator": "测试操作员",
+    "description": "测试交易内容",
+    "type": "income"
+    }
+]

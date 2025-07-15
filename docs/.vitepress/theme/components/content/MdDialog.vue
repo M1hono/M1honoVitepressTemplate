@@ -37,125 +37,114 @@
 </template>
 
 <script setup>
-    import { ref, computed } from "vue";
-    import { useData } from "vitepress";
+// @i18n
+import { ref, computed } from "vue";
+import { useI18n } from "@utils/i18n/locale/useI18n";
 
-    const { lang } = useData();
+const { t } = useI18n({
+    defaultText: "Click to open",
+    closeButton: "Close",
+});
 
-    const props = defineProps({
-        title: String,
-        text: {
-            type: String,
-        },
-        // Vuetify VDialog props
-        fullscreen: {
-            type: Boolean,
-            default: false,
-        },
-        maxWidth: {
-            type: [String, Number],
-            default: 800,
-        },
-        maxHeight: {
-            type: [String, Number],
-            default: undefined,
-        },
-        width: {
-            type: [String, Number],
-            default: undefined,
-        },
-        height: {
-            type: [String, Number],
-            default: undefined,
-        },
-        persistent: {
-            type: Boolean,
-            default: false,
-        },
-        scrollable: {
-            type: Boolean,
-            default: true,
-        },
-        transition: {
-            type: String,
-            default: "dialog-transition",
-        },
-        activator: {
-            type: String,
-            default: undefined,
-        },
-        closeOnBack: {
-            type: Boolean,
-            default: true,
-        },
-        contained: {
-            type: Boolean,
-            default: false,
-        },
-        noClickAnimation: {
-            type: Boolean,
-            default: false,
-        },
-        scrim: {
-            type: [Boolean, String],
-            default: true,
-        },
-        zIndex: {
-            type: [Number, String],
-            default: 2400,
-        },
-    });
+const props = defineProps({
+    title: String,
+    text: {
+        type: String,
+    },
+    // Vuetify VDialog props
+    fullscreen: {
+        type: Boolean,
+        default: false,
+    },
+    maxWidth: {
+        type: [String, Number],
+        default: 800,
+    },
+    maxHeight: {
+        type: [String, Number],
+        default: undefined,
+    },
+    width: {
+        type: [String, Number],
+        default: undefined,
+    },
+    height: {
+        type: [String, Number],
+        default: undefined,
+    },
+    persistent: {
+        type: Boolean,
+        default: false,
+    },
+    scrollable: {
+        type: Boolean,
+        default: true,
+    },
+    transition: {
+        type: String,
+        default: "dialog-transition",
+    },
+    activator: {
+        type: String,
+        default: undefined,
+    },
+    closeOnBack: {
+        type: Boolean,
+        default: true,
+    },
+    contained: {
+        type: Boolean,
+        default: false,
+    },
+    noClickAnimation: {
+        type: Boolean,
+        default: false,
+    },
+    scrim: {
+        type: [Boolean, String],
+        default: true,
+    },
+    zIndex: {
+        type: [Number, String],
+        default: 2400,
+    },
+});
 
-    const isOpen = ref(false);
+const isOpen = ref(false);
 
-    const translations = {
-        "zh-CN": {
-            defaultText: "点击打开",
-            closeButton: "关闭",
-        },
-        "en-US": {
-            defaultText: "Click to open",
-            closeButton: "Close",
-        },
+// Build props to pass to v-dialog
+const dialogProps = computed(() => {
+    return {
+        maxWidth: props.maxWidth,
+        maxHeight: props.maxHeight,
+        width: props.width,
+        height: props.height,
+        persistent: props.persistent,
+        scrollable: props.scrollable,
+        transition: props.transition,
+        activator: props.activator,
+        closeOnBack: props.closeOnBack,
+        contained: props.contained,
+        noClickAnimation: props.noClickAnimation,
+        scrim: props.scrim,
+        zIndex: props.zIndex,
+        fullscreen: props.fullscreen,
     };
+});
 
-    const t = computed(() => {
-        return translations[lang.value] || translations["en-US"];
-    });
+// Content wrapper classes
+const contentWrapperClasses = computed(() => ({
+    "md-content--fullscreen": props.fullscreen,
+    "md-content--scrollable": props.scrollable,
+}));
 
-    // Build props to pass to v-dialog
-    const dialogProps = computed(() => {
-        return {
-            maxWidth: props.maxWidth,
-            maxHeight: props.maxHeight,
-            width: props.width,
-            height: props.height,
-            persistent: props.persistent,
-            scrollable: props.scrollable,
-            transition: props.transition,
-            activator: props.activator,
-            closeOnBack: props.closeOnBack,
-            contained: props.contained,
-            noClickAnimation: props.noClickAnimation,
-            scrim: props.scrim,
-            zIndex: props.zIndex,
-            fullscreen: props.fullscreen,
-        };
-    });
+const open = () => {
+    isOpen.value = true;
+};
 
-    // Content wrapper classes
-    const contentWrapperClasses = computed(() => ({
-        "md-content--fullscreen": props.fullscreen,
-        "md-content--scrollable": props.scrollable,
-    }));
-
-    const open = () => {
-        isOpen.value = true;
-    };
-
-    const close = () => {
-        isOpen.value = false;
-    };
+const close = () => {
+    isOpen.value = false;
+};
 </script>
 
 <style scoped>

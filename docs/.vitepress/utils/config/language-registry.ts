@@ -57,9 +57,7 @@ export function initializeLanguageRegistry() {
             if (mainConfig) {
                 registerLanguageModule(lang.code, mainConfig, searchConfig);
             }
-        } catch (error) {
-            // Silent fail
-        }
+        } catch (error) {}
     });
 }
 

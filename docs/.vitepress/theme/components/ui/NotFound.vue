@@ -4,7 +4,7 @@
         <button
             @click="handleRefresh"
             class="floating-button refresh-button"
-            :title="messages.tip[lang]"
+            :title="t.tip"
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -42,31 +42,22 @@
                 </g>
             </svg>
         </button>
-        <p class="message">{{ messages.notFound[lang] }}</p>
-        <p class="tip">{{ messages.tip[lang] }}</p>
-        <p class="advice">{{ messages.advice[lang] }}</p>
+        <p class="message">{{ t.notFound }}</p>
+        <p class="tip">{{ t.tip }}</p>
+        <p class="advice">{{ t.advice }}</p>
     </div>
 </template>
 
 <script setup>
-    import { ref, onMounted } from "vue";
-    import { useData } from "vitepress";
+    // @i18n
+    import { onMounted } from "vue";
+    import { useI18n } from "@utils/i18n/locale/useI18n";
 
-    const { lang } = useData();
-    const messages = {
-        notFound: {
-            "en-US": "Oops! Page not found",
-            "zh-CN": "哎呀！页面未找到",
-        },
-        tip: {
-            "en-US": "Click to refresh the page.",
-            "zh-CN": "点击刷新页面。",
-        },
-        advice: {
-            "en-US": "If you still see this page, the page does not exist.",
-            "zh-CN": "如果依旧出现该页面，则该页面不存在。",
-        },
-    };
+    const { t } = useI18n({
+        notFound: "Oops! Page not found",
+        tip: "Click to refresh the page.",
+        advice: "If you still see this page, the page does not exist.",
+    });
 
     const handleRefresh = () => {
         if (typeof window !== 'undefined') {

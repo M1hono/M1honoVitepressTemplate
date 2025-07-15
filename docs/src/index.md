@@ -44,3 +44,14 @@ features:
 
 gitChangelog: false
 ---
+
+<Contributors
+  owner="PickAID"
+  repo="CrychicDoc"
+  :max-count="100"
+  :show-contributions="true"
+  :enable-cache="true"
+  title="贡献者"
+  locale="zh-CN"
+/>
+

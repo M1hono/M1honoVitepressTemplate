@@ -169,25 +169,4 @@ export const chartOptions = {
       ]
     };
   }
-};
-
-/**
- * GitHub chart translations
- */
-export const githubTranslations: TranslationDictionary = {
-  repoActivity: {
-    "en-US": "Repository Activity",
-    "zh-CN": "仓库活动",
-  },
-  recentCommits: {
-    "en-US": "Recent commits:",
-    "zh-CN": "最近提交数：",
-  },
-};
-
-/**
- * Get GitHub chart translation
- */
-export const getGithubText = (key: string, lang: string): string => {
-  return githubTranslations[key]?.[lang] || githubTranslations[key]?.["en-US"] || key;
 }; 

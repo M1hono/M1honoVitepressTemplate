@@ -23,18 +23,24 @@
                     :lang="currentStep.lang"
                     :theme="isDark ? 'github-dark' : 'github-light'"
                 />
-                <div v-else class="loading">Loading...</div>
+                <div v-else class="loading">{{ t.loading }}</div>
             </div>
         </div>
     </div>
 </template>
 
 <script setup lang="ts">
+    // @i18n
     import { ref, computed, onMounted } from "vue";
     import { ShikiMagicMove } from "shiki-magic-move/vue";
     import { useData } from "vitepress";
     import { createHighlighter } from "shiki";
     import type { HighlighterCore } from 'shiki';
+    import { useI18n } from '@utils/i18n/locale/useI18n';
+
+    const { t } = useI18n({
+        loading: 'Loading...'
+    });
 
     const { isDark } = useData();
 

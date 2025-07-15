@@ -11,7 +11,7 @@
                 <v-toolbar-title>{{ title || t.defaultTitle }}</v-toolbar-title>
                 <v-spacer></v-spacer>
                 <div class="page-indicator-toolbar">
-                    {{ t.pageIndicator(currentPage + 1, pageCount) }}
+                    {{ t.pageIndicator.replace('{current}', (currentPage + 1).toString()).replace('{total}', pageCount.toString()) }}
                 </div>
                 <v-spacer></v-spacer>
 
@@ -88,7 +88,7 @@
                     v-if="!fullscreen && pageCount > 1"
                     class="page-indicator"
                 >
-                    {{ t.pageIndicator(currentPage + 1, pageCount) }}
+                    {{ t.pageIndicator.replace('{current}', (currentPage + 1).toString()).replace('{total}', pageCount.toString()) }}
                 </div>
 
                 <div class="vp-doc">
@@ -167,10 +167,18 @@
 </template>
 
 <script setup>
+// @i18n
 import { ref, computed } from "vue";
-import { useData } from "vitepress";
+import { useI18n } from "../../../utils/i18n/locale";
 
-const { lang } = useData();
+const { t } = useI18n({
+    defaultTitle: "Multi-Page Dialog",
+    defaultText: "Click to open",
+    pageIndicator: "Page {current} of {total}",
+    prevButton: "Prev",
+    nextButton: "Next",
+    closeButton: "Close",
+});
 
 const props = defineProps({
     title: { type: String },
@@ -194,29 +202,6 @@ const props = defineProps({
 
 const isOpen = ref(false);
 const currentPage = ref(0);
-
-const translations = {
-    "zh-CN": {
-        defaultTitle: "多页面对话框",
-        defaultText: "点击打开",
-        pageIndicator: (current, total) => `第 ${current} 页，共 ${total} 页`,
-        prevButton: "上一页",
-        nextButton: "下一页",
-        closeButton: "关闭",
-    },
-    "en-US": {
-        defaultTitle: "Multi-Page Dialog",
-        defaultText: "Click to open",
-        pageIndicator: (current, total) => `Page ${current} of ${total}`,
-        prevButton: "Prev",
-        nextButton: "Next",
-        closeButton: "Close",
-    },
-};
-
-const t = computed(() => {
-    return translations[lang.value] || translations["en-US"];
-});
 
 const dialogProps = computed(() => ({
     maxWidth: props.maxWidth,

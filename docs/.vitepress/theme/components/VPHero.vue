@@ -7,16 +7,21 @@
         ref,
         nextTick,
         computed,
+        watch,
     } from "vue";
     import type { DefaultTheme } from "vitepress/theme";
     import VPButton from "vitepress/dist/client/theme-default/components/VPButton.vue";
     import VPImage from "vitepress/dist/client/theme-default/components/VPImage.vue";
     import { motion } from "motion-v";
     import { useData } from "vitepress";
-    
-    import defaultSnippets from "../../config/defaultSnippets.json";
-    import customSnippets from "../../config/snippets.json";
 
+    /**
+     * @property theme - The theme of the button.
+     * @property text - The text to display on the button.
+     * @property link - The link to navigate to when the button is clicked.
+     * @property target - The target attribute for the link.
+     * @property rel - The rel attribute for the link.
+     */
     export interface HeroAction {
         theme?: "brand" | "alt";
         text: string;
@@ -25,6 +30,12 @@
         rel?: string;
     }
 
+    /**
+     * @property name - The name of the category.
+     * @property snippets - An array of code snippets.
+     * @property color - The color for the snippets in light mode.
+     * @property darkColor - The color for the snippets in dark mode.
+     */
     export interface CodeSnippetCategory {
         name: string;
         snippets: string[];
@@ -32,6 +43,9 @@
         darkColor?: string;
     }
 
+    /**
+     * @property enabled - Whether the snippets are enabled.
+     */
     export interface SnippetControl {
         enabled: boolean;
     }
@@ -39,21 +53,76 @@
     export type SnippetConfig = CodeSnippetCategory | SnippetControl;
 
     const props = defineProps<{
+        /** The main name/title for the hero section. */
         name?: string;
+        /** The main text/subtitle for the hero section. */
         text?: string;
+        /** The tagline for the hero section. */
         tagline?: string;
+        /** The image to display in the hero section. */
         image?: DefaultTheme.ThemeableImage;
+        /** An array of actions (buttons) to display. */
         actions?: HeroAction[];
     }>();
 
     const heroImageSlotExists = inject(
-        "hero-image-slot-exists"
+        "hero-image-slot-exists",
     ) as Ref<boolean>;
 
-    const { site, lang } = useData();
+    const { site, lang, frontmatter } = useData();
+
+    const allSnippets = ref<SnippetConfig[]>([]);
+
+    watch(
+        () => [lang.value, frontmatter.value.hero] as const,
+        async ([currentLang, heroConfig]) => {
+            if (
+                heroConfig?.snippets &&
+                Array.isArray(heroConfig.snippets) &&
+                heroConfig.snippets.length > 0
+            ) {
+                allSnippets.value = heroConfig.snippets as SnippetConfig[];
+                return;
+            }
+
+            const customSnippetSetting = heroConfig?.customSnippet;
+            if (customSnippetSetting) {
+                const customNameToLoad =
+                    typeof customSnippetSetting === "string"
+                        ? customSnippetSetting
+                        : "custom";
+                try {
+                    const customData = (
+                        await import(
+                            `../../config/locale/${currentLang}/snippets/${customNameToLoad}.json`
+                        )
+                    ).default;
+                    allSnippets.value = customData;
+                    return;
+                } catch (e) {
+                    // Silently fail and fall through to default.
+                }
+            }
+
+            try {
+                const defaultData = (
+                    await import(
+                        `../../config/locale/${currentLang}/snippets/default.json`
+                    )
+                ).default;
+                allSnippets.value = defaultData;
+            } catch (e) {
+                allSnippets.value = [];
+            }
+        },
+        { immediate: true, deep: true },
+    );
 
     const snippetIndices = ref<Record<string, number[]>>({});
 
+    /**
+     * Initializes the indices for each snippet category.
+     */
     const initializeSnippetIndices = () => {
         const indices: Record<string, number[]> = {};
         snippetCategories.value.forEach((category) => {
@@ -62,88 +131,111 @@
         snippetIndices.value = indices;
     };
 
-    const getCodeSnippet = (category: CodeSnippetCategory, slot: number): string => {
+    /**
+     * Retrieves a code snippet for a given category and slot.
+     * @param category - The snippet category.
+     * @param slot - The slot index (0 or 1).
+     * @returns The code snippet string.
+     */
+    const getCodeSnippet = (
+        category: CodeSnippetCategory,
+        slot: number,
+    ): string => {
         if (!category.snippets || category.snippets.length === 0) {
             return "";
         }
-        
+
         const indices = snippetIndices.value[category.name];
         if (!indices || indices.length <= slot) {
             return category.snippets[slot % category.snippets.length];
         }
-        
+
         const index = indices[slot];
         return category.snippets[index % category.snippets.length];
     };
 
     const snippetCategories = computed<CodeSnippetCategory[]>(() => {
-        const merged: CodeSnippetCategory[] = [];
-        
-        const defaultConfig = defaultSnippets as SnippetConfig[];
-        let defaultEnabled = true;
-        
-        if (defaultConfig.length > 0 && 'enabled' in defaultConfig[0]) {
-            defaultEnabled = (defaultConfig[0] as SnippetControl).enabled;
+        const config = allSnippets.value;
+        if (!config || config.length === 0) {
+            return [];
         }
-        
-        if (defaultEnabled) {
-            const snippetItems = defaultConfig.filter((item): item is CodeSnippetCategory => 
-                'name' in item && 'snippets' in item
-            );
-            merged.push(...snippetItems);
+
+        let isEnabled = true;
+        const firstItem = config[0];
+        if (
+            firstItem &&
+            typeof firstItem === "object" &&
+            "enabled" in firstItem
+        ) {
+            isEnabled = (firstItem as SnippetControl).enabled;
         }
-        
-        const customConfig = customSnippets as SnippetConfig[];
-        if (customConfig && customConfig.length > 0) {
-            const customSnippetItems = customConfig.filter((item): item is CodeSnippetCategory => 
-                'name' in item && 'snippets' in item
-            );
-            merged.push(...customSnippetItems);
+
+        if (!isEnabled) {
+            return [];
         }
-        
-        return merged;
+
+        return config.filter(
+            (item): item is CodeSnippetCategory =>
+                "name" in item && "snippets" in item,
+        );
     });
 
     const shouldShowFloatingWords = computed(() => {
         return snippetCategories.value.length > 0;
     });
 
-    const morphText = (element: HTMLElement, fromText: string, toText: string, duration: number = 1200) => {
+    /**
+     * Animates text content with a morphing effect.
+     * @param element - The HTML element to animate.
+     * @param fromText - The starting text.
+     * @param toText - The ending text.
+     * @param duration - The animation duration in ms.
+     */
+    const morphText = (
+        element: HTMLElement,
+        fromText: string,
+        toText: string,
+        duration: number = 1200,
+    ) => {
         const steps = 60;
         const stepTime = duration / steps;
         let currentStep = 0;
-        
+
         const maxLength = Math.max(fromText.length, toText.length);
-        const charStartTimes = Array.from({ length: maxLength }, (_, i) => 
-            0.2 + (i / maxLength) * 0.6
-        );
-        
+        const charStartTimes = Array.from({ length: maxLength }, (_, i) => 0.2 + (i / maxLength) * 0.6);
+
         const interval = setInterval(() => {
             currentStep++;
             const globalProgress = currentStep / steps;
-            
+
             if (globalProgress >= 1) {
                 element.textContent = toText;
                 clearInterval(interval);
                 return;
             }
-            
-            let result = '';
-            
+
+            let result = "";
+
             for (let i = 0; i < maxLength; i++) {
-                const fromChar = fromText[i] || '';
-                const toChar = toText[i] || '';
+                const fromChar = fromText[i] || "";
+                const toChar = toText[i] || "";
                 const charStartTime = charStartTimes[i];
-                const charProgress = Math.max(0, Math.min(1, (globalProgress - charStartTime) / 0.3));
-                
+                const charProgress = Math.max(
+                    0,
+                    Math.min(1, (globalProgress - charStartTime) / 0.3),
+                );
+
                 if (fromChar === toChar) {
                     result += fromChar;
                 } else if (charProgress >= 1) {
                     result += toChar;
                 } else if (charProgress > 0) {
                     if (charProgress < 0.7) {
-                        const flickerChars = '!@#$%^&*()[]{}|;:,.<>?';
-                        const randomChar = flickerChars[Math.floor(Math.random() * flickerChars.length)];
+                        const flickerChars = "!@#$%^&*()[]{}|;:,.<>?";
+                        const randomChar =
+                            flickerChars[
+                                Math.floor(Math.random() * flickerChars.length)
+                            ];
                         result += Math.random() < 0.5 ? randomChar : fromChar;
                     } else {
                         result += Math.random() < 0.8 ? toChar : fromChar;
@@ -152,54 +244,57 @@
                     result += fromChar;
                 }
             }
-            
+
             element.textContent = result;
         }, stepTime);
     };
 
+    /**
+     * Rotates to the next set of snippets for the floating words animation.
+     */
     const rotateSnippets = () => {
         const newIndices: Record<string, number[]> = {};
-        
+
         snippetCategories.value.forEach((category) => {
             const currentIndices = snippetIndices.value[category.name] || [0, 1];
             const snippetCount = category.snippets.length;
-            
+
             if (snippetCount > 2) {
                 newIndices[category.name] = [
                     (currentIndices[0] + 2) % snippetCount,
-                    (currentIndices[1] + 2) % snippetCount
+                    (currentIndices[1] + 2) % snippetCount,
                 ];
             } else {
                 newIndices[category.name] = [
                     (currentIndices[0] + 1) % Math.max(snippetCount, 1),
-                    (currentIndices[1] + 1) % Math.max(snippetCount, 1)
+                    (currentIndices[1] + 1) % Math.max(snippetCount, 1),
                 ];
             }
         });
 
-        const floatingWords = document.querySelectorAll('.floating-word');
+        const floatingWords = document.querySelectorAll(".floating-word");
         floatingWords.forEach((wordElement, index) => {
             const element = wordElement as HTMLElement;
-            const currentText = element.textContent || '';
-            
+            const currentText = element.textContent || "";
+
             setTimeout(() => {
                 const categoryIndex = Math.floor(index / 2);
                 const slotIndex = index % 2;
                 const category = snippetCategories.value[categoryIndex];
-                
+
                 if (category) {
-                    const oldIndices = snippetIndices.value[category.name] || [0, 1];
                     const newIndices_cat = newIndices[category.name];
                     const newIndex = newIndices_cat[slotIndex];
-                    const newText = category.snippets[newIndex % category.snippets.length];
-                    
+                    const newText =
+                        category.snippets[newIndex % category.snippets.length];
+
                     if (currentText !== newText) {
                         morphText(element, currentText, newText, 1000);
                     }
                 }
             }, index * 100);
         });
-        
+
         setTimeout(() => {
             snippetIndices.value = newIndices;
         }, 1000);
@@ -348,9 +443,31 @@
     const parallaxContainer = ref<HTMLElement | null>(null);
     const floatingWords = ref<HTMLElement[]>([]);
     const isMobile = ref(false);
-    
+
     const rotationTimer = ref<NodeJS.Timeout | null>(null);
 
+    watch(shouldShowFloatingWords, (isShown) => {
+        if (isShown) {
+            nextTick(() => {
+                initializeSnippetIndices();
+                floatingWords.value = Array.from(
+                    document.querySelectorAll(".floating-word"),
+                );
+                if (rotationTimer.value) clearInterval(rotationTimer.value);
+                rotationTimer.value = setInterval(rotateSnippets, 4000);
+            });
+        } else {
+            if (rotationTimer.value) {
+                clearInterval(rotationTimer.value);
+                rotationTimer.value = null;
+            }
+        }
+    });
+
+    /**
+     * Handles the mouse move event for parallax effect on floating words.
+     * @param event - The mouse event.
+     */
     const handleMouseMove = (event: MouseEvent) => {
         if (!parallaxContainer.value || window.innerWidth < 768) return;
 
@@ -369,29 +486,47 @@
         });
     };
 
+    /**
+     * Checks if the device is mobile and updates the reactive reference.
+     */
     const checkMobile = () => {
-        isMobile.value = window.innerWidth < 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        isMobile.value =
+            window.innerWidth < 768 ||
+            /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                navigator.userAgent,
+            );
     };
 
+    /**
+     * Checks if a link is an external URL.
+     * @param link - The URL to check.
+     * @returns True if the link is external, false otherwise.
+     */
     const isExternalLink = (link: string) => {
         return /^https?:\/\//.test(link);
     };
 
+    /**
+     * Normalizes a link to include the correct base path for internal links.
+     * @param link - The link to normalize.
+     * @returns The normalized link with base path if needed.
+     */
+    const normalizeActionLink = (link: string) => {
+        if (isExternalLink(link)) {
+            return link;
+        }
+        
+        if (link.startsWith('/')) {
+            return link;
+        }
+        
+        const base = site.value.base || '/';
+        return base + link;
+    };
+
     onMounted(() => {
         nextTick(() => {
-            initializeSnippetIndices();
-            
-            if (shouldShowFloatingWords.value) {
-                rotationTimer.value = setInterval(() => {
-                    rotateSnippets();
-                }, 4000);
-            }
-
             parallaxContainer.value = document.querySelector(".hero-bg");
-            floatingWords.value = Array.from(
-                document.querySelectorAll(".floating-word")
-            );
-
             if (typeof window !== "undefined") {
                 checkMobile();
                 window.addEventListener("mousemove", handleMouseMove, {
@@ -533,7 +668,7 @@
                         <VPButton
                             :theme="action.theme || 'brand'"
                             :text="action.text"
-                            :href="action.link"
+                            :href="normalizeActionLink(action.link)"
                             :target="action.target || (isExternalLink(action.link) ? '_blank' : undefined)"
                             :rel="action.rel || (isExternalLink(action.link) ? 'noopener noreferrer' : undefined)"
                             size="medium"

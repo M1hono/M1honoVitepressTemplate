@@ -10,11 +10,24 @@
             "strings": true
         }
     },
-    "yaml.schemas": {
-        ".vscode/frontmatter.schema.json": ["**/docs/**/*.md"]
-    },
+
     "cSpell.words": [
         "sidebarrc"
     ],
-    "svg.preview.background": "transparent"
+    "svg.preview.background": "transparent",
+    "json.schemas": [
+        {
+            "fileMatch": [
+                "/docs/.vitepress/config/locale/**/*.json",
+                "/docs/.vitepress/config/defaultSnippets.json"
+            ],
+            "url": "./snippet.schema.json"
+        },
+        {
+            "fileMatch": [
+                "/docs/.vitepress/config/bills.json"
+            ],
+            "url": "./bill.schema.json"
+        }
+    ]
 } 

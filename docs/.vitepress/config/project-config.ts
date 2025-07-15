@@ -13,6 +13,12 @@ export const projectConfig: ProjectConfig = {
     },
     homepage: "https://m1hono.github.io/M1honoVitepressTemplate/",
 
+    /**
+     * @description The default currency for financial calculations and display.
+     * @type {string}
+     */
+    defaultCurrency: "CNY",
+
     languages: [
         {
             code: "zh-CN",
@@ -21,7 +27,8 @@ export const projectConfig: ProjectConfig = {
             isDefault: false,
             link: "/zh-CN/",
             label: "简体中文",
-            fileName: "zh.ts"
+            fileName: "zh.ts",
+            giscusLang: "zh-CN",
         },
         {
             code: "en-US",
@@ -30,7 +37,8 @@ export const projectConfig: ProjectConfig = {
             isDefault: true,
             link: "/en-US/",
             label: "English",
-            fileName: "en.ts"
+            fileName: "en.ts",
+            giscusLang: "en",
         }
     ],
 
@@ -54,7 +62,148 @@ export const projectConfig: ProjectConfig = {
         mermaid: true,
         multilingual: true,
         autoSidebar: true,
+        sidebarTags: true,
     },
+    
+    sidebarTags: {
+        enabled: true,
+        globalStyles: {
+            size: 'xs',
+            variant: 'soft',
+            rounded: 'md'
+        },
+        tags: [
+            {
+                field: 'method',
+                position: 'before',
+                size: 'xs',
+                variant: 'solid',
+                rounded: 'sm',
+                valueStyles: {
+                    'GET': { color: 'green' },
+                    'POST': { color: 'blue' },
+                    'PUT': { color: 'orange' },
+                    'PATCH': { color: 'yellow' },
+                    'DELETE': { color: 'red' },
+                    'HEAD': { color: 'gray' },
+                    'OPTIONS': { color: 'purple' }
+                }
+            },
+            {
+                field: 'status',
+                position: 'after',
+                size: 'xs',
+                variant: 'soft',
+                color: 'gray',
+                rounded: 'lg',
+                valueStyles: {
+                    'stable': { color: 'green' },
+                    'beta': { color: 'orange' },
+                    'experimental': { color: 'red' },
+                    'deprecated': { color: 'gray' },
+                    'draft': { color: 'yellow' }
+                }
+            },
+            {
+                field: 'version',
+                position: 'after',
+                size: 'xs',
+                variant: 'outline',
+                color: 'blue',
+                rounded: 'md',
+                prefix: 'v'
+            },
+            {
+                field: 'difficulty',
+                position: 'after',
+                size: 'xs',
+                variant: 'outline',
+                color: 'warning',
+                rounded: 'md',
+                valueStyles: {
+                    'easy': { color: 'green' },
+                    'medium': { color: 'yellow' },
+                    'hard': { color: 'red' },
+                    'beginner': { color: 'green' },
+                    'intermediate': { color: 'yellow' },
+                    'advanced': { color: 'red' },
+                    'expert': { color: 'purple' }
+                }
+            },
+            {
+                field: 'category',
+                position: 'before',
+                size: 'xs',
+                variant: 'soft',
+                color: 'primary',
+                rounded: 'md',
+                prefix: '[',
+                suffix: ']',
+                transform: true, // Will use uppercase transform
+                valueStyles: {
+                    'api': { color: 'blue' },
+                    'guide': { color: 'green' },
+                    'tutorial': { color: 'purple' },
+                    'reference': { color: 'orange' },
+                    'example': { color: 'cyan' }
+                }
+            },
+            {
+                field: 'featured',
+                position: 'before',
+                size: 'sm',
+                variant: 'solid',
+                color: 'warning',
+                rounded: 'full',
+                condition: 'truthy', // Only show if value is truthy
+                transform: 'emoji', // Will show 🔥
+                customEmoji: '🔥'
+            },
+            {
+                field: 'priority',
+                position: 'before',
+                size: 'sm',
+                variant: 'solid',
+                color: 'error',
+                rounded: 'full',
+                prefix: '优先级: ',
+                suffix: '!',
+                condition: 'exists' // Only show if field exists
+            },
+            {
+                field: 'language',
+                position: 'before',
+                size: 'xs',
+                variant: 'solid',
+                color: 'gray',
+                rounded: 'sm',
+                valueStyles: {
+                    'javascript': { color: 'amber' },
+                    'typescript': { color: 'blue' },
+                    'python': { color: 'green' },
+                    'java': { color: 'red' },
+                    'go': { color: 'cyan' },
+                    'rust': { color: 'orange' }
+                }
+            },
+            {
+                field: 'score',
+                position: 'after',
+                size: 'xs',
+                variant: 'solid',
+                color: 'gray',
+                rounded: 'full',
+                condition: 'gte80',
+                transform: 'scoreFormat',
+                valueStyles: {
+                    '90': { color: 'green' },
+                    '80': { color: 'yellow' }
+                }
+            }
+        ]
+    },
+    
+    customSnippetFileNames: [],
 };
 
 export function getLanguages(): LanguageConfig[] {
@@ -88,6 +237,10 @@ export function getLocalesConfig() {
     return locales;
 }
 
+export function getDefaultCurrency(): string {
+    return projectConfig.defaultCurrency;
+}
+
 export function getPaths(): PathConfig {
     return projectConfig.paths;
 }
@@ -107,7 +260,26 @@ export function getProjectInfo() {
         repository: projectConfig.repository,
         homepage: projectConfig.homepage,
     };
-} 
+}
+
+export function getSidebarTagsConfig() {
+    return projectConfig.sidebarTags;
+}
+
+export function isSidebarTagsEnabled(): boolean {
+    return projectConfig.features.sidebarTags && projectConfig.sidebarTags.enabled;
+}
+
+export function getTagsConfigForLanguage(langCode: string): any[] {
+    const config = projectConfig.sidebarTags;
+    
+    if (!config.enabled) {
+        return [];
+    }
+    
+    // Return all configured tags
+    return config.tags;
+}
 
 export interface LanguageConfig {
     code: string;
@@ -117,6 +289,7 @@ export interface LanguageConfig {
     link?: string;
     label?: string;
     fileName?: string;
+    giscusLang?: string;
 }
 
 export interface PathConfig {
@@ -146,6 +319,7 @@ export interface ProjectConfig {
         url: string;
     };
     homepage: string;
+    defaultCurrency: string;
     languages: LanguageConfig[];
     paths: PathConfig;
     features: {
@@ -154,5 +328,29 @@ export interface ProjectConfig {
         mermaid: boolean;
         multilingual: boolean;
         autoSidebar: boolean;
+        sidebarTags: boolean;
     };
+    sidebarTags: {
+        enabled: boolean;
+        globalStyles: {
+            size: string;
+            variant: string;
+            rounded: string;
+        };
+        tags: Array<{
+            field: string;
+            position: 'before' | 'after';
+            size: string;
+            variant: string;
+            color?: string;
+            rounded: string;
+            prefix?: string;
+            suffix?: string;
+                         transform?: boolean | string;
+            customEmoji?: string;
+            condition?: string;
+            valueStyles?: Record<string, { color: string }>;
+        }>;
+    };
+    customSnippetFileNames?: string[];
 }

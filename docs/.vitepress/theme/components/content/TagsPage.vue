@@ -14,9 +14,9 @@
         <!-- Error State -->
         <div v-else-if="loadError" class="error-state">
             <div class="error-icon">⚠️</div>
-            <p>{{ loadError }}</p>
+            <p>{{ t.loadingError }}</p>
             <button class="retry-button" @click="loadTagData">
-                {{ t.retry || 'Retry' }}
+                {{ t.retry }}
             </button>
         </div>
 
@@ -142,7 +142,7 @@
                             }}
                         </span>
                         <span v-if="tag.pages.length > 3" class="more-pages">
-                            {{ lang === 'zh' ? '等 ' : '' }}{{ tag.pages.length - 3 }} {{ t.morePages }}
+                            {{ t.morePages.replace('{count}', (tag.pages.length - 3).toString()) }}
                         </span>
                     </div>
                 </div>
@@ -247,300 +247,214 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, computed, onMounted, watch } from "vue";
-    import { useData } from "vitepress";
-    import TagBadge from "../ui/TagBadge.vue";
+// @i18n
+import { ref, computed, onMounted, watch } from "vue";
+import { useData } from "vitepress";
+import TagBadge from "../ui/TagBadge.vue";
+import { useI18n } from "@utils/i18n/locale/useI18n";
+import { getLanguageByCode, getDefaultLanguage } from "../../../config/project-config";
 
-    // Type definitions
-    interface PageInfo {
-        title: string;
-        path: string;
-        tags: string[];
-        description?: string;
-        progress?: number;
-    }
+// Type definitions
+interface PageInfo {
+    title: string;
+    path: string;
+    tags: string[];
+    description?: string;
+    progress?: number;
+}
 
-    interface TagInfo {
+interface TagInfo {
+    name: string;
+    count: number;
+    pages: PageInfo[];
+}
+
+const { t } = useI18n({
+    pageTitle: "Tags",
+    loadingTagData: "Loading tag data...",
+    loadingError: "Failed to load tag data. Please try again.",
+    retry: "Retry",
+    noTagsFound: "No tags found.",
+    searchPlaceholder: "Search tags...",
+    tagCloud: "Cloud",
+    list: "List",
+    pages: "pages",
+    morePages: "and {count} more.",
+    selectedTags: "Pages with tags:",
+    clearSelection: "Clear",
+    noMatchingPages: "No pages match all selected tags.",
+    noMatchingPagesHint: "Try removing some tags to see more results.",
+    totalTags: "Total Tags",
+    totalPages: "Total Pages",
+    matchingTags: "Matching Tags",
+});
+
+const { page, lang } = useData();
+
+const currentLanguage = computed(() => {
+    return getLanguageByCode(lang.value) || getDefaultLanguage();
+});
+
+const legacyLangCode = computed(() => {
+    return currentLanguage.value.fileName.split('.')[0];
+});
+
+type TagData = {
+    [key: string]: {
         name: string;
         count: number;
         pages: PageInfo[];
+    };
+};
+
+const tagData = ref<TagData>({});
+const isLoading = ref(false);
+const loadError = ref<string | null>(null);
+
+const searchQuery = ref("");
+const viewMode = ref<"cloud" | "list">("cloud");
+const selectedTags = ref<string[]>([]);
+
+const filteredTags = computed(() => {
+    const tags = Object.values(tagData.value);
+
+    if (!searchQuery.value) {
+        return tags.sort((a, b) => b.count - a.count);
     }
 
-    interface LanguageMetadata {
-        code: string;
-        name: string;
-        dir: string;
-        isDefault?: boolean;
+    const query = searchQuery.value.toLowerCase();
+    return tags
+        .filter((tag) => tag.name.toLowerCase().includes(query))
+        .sort((a, b) => b.count - a.count);
+});
+
+const selectedTagPages = computed(() => {
+    if (selectedTags.value.length === 0) {
+        return [];
     }
 
-    const { page, lang } = useData();
-
-    // Multi-language support
-    const translations = {
-        'en-US': {
-            pageTitle: 'Tags',
-            searchPlaceholder: 'Search tags...',
-            tagCloud: 'Tag Cloud',
-            list: 'List',
-            selectedTags: 'Selected Tags:',
-            clearSelection: 'Clear Selection',
-            pages: 'pages',
-            totalTags: 'Total Tags',
-            totalPages: 'Total Pages',
-            matchingTags: 'Matching Tags',
-            morePages: 'more pages...',
-            languageNotSupported: 'Language not supported',
-            loadingTagData: 'Loading tag data...',
-            noTagsFound: 'No tags found for this language',
-            retry: 'Retry',
-            noMatchingPages: 'No pages found with all selected tags',
-            noMatchingPagesHint: 'Try removing some tags or selecting different ones'
-        },
-        'zh-CN': {
-            pageTitle: '标签',
-            searchPlaceholder: '搜索标签...',
-            tagCloud: '标签云',
-            list: '列表',
-            selectedTags: '已选标签:',
-            clearSelection: '清除选择',
-            pages: '个页面',
-            totalTags: '标签总数',
-            totalPages: '页面总数',
-            matchingTags: '匹配标签',
-            morePages: '个页面...',
-            languageNotSupported: '不支持的语言',
-            loadingTagData: '加载标签数据中...',
-            noTagsFound: '该语言暂无标签',
-            retry: '重试',
-            noMatchingPages: '未找到包含所有选中标签的页面',
-            noMatchingPagesHint: '尝试移除一些标签或选择其他标签'
-        }
-    };
-
-    // Enhanced language mapping with fallback support
-    const langMapping: Record<string, string> = {
-        'zh-CN': 'zh-CN',
-        'zh': 'zh-CN',
-        'en-US': 'en-US', 
-        'en': 'en-US',
-        'jp': 'en-US',
-        'ja': 'en-US'
-    };
-
-    const t = computed(() => {
-        const translationLang = langMapping[lang.value] || 'en-US';
-        return translations[translationLang as keyof typeof translations] || translations['en-US'];
-    });
-
-    // Language metadata
-    const supportedLanguages = ref<LanguageMetadata[]>([]);
-
-    // Get current language code for tag data loading
-    const currentLanguageCode = computed(() => {
-        // Map VitePress language to our language codes
-        const vitepressLang = lang.value;
-        if (vitepressLang === 'zh-CN' || vitepressLang === 'zh') {
-            return 'zh';
-        } else if (vitepressLang === 'en-US' || vitepressLang === 'en') {
-            return 'en';
-        }
+    if (selectedTags.value.length === 1) {
+        const tag = selectedTags.value[0];
+        return tagData.value[tag]?.pages || [];
+    } else {
+        const allPages = new Map<string, PageInfo>();
         
-        // Fallback to checking supported languages from metadata
-        if (supportedLanguages.value.length > 0) {
-            const found = supportedLanguages.value.find(lang => 
-                vitepressLang.startsWith(lang.code) || lang.code.startsWith(vitepressLang.split('-')[0])
-            );
-            return found?.code || supportedLanguages.value[0]?.code || 'zh';
-        }
-        
-        return 'zh'; // Default fallback
-    });
-
-    // Reactive state
-    const searchQuery = ref("");
-    const viewMode = ref<"cloud" | "list">("cloud");
-    const selectedTags = ref<string[]>([]);
-    const tagData = ref<Record<string, TagInfo>>({});
-    const isLoading = ref(false);
-    const loadError = ref<string | null>(null);
-
-    // Computed properties
-    const filteredTags = computed(() => {
-        const tags = Object.values(tagData.value);
-
-        if (!searchQuery.value) {
-            return tags.sort((a, b) => b.count - a.count);
-        }
-
-        const query = searchQuery.value.toLowerCase();
-        return tags
-            .filter((tag) => tag.name.toLowerCase().includes(query))
-            .sort((a, b) => b.count - a.count);
-    });
-
-    const selectedTagPages = computed(() => {
-        if (selectedTags.value.length === 0) {
-            return [];
-        }
-        
-        // If multiple tags selected, find pages that have ALL selected tags
-        if (selectedTags.value.length === 1) {
-            const tag = selectedTags.value[0];
-            return tagData.value[tag]?.pages || [];
-        } else {
-            // Find intersection of pages across all selected tags
-            const allPages = new Map<string, PageInfo>();
+        selectedTags.value.forEach((tag, index) => {
+            const tagPages = tagData.value[tag]?.pages || [];
             
-            selectedTags.value.forEach((tag, index) => {
-                const tagPages = tagData.value[tag]?.pages || [];
-                
-                if (index === 0) {
-                    // First tag: add all pages
-                    tagPages.forEach(page => allPages.set(page.path, page));
-                } else {
-                    // Subsequent tags: keep only pages that exist in current set
-                    const currentPaths = new Set(tagPages.map(p => p.path));
-                    for (const [path, page] of allPages) {
-                        if (!currentPaths.has(path)) {
-                            allPages.delete(path);
-                        }
+            if (index === 0) {
+                tagPages.forEach(page => allPages.set(page.path, page));
+            } else {
+                const currentPaths = new Set(tagPages.map(p => p.path));
+                for (const [path, page] of allPages) {
+                    if (!currentPaths.has(path)) {
+                        allPages.delete(path);
                     }
                 }
-            });
-            
-            return Array.from(allPages.values());
-        }
-    });
-
-    const totalTags = computed(() => Object.keys(tagData.value).length);
-    const totalPages = computed(() => {
-        return Object.values(tagData.value).reduce(
-            (sum, tag) => sum + tag.count,
-            0
-        );
-    });
-
-    // Methods
-    function getTagSize(count: number): string {
-        const maxCount = Math.max(
-            ...Object.values(tagData.value).map((tag) => tag.count)
-        );
-        const minSize = 0.75;
-        const maxSize = 1.5;
-        const ratio = count / maxCount;
-        const size = minSize + (maxSize - minSize) * ratio;
-        return `${size}rem`;
-    }
-
-    function selectTag(tagName: string) {
-        if (selectedTags.value.includes(tagName)) {
-            // Remove tag if already selected
-            selectedTags.value = selectedTags.value.filter(t => t !== tagName);
-        } else {
-            // Add tag to selection
-            selectedTags.value.push(tagName);
-        }
-        
-        // Update URL without navigation
-        const url = new URL(window.location.href);
-        if (selectedTags.value.length > 0) {
-            url.searchParams.set("tags", selectedTags.value.join(","));
-        } else {
-            url.searchParams.delete("tags");
-        }
-        window.history.pushState({}, "", url.toString());
-    }
-
-    function clearSelection() {
-        selectedTags.value = [];
-        const url = new URL(window.location.href);
-        url.searchParams.delete("tags");
-        window.history.pushState({}, "", url.toString());
-    }
-
-    // Load language metadata
-    async function loadLanguageMetadata() {
-        try {
-            const response = await fetch('/tag-data-index.json');
-            if (response.ok) {
-                const data = await response.json();
-                supportedLanguages.value = data.languages || [];
-                console.log(`[TagsPage] Loaded metadata for ${supportedLanguages.value.length} languages`);
-            } else {
-                console.warn('Language metadata not found, using defaults');
-                supportedLanguages.value = [
-                    { code: 'zh', name: '简体中文', dir: 'zh', isDefault: true },
-                    { code: 'en', name: 'English', dir: 'en' }
-                ];
             }
-        } catch (error) {
-            console.error("Failed to load language metadata:", error);
-            supportedLanguages.value = [
-                { code: 'zh', name: '简体中文', dir: 'zh', isDefault: true },
-                { code: 'en', name: 'English', dir: 'en' }
-            ];
-        }
-    }
-
-    // Enhanced tag data loading with language support
-    async function loadTagData() {
-        isLoading.value = true;
-        loadError.value = null;
-        
-        try {
-            const langCode = currentLanguageCode.value;
-            const response = await fetch(`/tag-data-${langCode}.json`);
-            
-            if (response.ok) {
-                const data = await response.json();
-                tagData.value = data.tags || {};
-                console.log(`[TagsPage] Loaded ${Object.keys(tagData.value).length} tags for language: ${langCode}`);
-            } else {
-                console.warn(`Tag data for ${langCode} not found (${response.status}), using empty data`);
-                loadError.value = `${t.value.languageNotSupported}: ${langCode}`;
-                tagData.value = {};
-            }
-        } catch (error) {
-            console.error("Failed to load tag data:", error);
-            loadError.value = `Failed to load tag data: ${error}`;
-            tagData.value = {};
-        } finally {
-            isLoading.value = false;
-        }
-    }
-
-    // Get URL parameters
-    function getUrlParams() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const tagsParam = urlParams.get("tags");
-        return tagsParam ? tagsParam.split(",") : [];
-    }
-
-    // Watch for language changes and reload tag data
-    watch(currentLanguageCode, (newLang, oldLang) => {
-        if (newLang !== oldLang) {
-            console.log(`[TagsPage] Language changed from ${oldLang} to ${newLang}, reloading tag data`);
-            loadTagData();
-        }
-    });
-
-    onMounted(async () => {
-        // Load language metadata first, then tag data
-        await loadLanguageMetadata();
-        loadTagData();
-
-        // Set initial selected tags from URL
-        const tagsFromUrl = getUrlParams();
-        if (tagsFromUrl.length > 0) {
-            selectedTags.value = tagsFromUrl;
-        }
-
-        // Listen for URL changes
-        window.addEventListener("popstate", () => {
-            const tagsFromUrl = getUrlParams();
-            selectedTags.value = tagsFromUrl;
         });
+        
+        return Array.from(allPages.values());
+    }
+});
+
+const totalTags = computed(() => Object.keys(tagData.value).length);
+const totalPages = computed(() => {
+    return Object.values(tagData.value).reduce(
+        (sum, tag) => sum + tag.count,
+        0
+    );
+});
+
+function getTagSize(count: number): string {
+    const maxCount = Math.max(
+        ...Object.values(tagData.value).map((tag) => tag.count)
+    );
+    const minSize = 0.75;
+    const maxSize = 1.5;
+    const ratio = count / maxCount;
+    const size = minSize + (maxSize - minSize) * ratio;
+    return `${size}rem`;
+}
+
+function selectTag(tagName: string) {
+    if (selectedTags.value.includes(tagName)) {
+        selectedTags.value = selectedTags.value.filter(t => t !== tagName);
+    } else {
+        selectedTags.value.push(tagName);
+    }
+
+    const url = new URL(window.location.href);
+    if (selectedTags.value.length > 0) {
+        url.searchParams.set("tags", selectedTags.value.join(","));
+    } else {
+        url.searchParams.delete("tags");
+    }
+    window.history.pushState({}, "", url.toString());
+}
+
+function clearSelection() {
+    selectedTags.value = [];
+    const url = new URL(window.location.href);
+    url.searchParams.delete("tags");
+    window.history.pushState({}, "", url.toString());
+}
+
+// Enhanced tag data loading with language support
+async function loadTagData() {
+    isLoading.value = true;
+    loadError.value = null;
+
+    try {
+        const langCode = legacyLangCode.value;
+        const response = await fetch(`/tag-data-${langCode}.json`);
+
+        if (response.ok) {
+            const data = await response.json();
+            tagData.value = data.tags || {};
+            console.log(`[TagsPage] Loaded ${Object.keys(tagData.value).length} tags for language: ${langCode}`);
+        } else {
+            console.warn(`Tag data for ${langCode} not found (${response.status}), using empty data`);
+            loadError.value = `${t.value.loadingError}: ${langCode}`;
+            tagData.value = {};
+        }
+    } catch (error) {
+        console.error("Failed to load tag data:", error);
+        loadError.value = `Failed to load tag data: ${error}`;
+        tagData.value = {};
+    } finally {
+        isLoading.value = false;
+    }
+}
+
+function getUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tagsParam = urlParams.get("tags");
+    return tagsParam ? tagsParam.split(",") : [];
+}
+
+// Watch for language changes and reload tag data
+watch(lang, (newLang, oldLang) => {
+    if (newLang !== oldLang) {
+        console.log(`[TagsPage] Language changed from ${oldLang} to ${newLang}, reloading tag data`);
+        loadTagData();
+    }
+});
+
+onMounted(async () => {
+    loadTagData();
+
+    // Set initial selected tags from URL
+    const tagsFromUrl = getUrlParams();
+    if (tagsFromUrl.length > 0) {
+        selectedTags.value = tagsFromUrl;
+    }
+
+    window.addEventListener("popstate", () => {
+        const tagsFromUrl = getUrlParams();
+        selectedTags.value = tagsFromUrl;
     });
+});
 </script>
 
 <style scoped>
@@ -550,7 +464,6 @@
         padding: 2rem 0;
     }
 
-    /* Page Header */
     .page-header {
         margin-bottom: 2rem;
         padding-bottom: 1rem;

@@ -1,0 +1,12 @@
+{
+    "available": "Available: {amount}",
+    "empty": "No bill data available.",
+    "income": "Income: {amount}",
+    "incomeSource": "Income Source",
+    "loading": "Loading bills...",
+    "operator": "Operator: {name}",
+    "outlay": "Outlay: {amount}",
+    "outlayTarget": "Outlay Target",
+    "title": "Bills",
+    "transactionContent": "Transaction Content"
+}

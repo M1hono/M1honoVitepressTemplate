@@ -1,14 +1,13 @@
-import type { DefaultTheme, HeadConfig, UserConfig } from "vitepress";
+import type { DefaultTheme, HeadConfig } from "vitepress";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
 import { 
-    projectConfig, 
     getProjectInfo, 
     isFeatureEnabled, 
     getLanguageCodes, 
 } from "./project-config";
-import { getSrcPath, getVitepressPath } from "../utils/config/path-resolver";
-import { getSidebarSync, sidebarPlugin } from "../utils/sidebar/";
+import { getVitepressPath } from "../utils/config/path-resolver";
+import { sidebarPlugin } from "../utils/sidebar/";
 import { markdown } from "./markdown-plugins";
 import {
     groupIconVitePlugin,
@@ -148,10 +147,6 @@ export const commonConfig = {
             }),
             groupIconVitePlugin({
                 customIcon: {
-                    mcmeta: localIconLoader(
-                        import.meta.url,
-                        `../../src/public/svg/minecraft.svg`
-                    ),
                     json: localIconLoader(
                         import.meta.url,
                         `../../src/public/svg/json.svg`
@@ -159,31 +154,6 @@ export const commonConfig = {
                     md: localIconLoader(
                         import.meta.url,
                         `../../src/public/svg/markdown.svg`
-                    ),
-                    kubejs: localIconLoader(
-                        import.meta.url,
-                        `../../src/public/svg/kubejs.svg`
-                    ),
-                    js: "logos:javascript",
-                    sh: localIconLoader(
-                        import.meta.url,
-                        `../../src/public/svg/powershell.svg`
-                    ),
-                    npm: localIconLoader(
-                        import.meta.url,
-                        `../../src/public/svg/npm.svg`
-                    ),
-                    neoforge: localIconLoader(
-                        import.meta.url,
-                        `../../src/public/svg/neoforge.svg`
-                    ),
-                    forge: localIconLoader(
-                        import.meta.url,
-                        `../../src/public/svg/forge.svg`
-                    ),
-                    fabric: localIconLoader(
-                        import.meta.url,
-                        `../../src/public/svg/fabric.svg`
                     ),
                     ts: "logos:typescript-icon-round",
                     java: "logos:java",
@@ -217,6 +187,15 @@ export const commonConfig = {
                     replacement: fileURLToPath(
                         new URL(
                             "../theme/components/VPButton.vue",
+                            import.meta.url
+                        )
+                    ),
+                },
+                {
+                    find: /^.*\/VPNavBarTranslations\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/VPNavBarTranslations.vue",
                             import.meta.url
                         )
                     ),

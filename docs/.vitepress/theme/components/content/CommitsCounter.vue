@@ -27,6 +27,7 @@
     import { useData } from "vitepress";
     import { defineAsyncComponent } from "vue";
     import utils from "@utils";
+    import { useI18n } from "@utils/i18n/locale/useI18n";
 
     // Async import for vue-echarts to avoid SSR issues
     const VChart = defineAsyncComponent(async () => {
@@ -41,6 +42,12 @@
         use([LineChart, TooltipComponent, GridComponent, CanvasRenderer]);
 
         return VChart;
+    });
+
+    const { t } = useI18n({
+        repoActivity: "Repository Activity",
+        recentCommits: "Recent commits:",
+        commitsOnDate: "{count} commits on {date}"
     });
 
     const props = defineProps({
@@ -83,19 +90,6 @@
             contributions.value
         )
     );
-
-    const texts = computed(() => {
-        return {
-            repoActivity: utils.charts.github.getGithubText(
-                "repoActivity",
-                lang.value
-            ),
-            recentCommits: utils.charts.github.getGithubText(
-                "recentCommits",
-                lang.value
-            ),
-        };
-    });
 
     /**
      * Generate enhanced chart options with beautiful styling
@@ -248,23 +242,30 @@
             tooltip: {
                 trigger: "axis",
                 backgroundColor: isDark.value
-                    ? "rgba(15, 15, 15, 0.95)"
-                    : "rgba(255, 255, 255, 0.95)",
+                    ? "rgba(20, 20, 20, 0.9)"
+                    : "rgba(255, 255, 255, 0.9)",
                 borderColor: isDark.value
                     ? "rgba(255, 255, 255, 0.1)"
                     : "rgba(0, 0, 0, 0.1)",
                 textStyle: {
-                    color: isDark.value ? "#ffffff" : "#1f2937",
-                    fontSize: 14,
+                    color: isDark.value ? "#E5E7EB" : "#1F2937",
                 },
-                padding: [12, 16],
-                borderRadius: 8,
-                boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-                formatter: function (params: any) {
-                    const point = params[0];
-                    const date = point.name;
-                    const value = point.value || 0;
-                    return `<div style="font-weight: 600;">${date}</div><div style="margin-top: 4px; color: ${point.color};">${value} commits</div>`;
+                formatter: (params: any) => {
+                    const dataIndex = params[0].dataIndex;
+                    const date = new Date();
+                    date.setDate(
+                        date.getDate() -
+                            (contributions.value.length - 1 - dataIndex)
+                    );
+                    const dateString = date.toLocaleDateString(lang.value, {
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric'
+                    });
+                    const count = params[0].value;
+                    return t.value.commitsOnDate
+                        .replace('{count}', count)
+                        .replace('{date}', dateString);
                 },
             },
         };

@@ -4,7 +4,7 @@
         <div
             v-show="showBackTop"
             class="floating-button top-button"
-            :title="translations.backToTop[lang as 'en-US' | 'zh-CN']"
+            :title="t.backToTop"
             @click="scrollToTop"
         >
             <svg
@@ -24,7 +24,7 @@
     <button
         @click="refreshPage"
         class="floating-button refresh-button"
-        :title="translations.refresh[lang as 'en-US' | 'zh-CN']"
+        :title="t.refresh"
     >
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -67,7 +67,7 @@
         @click="copyLink"
         class="floating-button copy-button"
         :class="{ copied }"
-        :title="translations.copyLink[lang as 'en-US' | 'zh-CN']"
+        :title="t.copyLink"
     >
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -86,7 +86,7 @@
     <button
         @click="openForum"
         class="floating-button forum-button"
-        :title="translations.forum[lang as 'en-US' | 'zh-CN']"
+        :title="t.forum"
     >
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -104,7 +104,7 @@
     <button
         @click="goBack"
         class="floating-button back-button"
-        :title="translations.back[lang as 'en-US' | 'zh-CN']"
+        :title="t.back"
     >
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -127,7 +127,7 @@
     <button
         @click="scrollToBottom"
         class="floating-button comment-button"
-        :title="translations.comment[lang as 'en-US' | 'zh-CN']"
+        :title="t.comment"
     >
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -145,7 +145,7 @@
     <button
         @click="openLink('https://qm.qq.com/q/CsR20JGLAc')"
         class="floating-button qq-button"
-        :title="translations.qq[lang as 'en-US' | 'zh-CN']"
+        :title="t.qq"
     >
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -163,7 +163,7 @@
     <button
         @click="openLink('https://discord.gg/uPJHxU46td')"
         class="floating-button discord-button"
-        :title="translations.discord[lang as 'en-US' | 'zh-CN']"
+        :title="t.discord"
     >
         <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -181,10 +181,23 @@
 </template>
 
 <script setup lang="ts">
+    // @i18n
     import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue";
     import { useData, useRouter } from "vitepress";
+    import { useI18n } from "@utils/i18n/locale/useI18n";
 
-    const { isDark, lang, page, frontmatter } = useData();
+    const { t } = useI18n({
+        backToTop: "Back to Top",
+        copyLink: "Copy Link",
+        refresh: "Refresh",
+        back: "Back",
+        comment: "Comment",
+        qq: "QQ",
+        discord: "Discord",
+        forum: "Forum",
+    });
+
+    const { isDark, page, frontmatter } = useData();
     const router = useRouter();
 
     const showBackTop = ref(false);
@@ -192,17 +205,6 @@
     
     // Check if buttons should be shown based on frontmatter
     const showButtons = computed(() => frontmatter.value.buttons !== false);
-
-    const translations = {
-        backToTop: { "en-US": "Back to Top", "zh-CN": "返回顶部" },
-        copyLink: { "en-US": "Copy Link", "zh-CN": "复制链接" },
-        refresh: { "en-US": "Refresh", "zh-CN": "刷新" },
-        back: { "en-US": "Back", "zh-CN": "返回" },
-        comment: { "en-US": "Comment", "zh-CN": "评论" },
-        qq: { "en-US": "QQ", "zh-CN": "QQ" },
-        discord: { "en-US": "Discord", "zh-CN": "Discord" },
-        forum: { "en-US": "Forum", "zh-CN": "论坛" },
-    };
 
     const currentPath = computed(() => router.route.path);
 

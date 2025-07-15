@@ -1,17 +1,18 @@
 <script lang="ts" setup>
+    // @i18n
     import { useData } from "vitepress";
     import { computed, ref, onMounted } from "vue";
+    import { useI18n } from "@utils/i18n/locale/useI18n";
+
+    const { t } = useI18n({
+        progressStatus: "Status",
+    });
 
     const { page, frontmatter, lang, isDark } = useData();
 
     onMounted(() => {
         updateProgress();
     });
-
-    const metadata = {
-        "zh-CN": `进度`,
-        "en-US": `Status`,
-    };
 
     const isProgress = computed(() => {
         return frontmatter.value?.progress ?? false;
@@ -28,12 +29,6 @@
     }
 
     const color = computed(() => "var(--progress-color)");
-
-    const text = computed(() => {
-        return (
-            metadata[lang.value as keyof typeof metadata] || metadata["en-US"]
-        );
-    });
 </script>
 
 <template>
@@ -46,7 +41,7 @@
                 variant="text"
                 density="comfortable"
             >
-                {{ text }}
+                {{ t.progressStatus }}
             </v-btn>
         </v-col>
         <v-col>

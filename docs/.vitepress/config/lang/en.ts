@@ -1,18 +1,19 @@
 import type { DefaultTheme } from 'vitepress';
-import { getSidebarSync } from '../../utils/sidebar';
-import { getProjectInfo } from '../project-config';
+import { getSidebarSyncWithTags } from '../../utils/config/sidebar-tags-integration';
+import { getProjectInfo, getLanguageByCode } from '../project-config';
 
 const projectInfo = getProjectInfo();
+const langConfig = getLanguageByCode('en')!;
 
 export const en_US = <DefaultTheme.Config>{
-    label: 'English',
-    lang: "en-US",
-    link: "/en/",
+    label: langConfig.displayName,
+    lang: langConfig.giscusLang,
+    link: langConfig.link,
     title: projectInfo.name,
     description: projectInfo.description,
     themeConfig: {
         nav: [],
-        sidebar: getSidebarSync("en-US"),
+        sidebar: getSidebarSyncWithTags(langConfig.code),
         outline: {
             level: "deep",
             label: "Page Content",

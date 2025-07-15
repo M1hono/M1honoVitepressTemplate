@@ -9,6 +9,7 @@ import {
     CustomAlert,
     ChatPanel,
     ChatMessage,
+    Bills
 } from "../../theme/components/content";
 import { YoutubeVideo, BilibiliVideo, PdfViewer } from "../../theme/components/media";
 import { MNavLinks } from "../../theme/components/navigation";
@@ -53,6 +54,7 @@ const components = {
     TagsPage,
     ChatPanel,
     ChatMessage,
+    Bills
 };
 
 export const registerComponents = (app: App) => {
