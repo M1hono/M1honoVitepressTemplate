@@ -1,4 +1,4 @@
-name: Deploy VitePress site to Pages
+name: Deploy VitePress site
 
 on:
   push:
@@ -16,7 +16,40 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Read deployment configuration
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      deployment-type: ${{ steps.config.outputs.deployment-type }}
+      server-remote-path: ${{ steps.config.outputs.server-remote-path }}
+      server-port: ${{ steps.config.outputs.server-port }}
+      custom-deploy-command: ${{ steps.config.outputs.custom-deploy-command }}
+      custom-post-deploy-command: ${{ steps.config.outputs.custom-post-deploy-command }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Read deployment config
+        id: config
+        run: |
+          # Install ts-node for TypeScript support
+          yarn add -D ts-node
+          
+          # Run deployment config reader script
+          node docs/.vitepress/scripts/read-deploy-config.js >> $GITHUB_OUTPUT
+
+  # Build the site
   build:
+    needs: config
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,33 +62,130 @@ jobs:
         with:
           node-version: 20
           cache: yarn
-          cache-dependency-path: docs/yarn.lock
 
-      - name: Setup Pages
+      - name: Setup Pages (GitHub Pages only)
+        if: needs.config.outputs.deployment-type == 'github-pages'
         uses: actions/configure-pages@v4
-        with:
-          enablement: true
 
       - name: Install dependencies
-        run: |
-          cd docs
-          yarn install --frozen-lockfile
+        run: yarn install --frozen-lockfile
 
       - name: Build with VitePress
-        run: |
-          cd docs
-          yarn build
+        run: yarn docs:build
 
-      - name: Upload artifact
+      - name: Upload GitHub Pages artifact
+        if: needs.config.outputs.deployment-type == 'github-pages'
         uses: actions/upload-pages-artifact@v3
         with:
           path: docs/.vitepress/dist
 
-  deploy:
-    needs: build
+      - name: Upload build artifact (for other deployment types)
+        if: needs.config.outputs.deployment-type != 'github-pages'
+        uses: actions/upload-artifact@v4
+        with:
+          name: vitepress-dist
+          path: docs/.vitepress/dist
+          retention-days: 1
+
+  # Deploy to GitHub Pages
+  deploy-github:
+    if: needs.config.outputs.deployment-type == 'github-pages'
+    needs: [config, build]
     runs-on: ubuntu-latest
-    name: Deploy
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+  # Deploy to server via SSH
+  deploy-server:
+    if: needs.config.outputs.deployment-type == 'server'
+    needs: [config, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vitepress-dist
+          path: ./dist
+
+      - name: Deploy to server via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ needs.config.outputs.server-port }}
+          script: |
+            # Clean remote directory
+            rm -rf ${{ needs.config.outputs.server-remote-path }}/*
+            
+            # Create directory if it doesn't exist
+            mkdir -p ${{ needs.config.outputs.server-remote-path }}
+
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ needs.config.outputs.server-port }}
+          source: "./dist/*"
+          target: ${{ needs.config.outputs.server-remote-path }}
+          strip_components: 1
+
+  # Custom deployment
+  deploy-custom:
+    if: needs.config.outputs.deployment-type == 'custom'
+    needs: [config, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vitepress-dist
+          path: ./docs/.vitepress/dist
+
+      - name: Run custom deployment
+        run: |
+          # Run deploy command if specified
+          if [ -n "${{ needs.config.outputs.custom-deploy-command }}" ]; then
+            echo "Executing deploy command..."
+            ${{ needs.config.outputs.custom-deploy-command }}
+          fi
+          
+          # Run post-deploy command if specified
+          if [ -n "${{ needs.config.outputs.custom-post-deploy-command }}" ]; then
+            echo "Executing post-deploy command..."
+            ${{ needs.config.outputs.custom-post-deploy-command }}
+          fi
+
+  # Notification job (runs after any deployment)
+  notify:
+    if: always()
+    needs: [config, build, deploy-github, deploy-server, deploy-custom]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deployment notification
+        run: |
+          if [ "${{ needs.deploy-github.result }}" == "success" ]; then
+            echo "✅ GitHub Pages deployment completed successfully"
+          elif [ "${{ needs.deploy-server.result }}" == "success" ]; then
+            echo "✅ Server deployment completed successfully"
+          elif [ "${{ needs.deploy-custom.result }}" == "success" ]; then
+            echo "✅ Custom deployment completed successfully"
+          else
+            echo "❌ Deployment failed or skipped"
+          fi

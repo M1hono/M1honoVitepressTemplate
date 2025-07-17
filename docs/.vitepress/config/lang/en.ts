@@ -3,7 +3,7 @@ import { getSidebarSyncWithTags } from '../../utils/config/sidebar-tags-integrat
 import { getProjectInfo, getLanguageByCode } from '../project-config';
 
 const projectInfo = getProjectInfo();
-const langConfig = getLanguageByCode('en')!;
+const langConfig = getLanguageByCode('en-US')!;
 
 export const en_US = <DefaultTheme.Config>{
     label: langConfig.displayName,

@@ -32,6 +32,7 @@ import { card } from "../plugins/card";
 import { groupIconMdPlugin } from "vitepress-plugin-group-icons";
 import MagicMovePlugin from "../plugins/magic-move";
 import { dialogPlugin } from "../plugins/dialog";
+import { chatPlugin } from "../plugins/chat-message";
 import ts from "typescript";
 
 import fs from "fs";
@@ -72,6 +73,7 @@ export const markdown: MarkdownOptions = {
         md.use(timeline);
         md.use(tabsMarkdownPlugin);
         md.use(dialogPlugin);
+        md.use(chatPlugin);
 
         md.use(mdFootnote);
         md.use(mdTaskLists);

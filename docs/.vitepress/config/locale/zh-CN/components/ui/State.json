@@ -1,10 +1,10 @@
 {
-    "outdatedText": "The content in this article may be outdated and not applicable to the latest version. Please discern carefully.",
-    "outdatedTitle": "🚨 Outdated",
-    "preliminaryText": "The content in this article has been preliminarily completed and can serve as a reference. However, there may be possible errors or areas in need of improvement.",
-    "preliminaryTitle": "🌱 Preliminary Completion",
-    "renovatingText": "The outdated content in this article is currently being renovated. The outdated sections may not apply to the latest version. Please discern carefully.",
-    "renovatingTitle": "🕓 Under Renovation",
-    "unfinishedText": "The content in this article is still being written and may contain errors or missing information. It will be completed in the future.",
-    "unfinishedTitle": "🚧 Unfinished"
+    "outdatedText": "本文档内容可能已过时，不适用最新版本。请仔细甄别。",
+    "outdatedTitle": "🚨 过时",
+    "preliminaryText": "本文档内容已初步完成，可作为参考。但可能存在错误或需要改进的地方。",
+    "preliminaryTitle": "🌱 初步完成",
+    "renovatingText": "本文档中过时内容正在重构。过时部分可能不适用于最新版本。请仔细甄别。",
+    "renovatingTitle": "🕓 重构中",
+    "unfinishedText": "本文档内容仍在编写中，可能存在错误或缺失信息。将在未来完成。",
+    "unfinishedTitle": "🚧 未完成"
 }

@@ -39,9 +39,17 @@ function extractLanguageFromPath(filePath: string): string {
     
     if (pathParts.length > 0) {
         const firstPart = pathParts[0];
-        const langConfig = languages.find(lang => lang.code === firstPart);
-        if (langConfig) {
-            return langConfig.code;
+        const directMatch = languages.find(lang => lang.code === firstPart);
+        if (directMatch) {
+            return directMatch.code;
+        }
+        const linkMatch = languages.find(lang => {
+            const linkPath = lang.link || `/${lang.code}/`;
+            const cleanLinkPath = linkPath.replace(/^\/|\/$/g, '');
+            return cleanLinkPath === firstPart;
+        });
+        if (linkMatch) {
+            return linkMatch.code;
         }
     }
     

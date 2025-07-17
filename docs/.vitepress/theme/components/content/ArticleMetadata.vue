@@ -5,9 +5,9 @@ import { computed, ref, onMounted } from "vue";
 import utils from "../../../utils";
 import ProgressLinear from "../ui/ProgressLinear.vue";
 import State from "../ui/State.vue";
-import { useI18n } from "../../../utils/i18n/locale";
+import { useSafeI18n } from "../../../utils/i18n/locale";
 
-const { t } = useI18n({
+const { t } = useSafeI18n("article-metadata", {
     lastUpdated: "Last updated on: {date}",
     wordCount: "Word count: {count} words",
     readingTime: "Reading time: {time} minutes",
@@ -82,10 +82,10 @@ const icon = (key: string) => {
 };
 
 const metadataContent = computed(() => ({
-    update: t.value.lastUpdated.replace('{date}', update.value),
-    wordCount: t.value.wordCount.replace('{count}', wordCount.value.toString()),
-    readTime: t.value.readingTime.replace('{time}', readTime.value.toString()),
-    pageViews: t.value.pageViews.replace('{count}', (pageViews.value || 0).toString()),
+    update: t.lastUpdated.replace('{date}', update.value),
+    wordCount: t.wordCount.replace('{count}', wordCount.toString()),
+    readTime: t.readingTime.replace('{time}', readTime.value.toString()),
+    pageViews: t.pageViews.replace('{count}', (pageViews.value || 0).toString()),
 }));
 
 const metadataKeys = ["update", "wordCount", "readTime", "pageViews"] as const;

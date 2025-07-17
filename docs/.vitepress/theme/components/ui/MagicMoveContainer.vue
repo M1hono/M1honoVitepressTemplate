@@ -36,9 +36,9 @@
     import { useData } from "vitepress";
     import { createHighlighter } from "shiki";
     import type { HighlighterCore } from 'shiki';
-    import { useI18n } from '@utils/i18n/locale/useI18n';
+    import { useSafeI18n } from '@utils/i18n/locale';
 
-    const { t } = useI18n({
+    const { t } = useSafeI18n("magic-move-container", {
         loading: 'Loading...'
     });
 

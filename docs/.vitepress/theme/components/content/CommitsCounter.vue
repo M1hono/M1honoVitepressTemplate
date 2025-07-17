@@ -27,7 +27,7 @@
     import { useData } from "vitepress";
     import { defineAsyncComponent } from "vue";
     import utils from "@utils";
-    import { useI18n } from "@utils/i18n/locale/useI18n";
+    import { useSafeI18n } from "@utils/i18n/locale";
 
     // Async import for vue-echarts to avoid SSR issues
     const VChart = defineAsyncComponent(async () => {
@@ -44,7 +44,7 @@
         return VChart;
     });
 
-    const { t } = useI18n({
+    const { t } = useSafeI18n("commits-counter", {
         repoActivity: "Repository Activity",
         recentCommits: "Recent commits:",
         commitsOnDate: "{count} commits on {date}"
@@ -263,7 +263,7 @@
                         day: 'numeric'
                     });
                     const count = params[0].value;
-                    return t.value.commitsOnDate
+                    return t.commitsOnDate
                         .replace('{count}', count)
                         .replace('{date}', dateString);
                 },

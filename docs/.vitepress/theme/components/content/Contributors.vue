@@ -3,9 +3,9 @@
     import { ref, onMounted, computed } from "vue";
     import { useData } from "vitepress";
     import { Motion } from "motion-v";
-    import { useI18n } from "@utils/i18n/locale/useI18n";
+    import { useSafeI18n } from "@utils/i18n/locale";
 
-    const { t } = useI18n({
+    const { t } = useSafeI18n("contributors", {
         title: 'Contributors',
         contributors: 'Contributors',
         totalContributions: 'Total Contributions',
@@ -194,7 +194,7 @@
             );
         } catch (err) {
             console.error("Failed to fetch contributors:", err);
-            error.value = t.value.githubError;
+            error.value = t.githubError;
         } finally {
             loading.value = false;
         }

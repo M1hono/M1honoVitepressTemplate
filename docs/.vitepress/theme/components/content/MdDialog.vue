@@ -39,9 +39,9 @@
 <script setup>
 // @i18n
 import { ref, computed } from "vue";
-import { useI18n } from "@utils/i18n/locale/useI18n";
+import { useSafeI18n } from "@utils/i18n/locale";
 
-const { t } = useI18n({
+const { t } = useSafeI18n("md-dialog", {
     defaultText: "Click to open",
     closeButton: "Close",
 });

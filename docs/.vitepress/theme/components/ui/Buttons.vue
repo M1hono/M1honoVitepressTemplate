@@ -184,9 +184,9 @@
     // @i18n
     import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue";
     import { useData, useRouter } from "vitepress";
-    import { useI18n } from "@utils/i18n/locale/useI18n";
+    import { useSafeI18n } from "@utils/i18n/locale";
 
-    const { t } = useI18n({
+    const { t } = useSafeI18n("buttons-component", {
         backToTop: "Back to Top",
         copyLink: "Copy Link",
         refresh: "Refresh",

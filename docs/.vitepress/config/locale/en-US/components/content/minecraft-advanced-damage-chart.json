@@ -1,12 +1,12 @@
 {
-    "actualDamage": "",
-    "armorPoints": "",
-    "armorToughness": "",
-    "bedrockEdition": "",
-    "damageReduction": "",
-    "incomingDamage": "",
-    "javaEdition": "",
-    "maxArmorPoints": "",
-    "maxDamage": "",
-    "minDamage": ""
+    "actualDamage": "Actual Damage",
+    "armorPoints": "Armor Points",
+    "armorToughness": "Armor Toughness",
+    "bedrockEdition": "Bedrock Edition",
+    "damageReduction": "Damage Reduction (%)",
+    "incomingDamage": "Incoming Damage",
+    "javaEdition": "Java Edition",
+    "maxArmorPoints": "Max Armor Points",
+    "maxDamage": "Max Damage",
+    "minDamage": "Min Damage"
 }

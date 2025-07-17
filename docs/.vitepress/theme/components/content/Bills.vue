@@ -1,8 +1,15 @@
 <script setup lang="ts">
-    import { ref, computed, watch, onMounted, onUpdated, onBeforeUpdate } from "vue";
+    import {
+        ref,
+        computed,
+        watch,
+        onMounted,
+        onUpdated,
+        onBeforeUpdate,
+    } from "vue";
     import { BillManager } from "./billManager";
     import type { Bill } from "./bill";
-    import { useI18n } from "../../../utils/i18n/locale";
+    import { useSafeI18n } from "../../../utils/i18n/locale";
     import { getDefaultCurrency } from "../../../config/project-config";
 
     /**
@@ -15,7 +22,7 @@
         currency?: string;
     }>();
 
-    const { t } = useI18n({
+    const { t } = useSafeI18n("bills-component", {
         available: "Available: {amount}",
         income: "Income: {amount}",
         outlay: "Outlay: {amount}",

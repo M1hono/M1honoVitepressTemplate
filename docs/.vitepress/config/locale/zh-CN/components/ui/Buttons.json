@@ -1,10 +1,10 @@
 {
-    "back": "Back",
-    "backToTop": "Back to Top",
-    "comment": "Comment",
-    "copyLink": "Copy Link",
+    "back": "返回",
+    "backToTop": "返回顶部",
+    "comment": "评论",
+    "copyLink": "复制链接",
     "discord": "Discord",
-    "forum": "Forum",
+    "forum": "论坛",
     "qq": "QQ",
-    "refresh": "Refresh"
+    "refresh": "刷新"
 }

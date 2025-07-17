@@ -7,6 +7,5 @@
     "operator": "操作员：{name}",
     "outlay": "支出：{amount}",
     "outlayTarget": "支出目标",
-    "title": "账单",
     "transactionContent": "交易内容"
 }

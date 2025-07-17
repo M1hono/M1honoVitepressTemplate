@@ -2,9 +2,9 @@
 // @i18n
 import { useData } from "vitepress";
 import { computed } from "vue";
-import { useI18n } from "@utils/i18n/locale/useI18n";
+import { useSafeI18n } from "@utils/i18n/locale";
 
-const { t } = useI18n({
+const { t } = useSafeI18n("responsible-editor", {
     editorLabel: "Responsible Editor:",
 });
 

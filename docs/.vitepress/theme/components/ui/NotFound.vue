@@ -51,9 +51,9 @@
 <script setup>
     // @i18n
     import { onMounted } from "vue";
-    import { useI18n } from "@utils/i18n/locale/useI18n";
+    import { useSafeI18n } from "@utils/i18n/locale";
 
-    const { t } = useI18n({
+    const { t } = useSafeI18n("not-found", {
         notFound: "Oops! Page not found",
         tip: "Click to refresh the page.",
         advice: "If you still see this page, the page does not exist.",

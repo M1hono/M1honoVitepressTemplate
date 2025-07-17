@@ -53,9 +53,9 @@
     // @i18n
     import { ref, onMounted, computed } from "vue";
     import { useData } from "vitepress";
-    import { useI18n } from "@utils/i18n/locale/useI18n";
+    import { useSafeI18n } from "../../../utils/i18n/locale";
 
-    const { t } = useI18n({
+    const { t } = useSafeI18n("footer", {
         authorName: "M1hono",
         copyright: "Copyright",
         icpNumber: "", // Set to true and provide number if needed in China
@@ -80,7 +80,7 @@
         licenseIcon: string;
         licenseEnabled: boolean;
         customLinks: {
-            textKey: keyof typeof t.value;
+            textKey: keyof typeof t;
             link: string;
             icon: string;
             enabled: boolean;
@@ -118,7 +118,7 @@
     const links = computed(() => {
         const result: FooterLink[] = [];
         const config = footerConfig.value;
-        const translations = t.value as any;
+        const translations = t as any;
         
         if (config.icpEnabled && translations.icpNumber) {
             result.push({

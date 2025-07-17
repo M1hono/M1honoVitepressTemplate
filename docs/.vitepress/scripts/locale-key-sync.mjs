@@ -12,11 +12,6 @@ const COMPONENTS_DIR = path.resolve(process.cwd(), '.vitepress/theme/components'
 const LOCALE_DIR = path.resolve(process.cwd(), '.vitepress/config/locale');
 const I18N_COMMENT = '@i18n';
 
-/**
- * Extracts key-value pairs from a useI18n call expression node.
- * @param {object} node - The AST node to parse.
- * @returns {Record<string, string> | null} The extracted keys and default values.
- */
 function extractKeysFromNode(node) {
     if (node.type !== 'ObjectExpression') return null;
 
@@ -29,14 +24,9 @@ function extractKeysFromNode(node) {
     return keys;
 }
 
-/**
- * Parses the content of a Vue file to find translation keys.
- * @param {string} content - The file content.
- * @param {string} filename - The name of the file being parsed.
- * @returns {Record<string, string> | null} The extracted keys.
- */
 function parseVueFile(content, filename) {
-    if (!content.includes(I18N_COMMENT)) {
+    // Check if the file uses i18n functions instead of relying on @i18n comment
+    if (!content.includes('useSafeI18n') && !content.includes('useI18n')) {
         return null;
     }
     
@@ -64,23 +54,42 @@ function parseVueFile(content, filename) {
     });
 
     let keys = null;
+    let componentId = null;
+
     traverse(ast, {
         CallExpression(path) {
-            if (path.node.callee.type === 'Identifier' && path.node.callee.name === 'useI18n') {
-                if (path.node.arguments.length > 0 && path.node.arguments[0].type === 'ObjectExpression') {
-                    keys = extractKeysFromNode(path.node.arguments[0]);
+            if (path.node.callee.type === 'Identifier' && 
+                (path.node.callee.name === 'useI18n' || path.node.callee.name === 'useSafeI18n')) {
+                
+                let keysArg = null;
+                
+                if (path.node.arguments.length > 0) {
+                    // Extract componentId from first argument (for useSafeI18n)
+                    if (path.node.callee.name === 'useSafeI18n' && 
+                        path.node.arguments[0] && 
+                        path.node.arguments[0].type === 'StringLiteral') {
+                        componentId = path.node.arguments[0].value;
+                        
+                        if (path.node.arguments.length >= 2 && path.node.arguments[1].type === 'ObjectExpression') {
+                            keysArg = path.node.arguments[1];
+                        }
+                    }
+                    else if (path.node.arguments[0].type === 'ObjectExpression') {
+                        keysArg = path.node.arguments[0];
+                    }
+                }
+                
+                if (keysArg) {
+                    keys = extractKeysFromNode(keysArg);
                     path.stop();
                 }
             }
         },
     });
 
-    return keys;
+    return { keys, componentId };
 }
 
-/**
- * Reads and writes JSON files for translations.
- */
 const jsonFileHandler = {
     async read(filePath) {
         try {
@@ -101,12 +110,6 @@ const jsonFileHandler = {
     }
 };
 
-/**
- * Synchronizes a translation file with a set of keys and default values.
- * @param {string} filePath - Path to the JSON file.
- * @param {Record<string, string>} componentKeys - Keys from the component.
- * @param {boolean} useDefaults - Whether to use default values for new keys.
- */
 async function syncTranslationFile(filePath, componentKeys, useDefaults) {
     const existingTranslations = await jsonFileHandler.read(filePath);
     const newTranslations = { ...existingTranslations };
@@ -124,12 +127,6 @@ async function syncTranslationFile(filePath, componentKeys, useDefaults) {
     await jsonFileHandler.write(filePath, newTranslations);
 }
 
-/**
- * Creates empty snippet files for a given language if they don't already exist.
- * This handles default, custom, and any other configured snippet files.
- * @param {string} lang - The language code (e.g., 'en-US').
- * @param {string[]} additionalFiles - An array of extra filenames for custom snippets to generate.
- */
 async function syncSnippetFiles(lang, additionalFiles) {
     const snippetDir = path.join(LOCALE_DIR, lang, 'snippets');
     await fs.mkdir(snippetDir, { recursive: true });
@@ -144,9 +141,7 @@ async function syncSnippetFiles(lang, additionalFiles) {
         const filePath = path.join(snippetDir, `${baseName}.json`);
         try {
             await fs.access(filePath);
-            // File exists, do nothing to preserve user translations.
         } catch {
-            // File does not exist, create an empty one for the user to fill.
             console.log(`Creating empty snippet file '${baseName}.json' for ${lang}...`);
             await fs.writeFile(filePath, JSON.stringify([], null, 4), 'utf-8');
         }
@@ -163,47 +158,75 @@ async function main() {
         return;
     }
 
-    // Sync component translation keys
     const vueFiles = await fg('**/*.vue', { cwd: COMPONENTS_DIR });
+    let processedCount = 0;
+    let totalKeysCount = 0;
+    const componentIdMapping = {}; // Store componentId -> filePath mapping
+    
     for (const file of vueFiles) {
         const fullPath = path.join(COMPONENTS_DIR, file);
         const content = await fs.readFile(fullPath, 'utf-8');
-        const componentKeys = parseVueFile(content, fullPath);
+        const parseResult = parseVueFile(content, fullPath);
 
-        if (componentKeys && Object.keys(componentKeys).length > 0) {
-            console.log(`\n🔄 Processing ${file}`);
-            const componentPathWithoutExt = file.replace(/\.vue$/, '');
-            
-            const primaryLocalePath = path.join(LOCALE_DIR, primaryLanguage, `components/${componentPathWithoutExt}.json`);
-            const existingPrimaryTranslations = await jsonFileHandler.read(primaryLocalePath);
-            
-            const primaryTranslations = { ...componentKeys, ...existingPrimaryTranslations };
-            
-            for (const key in primaryTranslations) {
-                if (!componentKeys.hasOwnProperty(key)) {
-                    delete primaryTranslations[key];
-                }
-            }
-            await jsonFileHandler.write(primaryLocalePath, primaryTranslations);
+        // Handle null result from parseVueFile
+        if (!parseResult || !parseResult.keys || Object.keys(parseResult.keys).length === 0) {
+            continue;
+        }
 
-            for (const lang of languages) {
-                if (lang === primaryLanguage) continue;
+        const { keys, componentId } = parseResult;
 
-                const localeFilePath = path.join(LOCALE_DIR, lang, `components/${componentPathWithoutExt}.json`);
-                const existingTranslations = await jsonFileHandler.read(localeFilePath);
-                
-                const newTranslations = { ...primaryTranslations, ...existingTranslations };
-                
-                for (const key in newTranslations) {
-                    if (!primaryTranslations.hasOwnProperty(key)) {
-                        delete newTranslations[key];
-                    }
-                }
-                
-                await jsonFileHandler.write(localeFilePath, newTranslations);
+        console.log(`\n🔄 Processing ${file} (${Object.keys(keys).length} keys)`);
+        processedCount++;
+        totalKeysCount += Object.keys(keys).length;
+        
+        const componentPathWithoutExt = file.replace(/\.vue$/, '');
+        
+        // Store componentId mapping if found
+        if (componentId) {
+            componentIdMapping[componentId] = componentPathWithoutExt;
+            console.log(`   📋 Found componentId: "${componentId}" -> "${componentPathWithoutExt}"`);
+        }
+        
+        const primaryLocalePath = path.join(LOCALE_DIR, primaryLanguage, `components/${componentPathWithoutExt}.json`);
+        const existingPrimaryTranslations = await jsonFileHandler.read(primaryLocalePath);
+        
+        const primaryTranslations = { ...keys, ...existingPrimaryTranslations };
+        
+        for (const key in primaryTranslations) {
+            if (!keys.hasOwnProperty(key)) {
+                delete primaryTranslations[key];
             }
         }
+        await jsonFileHandler.write(primaryLocalePath, primaryTranslations);
+
+        for (const lang of languages) {
+            if (lang === primaryLanguage) continue;
+
+            const localeFilePath = path.join(LOCALE_DIR, lang, `components/${componentPathWithoutExt}.json`);
+            const existingTranslations = await jsonFileHandler.read(localeFilePath);
+            
+            const newTranslations = { ...primaryTranslations, ...existingTranslations };
+            
+            for (const key in newTranslations) {
+                if (!primaryTranslations.hasOwnProperty(key)) {
+                    delete newTranslations[key];
+                }
+            }
+            
+            await jsonFileHandler.write(localeFilePath, newTranslations);
+        }
     }
+    
+    // Generate component ID mapping file
+    console.log('\n🔄 Generating component ID mapping...');
+    const mappingFilePath = path.join(LOCALE_DIR, 'component-id-mapping.json');
+    const mappingData = {
+        generatedAt: new Date().toISOString(),
+        description: 'Maps component IDs used in useSafeI18n() to their corresponding translation file paths',
+        mappings: componentIdMapping
+    };
+    await jsonFileHandler.write(mappingFilePath, mappingData);
+    console.log(`📋 Generated component ID mapping with ${Object.keys(componentIdMapping).length} entries`);
     
     console.log('\n🔄 Processing snippet files...');
     const customSnippets = projectConfig.customSnippetFileNames || [];
@@ -211,7 +234,8 @@ async function main() {
         await syncSnippetFiles(lang, customSnippets);
     }
 
-    console.log('\n✅ i18n synchronization complete!');
+    console.log(`\n✅ i18n synchronization complete!`);
+    console.log(`📊 Summary: ${processedCount} components processed, ${totalKeysCount} total translation keys`);
 }
 
 main().catch(error => {

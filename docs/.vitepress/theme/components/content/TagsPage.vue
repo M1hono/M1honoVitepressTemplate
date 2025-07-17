@@ -251,7 +251,7 @@
 import { ref, computed, onMounted, watch } from "vue";
 import { useData } from "vitepress";
 import TagBadge from "../ui/TagBadge.vue";
-import { useI18n } from "@utils/i18n/locale/useI18n";
+import { useSafeI18n } from "@utils/i18n/locale";
 import { getLanguageByCode, getDefaultLanguage } from "../../../config/project-config";
 
 // Type definitions
@@ -269,7 +269,7 @@ interface TagInfo {
     pages: PageInfo[];
 }
 
-const { t } = useI18n({
+const { t } = useSafeI18n("tags-page", {
     pageTitle: "Tags",
     loadingTagData: "Loading tag data...",
     loadingError: "Failed to load tag data. Please try again.",
@@ -415,7 +415,7 @@ async function loadTagData() {
             console.log(`[TagsPage] Loaded ${Object.keys(tagData.value).length} tags for language: ${langCode}`);
         } else {
             console.warn(`Tag data for ${langCode} not found (${response.status}), using empty data`);
-            loadError.value = `${t.value.loadingError}: ${langCode}`;
+            loadError.value = `${t.loadingError}: ${langCode}`;
             tagData.value = {};
         }
     } catch (error) {

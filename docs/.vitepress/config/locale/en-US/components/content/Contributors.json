@@ -1,11 +1,11 @@
 {
-    "contributions": "",
-    "contributors": "",
-    "githubError": "",
-    "loading": "",
-    "noContributors": "",
-    "retry": "",
-    "title": "",
-    "totalContributions": "",
-    "viewProfile": ""
+    "contributions": "contributions",
+    "contributors": "Contributors",
+    "githubError": "GitHub API Error. Rate limit may have been exceeded.",
+    "loading": "Loading contributors...",
+    "noContributors": "No contributors found",
+    "retry": "Retry",
+    "title": "Contributors",
+    "totalContributions": "Total Contributions",
+    "viewProfile": "View Profile"
 }

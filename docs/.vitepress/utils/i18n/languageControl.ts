@@ -38,10 +38,11 @@ export function useLangs({ correspondingLink = false } = {}) {
                                 if (basePath && cleanPath.startsWith(`${basePath}/`)) {
                                     cleanPath = cleanPath.slice(`${basePath}/`.length);
                                 }
-                                const allLanguageCodes = languages.map(lang => lang.code);
-                                for (const langCode of allLanguageCodes) {
-                                    if (cleanPath.startsWith(`${langCode}/`)) {
-                                        cleanPath = cleanPath.slice(`${langCode}/`.length);
+                                for (const lang of languages) {
+                                    const linkPath = lang.link || `/${lang.code}/`;
+                                    const cleanLinkPath = linkPath.replace(/^\/|\/$/g, '');
+                                    if (cleanPath.startsWith(`${cleanLinkPath}/`)) {
+                                        cleanPath = cleanPath.slice(`${cleanLinkPath}/`.length);
                                         break;
                                     }
                                 }

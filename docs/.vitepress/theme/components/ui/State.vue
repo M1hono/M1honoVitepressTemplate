@@ -2,9 +2,9 @@
     // @i18n
     import { useData } from "vitepress";
     import { computed } from "vue";
-    import { useI18n } from "@utils/i18n/locale/useI18n";
+    import { useSafeI18n } from "@utils/i18n/locale";
 
-    const { t } = useI18n({
+    const { t } = useSafeI18n("state-component", {
         preliminaryTitle: '🌱 Preliminary Completion',
         preliminaryText: 'The content in this article has been preliminarily completed and can serve as a reference. However, there may be possible errors or areas in need of improvement.',
         unfinishedTitle: '🚧 Unfinished',
@@ -37,7 +37,7 @@
 
     const i18nText = computed(() => {
         if (!state.value) return { title: '', text: '' };
-        const translations = t.value as any;
+        const translations = t as any;
         return {
             title: translations[`${state.value}Title`],
             text: translations[`${state.value}Text`],

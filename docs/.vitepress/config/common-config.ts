@@ -17,6 +17,12 @@ import { GitChangelog, GitChangelogMarkdownSection } from '@nolebase/vitepress-p
 
 const projectInfo = getProjectInfo();
 import contributors from "../config/contributors.json";
+
+interface Contributor {
+    avatar: string;
+    [key: string]: any;
+}
+
 function generateAvatarUrl(username: string) {
     return `https://github.com/${username}.png`;
 }
@@ -30,6 +36,7 @@ export const commonConfig = {
     title: projectInfo.name,
     description: projectInfo.description,
     base: projectInfo.base,
+    i18nRouting: true,
     
     srcDir: "./src",
     outDir: "./.vitepress/dist",
@@ -53,9 +60,9 @@ export const commonConfig = {
     search: isFeatureEnabled('search') ? {
         provider: "algolia",
         options: {
-            appId: "YOUR_APP_ID",
-            apiKey: "YOUR_API_KEY", 
-            indexName: "your_index_name",
+            appId: projectInfo.algolia.appId,
+            apiKey: projectInfo.algolia.apiKey, 
+            indexName: projectInfo.algolia.indexName,
         }
     } : undefined,
 
@@ -133,7 +140,7 @@ export const commonConfig = {
         plugins: [
             GitChangelog({
                 repoURL: () => projectInfo.repository.url,
-                mapAuthors: contributors.map((author) => ({
+                mapAuthors: (contributors as Contributor[]).map((author) => ({
                     ...author,
                     avatar: generateAvatarUrl(author.avatar),
                 })),

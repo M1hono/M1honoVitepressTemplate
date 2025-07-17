@@ -11,13 +11,13 @@
 // @i18n
 import { ref, watch, onMounted, computed, nextTick } from "vue";
 import { useData, useRoute } from "vitepress";
-import { useI18n } from "@utils/i18n/locale/useI18n";
+import { useSafeI18n } from "@utils/i18n/locale";
 import { getLanguageByCode, getDefaultLanguage } from "../../../config/project-config";
 
 const { isDark, lang, frontmatter } = useData();
 const route = useRoute();
 
-const { t } = useI18n({
+const { t } = useSafeI18n("comment-component", {
     loading: "Loading comments...",
 });
 

@@ -2,10 +2,10 @@
     // @i18n
     import { useData } from "vitepress";
     import { computed, ref, onMounted } from "vue";
-    import { useI18n } from "@utils/i18n/locale/useI18n";
+    import { useSafeI18n } from "@utils/i18n/locale";
 
-    const { t } = useI18n({
-        progressStatus: "Status",
+    const { t } = useSafeI18n("progress-linear", {
+        progressStatus: "Status"
     });
 
     const { page, frontmatter, lang, isDark } = useData();

@@ -3,7 +3,7 @@
 import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useData } from "vitepress";
 import { defineAsyncComponent } from "vue";
-import { useI18n } from "../../../utils/i18n/locale";
+import { useSafeI18n } from "../../../utils/i18n/locale";
 
 // Async import for vue-echarts to avoid SSR issues
 const VChart = defineAsyncComponent(async () => {
@@ -30,7 +30,7 @@ const VChart = defineAsyncComponent(async () => {
         return VChart;
     });
 
-    const { t } = useI18n({
+    const { t } = useSafeI18n("minecraft-damage-chart", {
         incomingDamage: "Incoming Damage",
         armorToughness: "Armor Toughness",
         minDamage: "Min Damage",
@@ -141,8 +141,8 @@ const VChart = defineAsyncComponent(async () => {
             },
             legend: {
                 data: [
-                    t.value.actualDamage,
-                    t.value.damageReduction,
+                                            t.actualDamage,
+                        t.damageReduction,
                 ],
                 textStyle: {
                     color: textColor,
@@ -158,7 +158,7 @@ const VChart = defineAsyncComponent(async () => {
                 type: "category",
                 boundaryGap: false,
                 data: labels,
-                name: t.value.armorPoints,
+                                        name: t.armorPoints,
                 nameTextStyle: {
                     color: textColor,
                 },
@@ -179,7 +179,7 @@ const VChart = defineAsyncComponent(async () => {
             yAxis: [
                 {
                     type: "value",
-                    name: t.value.actualDamage,
+                    name: t.actualDamage,
                     position: "left",
                     nameTextStyle: {
                         color: textColor,
@@ -200,7 +200,7 @@ const VChart = defineAsyncComponent(async () => {
                 },
                 {
                     type: "value",
-                    name: t.value.damageReduction,
+                    name: t.damageReduction,
                     position: "right",
                     min: 0,
                     max: 100,
@@ -223,7 +223,7 @@ const VChart = defineAsyncComponent(async () => {
             ],
             series: [
                 {
-                    name: t.value.actualDamage,
+                    name: t.actualDamage,
                     type: "line",
                     yAxisIndex: 0,
                     data: actualDamage,
@@ -259,7 +259,7 @@ const VChart = defineAsyncComponent(async () => {
                     },
                 },
                 {
-                    name: t.value.damageReduction,
+                    name: t.damageReduction,
                     type: "line",
                     yAxisIndex: 1,
                     data: damageReduction,

@@ -48,7 +48,7 @@
         "vuetify": "^3.8.7"
     },
     "scripts": {
-        "dev": "yarn locale && vitepress dev",
+        "dev": "vitepress dev",
         "build": "yarn locale && tsx .vitepress/scripts/build-sidebar.mjs && tsx .vitepress/scripts/generate-tag-data.mjs && vitepress build",
         "preview": "vitepress preview",
         "sidebar": "tsx .vitepress/scripts/build-sidebar.mjs",

@@ -169,9 +169,9 @@
 <script setup>
 // @i18n
 import { ref, computed } from "vue";
-import { useI18n } from "../../../utils/i18n/locale";
+import { useSafeI18n } from "../../../utils/i18n/locale";
 
-const { t } = useI18n({
+const { t } = useSafeI18n("md-multipage-dialog", {
     defaultTitle: "Multi-Page Dialog",
     defaultText: "Click to open",
     pageIndicator: "Page {current} of {total}",
