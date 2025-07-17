@@ -42,15 +42,29 @@ export const projectConfig: ProjectConfig = {
     },
     homepage: "https://username.github.io/repository/",
 
-    // Feature Toggles
-    features: {
-        search: false, // Algolia search
-        gitChangelog: true, // Git changelog
-        mermaid: true, // Diagram support
-        autoSidebar: true, // Auto sidebar generation
-        sidebarTags: true, // Sidebar tags
-    },
-};
+         // Feature Toggles
+     features: {
+         search: false, // Algolia search
+         gitChangelog: true, // Git changelog
+         mermaid: true, // Diagram support
+         autoSidebar: true, // Auto sidebar generation
+         sidebarTags: true, // Sidebar tags
+     },
+     
+     // Deployment Configuration
+     deployment: {
+         type: 'github-pages', // 'github-pages' | 'server' | 'custom'
+         server: {
+             remotePath: '/var/www/html',
+             port: 22,
+             excludeFiles: ['.git', 'node_modules', '*.log']
+         },
+         custom: {
+             deployCommand: '',
+             postDeployCommand: ''
+         }
+     }
+ };
 ```
 
 ### Path Configuration
@@ -387,37 +401,94 @@ Your content here...
 
 ### GitHub Pages (Default)
 
+**1. Configure in project-config.ts:**
 ```typescript
-deployment: {
-    type: "github-pages";
+export const projectConfig = {
+    base: "/your-repo-name/",  // IMPORTANT: Must match your GitHub repository name
+    deployment: {
+        type: 'github-pages'   // Default deployment type
+    }
+    // ... other config
 }
 ```
+
+**2. Enable GitHub Pages in Repository:**
+
+**Step-by-step GitHub Repository Setup:**
+
+1. **Fork or create repository** from this template
+2. **Go to your repository** on GitHub.com
+3. **Click the "Settings" tab** (in the top menu of your repository)
+4. **Scroll down to "Pages"** section in the left sidebar
+5. **Configure Pages source:**
+   - Under **"Source"**, select **"GitHub Actions"** (not "Deploy from a branch")
+   - This enables automatic deployment via GitHub Actions workflow
+6. **Configure repository permissions:**
+   - Go to **"Actions"** tab > **"General"** 
+   - Under **"Workflow permissions"**, select **"Read and write permissions"**
+   - Check **"Allow GitHub Actions to create and approve pull requests"**
+7. **Push to main branch** - The GitHub Actions workflow will automatically:
+   - Build your VitePress site
+   - Deploy to GitHub Pages
+   - Your site will be available at `https://yourusername.github.io/repositoryname/`
+
+**Important Notes:**
+- Make sure your `base` path in `project-config.ts` matches your repository name
+- First deployment may take 2-3 minutes
+- Check the **"Actions"** tab to monitor deployment progress
+- If deployment fails, check the Actions logs for error details
 
 ### Server Deployment
 
+**1. Configure in project-config.ts:**
 ```typescript
-deployment: {
-    type: 'server',
-    server: {
-        remotePath: '/var/www/html',
-        port: 22,
-        excludeFiles: ['.git', 'node_modules', '*.log']
+export const projectConfig = {
+    deployment: {
+        type: 'server'
     }
+    // ... other config
 }
 ```
 
-Set GitHub secrets: `SSH_HOST`, `SSH_USERNAME`, `SSH_PRIVATE_KEY`
+**2. Set GitHub Repository Secrets:**
+Go to **Settings** > **Secrets and variables** > **Actions** and add:
+- `SSH_HOST` - Your server hostname/IP
+- `SSH_USERNAME` - SSH username  
+- `SSH_PRIVATE_KEY` - SSH private key content
+- `SSH_PORT` - SSH port (optional, defaults to 22)
+- `REMOTE_PATH` - Remote directory path (e.g., `/var/www/html`)
 
 ### Custom Deployment
 
+**1. Configure in project-config.ts:**
 ```typescript
-deployment: {
-    type: 'custom',
-    custom: {
-        deployCommand: 'vercel --prod',
-        postDeployCommand: 'curl -X POST webhook-url'
+export const projectConfig = {
+    deployment: {
+        type: 'custom',
+        custom: {
+            deployCommand: 'npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }}',
+            postDeployCommand: 'curl -X POST https://your-webhook.com/deployed'
+        }
     }
+    // ... other config
 }
+```
+
+**2. Set Required Secrets:**
+Add any tokens/credentials needed for your deployment commands in GitHub repository secrets.
+
+**Examples:**
+- **Vercel**: `deployCommand: 'npx vercel --prod --token ${{ secrets.VERCEL_TOKEN }}'`
+- **Netlify**: `deployCommand: 'npx netlify-cli deploy --prod --dir .vitepress/dist --auth ${{ secrets.NETLIFY_TOKEN }}'`
+
+### Manual Deployment
+
+Build locally and upload the output:
+
+```bash
+cd docs/
+yarn build
+# Upload docs/.vitepress/dist to your web server
 ```
 
 ## Configuration Functions

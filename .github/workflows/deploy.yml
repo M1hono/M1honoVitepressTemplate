@@ -21,10 +21,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       deployment-type: ${{ steps.config.outputs.deployment-type }}
-      server-remote-path: ${{ steps.config.outputs.server-remote-path }}
-      server-port: ${{ steps.config.outputs.server-port }}
-      custom-deploy-command: ${{ steps.config.outputs.custom-deploy-command }}
-      custom-post-deploy-command: ${{ steps.config.outputs.custom-post-deploy-command }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -44,8 +40,14 @@ jobs:
         id: config
         working-directory: docs
         run: |
-          # Run deployment config reader script
-          node .vitepress/scripts/read-deploy-config.js >> $GITHUB_OUTPUT
+          # Extract deployment type from project-config.ts
+          DEPLOYMENT_TYPE=$(node -e "
+            const fs = require('fs');
+            const content = fs.readFileSync('.vitepress/config/project-config.ts', 'utf8');
+            const match = content.match(/deployment:\s*\{[\s\S]*?type:\s*['\"]([^'\"]+)['\"][\s\S]*?\}/);
+            console.log(match ? match[1] : 'github-pages');
+          ")
+          echo "deployment-type=$DEPLOYMENT_TYPE" >> $GITHUB_OUTPUT
 
   # Build the site
   build:
@@ -64,10 +66,6 @@ jobs:
           cache: yarn
           cache-dependency-path: docs/yarn.lock
 
-      - name: Setup Pages (GitHub Pages only)
-        if: needs.config.outputs.deployment-type == 'github-pages'
-        uses: actions/configure-pages@v4
-
       - name: Install dependencies
         working-directory: docs
         run: yarn install --frozen-lockfile
@@ -76,14 +74,7 @@ jobs:
         working-directory: docs
         run: yarn build
 
-      - name: Upload GitHub Pages artifact
-        if: needs.config.outputs.deployment-type == 'github-pages'
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/.vitepress/dist
-
-      - name: Upload build artifact (for other deployment types)
-        if: needs.config.outputs.deployment-type != 'github-pages'
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: vitepress-dist
@@ -99,6 +90,20 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: vitepress-dist
+          path: ./dist
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
@@ -121,13 +126,11 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ needs.config.outputs.server-port }}
+          port: ${{ secrets.SSH_PORT || 22 }}
           script: |
-            # Clean remote directory
-            rm -rf ${{ needs.config.outputs.server-remote-path }}/*
-            
-            # Create directory if it doesn't exist
-            mkdir -p ${{ needs.config.outputs.server-remote-path }}
+            # Clean and create remote directory
+            rm -rf ${{ secrets.REMOTE_PATH }}/*
+            mkdir -p ${{ secrets.REMOTE_PATH }}
 
       - name: Copy files to server
         uses: appleboy/scp-action@v0.1.7
@@ -135,12 +138,12 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ needs.config.outputs.server-port }}
+          port: ${{ secrets.SSH_PORT || 22 }}
           source: "./dist/*"
-          target: ${{ needs.config.outputs.server-remote-path }}
+          target: ${{ secrets.REMOTE_PATH }}
           strip_components: 1
 
-  # Custom deployment
+  # Deploy with custom commands
   deploy-custom:
     if: needs.config.outputs.deployment-type == 'custom'
     needs: [config, build]
@@ -166,35 +169,37 @@ jobs:
           name: vitepress-dist
           path: ./docs/.vitepress/dist
 
+      - name: Read deployment commands
+        id: commands
+        working-directory: docs
+        run: |
+          # Extract deployment commands from project-config.ts
+          DEPLOY_CMD=$(node -e "
+            const fs = require('fs');
+            const content = fs.readFileSync('.vitepress/config/project-config.ts', 'utf8');
+            const match = content.match(/deployCommand:\s*['\"]([^'\"]*)['\"]/) || ['', ''];
+            console.log(match[1]);
+          ")
+          POST_DEPLOY_CMD=$(node -e "
+            const fs = require('fs');
+            const content = fs.readFileSync('.vitepress/config/project-config.ts', 'utf8');
+            const match = content.match(/postDeployCommand:\s*['\"]([^'\"]*)['\"]/) || ['', ''];
+            console.log(match[1]);
+          ")
+          echo "deploy-command=$DEPLOY_CMD" >> $GITHUB_OUTPUT
+          echo "post-deploy-command=$POST_DEPLOY_CMD" >> $GITHUB_OUTPUT
+
       - name: Run custom deployment
         working-directory: docs
         run: |
           # Run deploy command if specified
-          if [ -n "${{ needs.config.outputs.custom-deploy-command }}" ]; then
+          if [ -n "${{ steps.commands.outputs.deploy-command }}" ]; then
             echo "Executing deploy command..."
-            ${{ needs.config.outputs.custom-deploy-command }}
+            ${{ steps.commands.outputs.deploy-command }}
           fi
           
           # Run post-deploy command if specified
-          if [ -n "${{ needs.config.outputs.custom-post-deploy-command }}" ]; then
+          if [ -n "${{ steps.commands.outputs.post-deploy-command }}" ]; then
             echo "Executing post-deploy command..."
-            ${{ needs.config.outputs.custom-post-deploy-command }}
-          fi
-
-  # Notification job (runs after any deployment)
-  notify:
-    if: always()
-    needs: [config, build, deploy-github, deploy-server, deploy-custom]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Deployment notification
-        run: |
-          if [ "${{ needs.deploy-github.result }}" == "success" ]; then
-            echo "✅ GitHub Pages deployment completed successfully"
-          elif [ "${{ needs.deploy-server.result }}" == "success" ]; then
-            echo "✅ Server deployment completed successfully"
-          elif [ "${{ needs.deploy-custom.result }}" == "success" ]; then
-            echo "✅ Custom deployment completed successfully"
-          else
-            echo "❌ Deployment failed or skipped"
+            ${{ steps.commands.outputs.post-deploy-command }}
           fi
