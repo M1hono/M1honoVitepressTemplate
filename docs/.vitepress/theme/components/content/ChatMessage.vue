@@ -2,72 +2,74 @@
     <div
         ref="root"
         class="chat-message"
-        :class="{ shown, [`location-${location}`]: location }"
+        :class="{
+            shown,
+            [`location-${location}`]: location,
+            'is-grouped': isGrouped,
+        }"
+        :data-nickname="nickname"
     >
-        <div class="avatar" :style="{ backgroundColor }">
+        <div
+            class="avatar"
+            :style="{ backgroundColor: finalAvatarBackgroundColor }"
+        >
             <a
                 v-if="effectiveAvatarLink"
                 :href="effectiveAvatarLink"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="avatar-link"
-                @click="handleAvatarLinkClick"
-                @contextmenu.prevent
             >
-                <div
-                    v-if="isLoadingGithubAvatar && avatarType === 'github'"
-                    class="loading-spinner"
-                ></div>
+                <div v-if="isLoadingGithubAvatar" class="loading-spinner"></div>
                 <img
-                    v-else-if="avatar && !avatarLoadError"
-                    :src="avatar"
+                    v-else-if="finalAvatarSrc && !avatarLoadError"
+                    :src="finalAvatarSrc"
                     alt="avatar"
                     @error="handleAvatarError"
-                    @load="handleAvatarLoad"
                     class="avatar-img"
                 />
-                <span v-else-if="avatarType === 'icon'" class="avatar-icon">{{
-                    avatarText
-                }}</span>
-                <span v-else class="avatar-text">{{ avatarText }}</span>
+                <span
+                    v-else-if="props.avatarType === 'icon'"
+                    class="avatar-icon"
+                    >{{ finalAvatarText }}</span
+                >
+                <span v-else class="avatar-text">{{ finalAvatarText }}</span>
             </a>
             <template v-else>
-                <div
-                    v-if="isLoadingGithubAvatar && avatarType === 'github'"
-                    class="loading-spinner"
-                ></div>
+                <div v-if="isLoadingGithubAvatar" class="loading-spinner"></div>
                 <img
-                    v-else-if="avatar && !avatarLoadError"
-                    :src="avatar"
+                    v-else-if="finalAvatarSrc && !avatarLoadError"
+                    :src="finalAvatarSrc"
                     alt="avatar"
                     @error="handleAvatarError"
-                    @load="handleAvatarLoad"
                     class="avatar-img"
                 />
-                <span v-else-if="avatarType === 'icon'" class="avatar-icon">{{
-                    avatarText
-                }}</span>
-                <span v-else class="avatar-text">{{ avatarText }}</span>
+                <span
+                    v-else-if="props.avatarType === 'icon'"
+                    class="avatar-icon"
+                    >{{ finalAvatarText }}</span
+                >
+                <span v-else class="avatar-text">{{ finalAvatarText }}</span>
             </template>
         </div>
-        <div class="nickname">{{ nickname || "Unknown" }}</div>
-        <div class="message-box">
-            <div class="vp-doc">
+        <div class="message-content">
+            <div class="nickname" v-if="nickname">{{ nickname }}</div>
+            <div class="message-box" :style="messageBubbleStyle">
                 <slot>&nbsp;</slot>
             </div>
         </div>
     </div>
 </template>
-
 <script lang="ts" setup>
     import {
         computed,
-        getCurrentInstance,
-        onBeforeUnmount,
-        onMounted,
         ref,
         watch,
+        onMounted,
+        onBeforeUnmount,
+        getCurrentInstance,
     } from "vue";
+    import { useData } from "vitepress";
 
     const colorMap: Record<string, string> = {
         Alice: "#cc0066",
@@ -80,12 +82,6 @@
         Frank: "#96ceb4",
         Grace: "#ffeaa7",
         Henry: "#dda0dd",
-    };
-
-    const avatarMap: Record<string, string> = {
-        Koishi: "https://koishi.chat/logo.png",
-        System: "https://github.com/github.png",
-        Admin: "https://avatars.githubusercontent.com/u/1?v=4",
     };
 
     const iconMap: Record<string, string> = {
@@ -106,106 +102,100 @@
         avatarType?: "avatarmap" | "github" | "icon" | "custom" | "text";
         avatarLink?: string;
         location?: "left" | "right";
+        bubbleColor?: string;
+        textColor?: string;
     }>();
 
+    const { theme } = useData();
     const githubAvatarCache = new Map<string, string>();
+
+    const root = ref<HTMLElement>();
     const githubAvatarUrl = ref<string>("");
     const isLoadingGithubAvatar = ref(false);
     const avatarLoadError = ref(false);
     const shown = ref(false);
     const active = ref(false);
     const moving = ref(false);
-    const root = ref<HTMLElement>();
+    const isGrouped = ref(false);
 
     async function fetchGithubAvatar(username: string): Promise<string> {
-        if (githubAvatarCache.has(username)) {
+        if (githubAvatarCache.has(username))
             return githubAvatarCache.get(username)!;
-        }
-
+        isLoadingGithubAvatar.value = true;
+        avatarLoadError.value = false;
         try {
             const response = await fetch(
                 `https://api.github.com/users/${username}`
             );
             if (response.ok) {
                 const data = await response.json();
-                const avatarUrl = data.avatar_url;
-                githubAvatarCache.set(username, avatarUrl);
-                return avatarUrl;
+                githubAvatarCache.set(username, data.avatar_url);
+                return data.avatar_url;
             }
         } catch (error) {
             console.warn(
                 `Failed to fetch GitHub avatar for ${username}:`,
                 error
             );
+        } finally {
+            isLoadingGithubAvatar.value = false;
         }
-
         const fallbackUrl = `https://github.com/${username}.png`;
         githubAvatarCache.set(username, fallbackUrl);
         return fallbackUrl;
     }
 
-    const backgroundColor = computed(() => {
+    const finalAvatarBackgroundColor = computed(() => {
         if (props.color) return props.color;
         if (props.nickname && colorMap[props.nickname])
             return colorMap[props.nickname];
         const colors = Object.values(colorMap);
-        return colors[Math.floor(Math.random() * colors.length)];
+        const hash = (props.nickname || "")
+            .split("")
+            .reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
+        return colors[Math.abs(hash) % colors.length];
     });
 
-    const avatar = computed(() => {
+    const finalAvatarSrc = computed(() => {
         if (props.avatar) return props.avatar;
-
-        switch (props.avatarType) {
-            case "avatarmap":
-                return avatarMap[props.nickname as keyof typeof avatarMap];
-            case "github":
-                return (
-                    githubAvatarUrl.value ||
-                    `https://github.com/${props.nickname}.png`
-                );
-            case "custom":
-                return props.avatar;
-            case "icon":
-                return null;
-            case "text":
-            default:
-                return null;
+        if (props.avatarType === "avatarmap" && props.nickname) {
+            const avatarMap = theme.value.avatarMap || {};
+            return avatarMap[props.nickname];
         }
+        if (props.avatarType === "github") return githubAvatarUrl.value;
+        return null;
     });
 
-    const avatarText = computed(() => {
-        if (props.avatarType === "icon") {
-            return (
-                iconMap[props.nickname as keyof typeof iconMap] || iconMap.user
-            );
+    const finalAvatarText = computed(() => {
+        if (props.avatarType === "icon" && props.nickname) {
+            return iconMap[props.nickname] || iconMap.user;
         }
         return props.nickname?.[0]?.toUpperCase() || "?";
     });
 
     const effectiveAvatarLink = computed(() => {
-        if (props.avatarLink) {
-            return props.avatarLink;
-        }
-
-        if (props.avatarType === "github" && props.nickname) {
+        if (props.avatarLink) return props.avatarLink;
+        if (props.avatarType === "github" && props.nickname)
             return `https://github.com/${props.nickname}`;
-        }
-
         return null;
     });
 
+    const messageBubbleStyle = computed(() => {
+        const style: Record<string, string> = {};
+        if (props.bubbleColor) style.backgroundColor = props.bubbleColor;
+        if (props.textColor) style.color = props.textColor;
+        if (props.location === "right" && props.bubbleColor)
+            style.borderColor = props.bubbleColor;
+        return style;
+    });
+
     watch(
-        () => [props.nickname, props.avatarType],
-        async ([newNickname, newAvatarType]) => {
-            if (newAvatarType === "github" && newNickname && !props.avatar) {
-                isLoadingGithubAvatar.value = true;
-                avatarLoadError.value = false;
-                try {
-                    const avatarUrl = await fetchGithubAvatar(newNickname);
-                    githubAvatarUrl.value = avatarUrl;
-                } finally {
-                    isLoadingGithubAvatar.value = false;
-                }
+        () => props.nickname,
+        (newNickname) => {
+            if (props.avatarType === "github" && newNickname && !props.avatar) {
+                fetchGithubAvatar(newNickname).then(
+                    (url) => (githubAvatarUrl.value = url)
+                );
             }
         },
         { immediate: true }
@@ -213,31 +203,17 @@
 
     function handleAvatarError() {
         avatarLoadError.value = true;
-        console.warn("Avatar failed to load, using fallback");
-    }
-
-    function handleAvatarLoad() {
-        avatarLoadError.value = false;
-    }
-
-    function handleAvatarLinkClick(event: MouseEvent) {
-        if (effectiveAvatarLink.value) {
-            event.preventDefault();
-            window.open(effectiveAvatarLink.value, "_blank");
-        }
     }
 
     function getPrevious(): Element | undefined {
         if (!root.value) return undefined;
-
-        let last: Element | undefined;
-        const messages = Array.from(document.querySelectorAll(".chat-message"));
-
-        for (const current of messages) {
-            if (current === root.value) return last;
-            last = current;
+        let prev = root.value.previousElementSibling;
+        while (prev && prev.nodeType !== 1) {
+            prev = prev.previousElementSibling;
         }
-        return undefined;
+        return prev && prev.classList.contains("chat-message")
+            ? prev
+            : undefined;
     }
 
     watch(active, (value) => {
@@ -245,19 +221,16 @@
             shown.value = false;
             return;
         }
-
         const prev = getPrevious();
         if (!prev) {
             appear();
             return;
         }
-
         const rect = prev.getBoundingClientRect();
         if (rect.bottom < 0) {
             appear();
             return;
         }
-
         const prevVue = (prev as any).__vue__;
         if (prevVue?.exposed) {
             const prevExposed = prevVue.exposed;
@@ -272,7 +245,6 @@
     });
 
     let appearCallback = () => {};
-
     function appear() {
         shown.value = true;
         moving.value = true;
@@ -284,25 +256,19 @@
     }
 
     function handleScroll() {
-        if (!root.value) return;
-
+        if (!root.value || active.value) return;
         const rect = root.value.getBoundingClientRect();
-        if (rect.top < window.innerHeight) {
-            active.value = true;
-        }
+        if (rect.top < window.innerHeight) active.value = true;
     }
 
     const instance = getCurrentInstance();
-
-    const exposed = {
+    defineExpose({
         moving,
         shown,
-        onappear(callback: () => void) {
-            appearCallback = callback || (() => {});
+        onappear: (cb: () => void) => {
+            appearCallback = cb || (() => {});
         },
-    };
-
-    defineExpose(exposed);
+    });
 
     onMounted(() => {
         if (root.value && instance) {
@@ -310,6 +276,20 @@
             handleScroll();
             window.addEventListener("scroll", handleScroll);
             window.addEventListener("resize", handleScroll);
+
+            const prev = getPrevious();
+            if (prev) {
+                const prevNickname = prev.getAttribute("data-nickname");
+                const prevLocation = prev.classList.contains("location-right")
+                    ? "right"
+                    : "left";
+                if (
+                    prevNickname === props.nickname &&
+                    prevLocation === (props.location || "left")
+                ) {
+                    isGrouped.value = true;
+                }
+            }
         }
     });
 
@@ -320,11 +300,15 @@
 </script>
 
 <style lang="scss">
-    $avatar-size: 2.4rem;
-    $msgbox-left: 3.6rem;
+    $avatar-size: 2.8rem;
+    $msgbox-left: $avatar-size + 0.8rem;
+    $arrow-size: 6px;
 
     .chat-message {
         position: relative;
+        display: flex;
+        gap: 0.8rem;
+        align-items: flex-start;
         margin: 0.5rem 0 !important;
         opacity: 0;
         transform: translateX(-20%);
@@ -335,48 +319,48 @@
             transform: translateX(0);
         }
 
-        &.location-right {
+        &.is-grouped {
+            margin-top: 0.25rem;
             .avatar {
-                right: 0;
-                left: auto;
+                opacity: 0;
+            }
+            .nickname {
+                display: none;
+            }
+            .message-box {
+                border-top-left-radius: 0.5rem;
+            }
+        }
+
+        &.location-right {
+            flex-direction: row-reverse;
+
+            &.is-grouped .message-box {
+                border-top-left-radius: 0.5rem;
+                border-top-right-radius: 0.5rem;
             }
 
-            .nickname {
-                text-align: right;
-                margin-right: $msgbox-left !important;
-                margin-left: 0 !important;
+            .message-content {
+                align-items: flex-end;
             }
 
             .message-box {
-                margin-left: auto;
-                margin-right: $msgbox-left;
+                border-radius: 0.5rem 0.2rem 0.5rem 0.5rem;
 
                 &::before {
-                    content: "";
-                    position: absolute;
-                    left: 100%;
                     right: auto;
+                    left: 100%;
                     top: 8px;
-                    width: 0;
-                    height: 0;
-                    border: 6px solid transparent;
-                    border-left-color: var(--vp-c-bg);
                     border-right: 0;
-                    filter: drop-shadow(1px 0 0 var(--vp-c-border));
+                    border-left: $arrow-size solid var(--vp-c-border);
                 }
 
                 &::after {
-                    content: "";
-                    position: absolute;
-                    left: 100%;
                     right: auto;
+                    left: 100%;
                     top: 9px;
-                    width: 0;
-                    height: 0;
-                    border: 5px solid transparent;
-                    border-left-color: var(--vp-c-bg);
                     border-right: 0;
-                    z-index: 1;
+                    border-left: ($arrow-size - 1px) solid var(--vp-c-bg);
                 }
             }
         }
@@ -384,97 +368,82 @@
         .avatar {
             width: $avatar-size;
             height: $avatar-size;
-            position: absolute;
-            border-radius: 100%;
-            transform: translateY(-1px);
-            user-select: none;
-            text-align: center;
-            line-height: $avatar-size;
-            font-size: 1.3rem;
-            color: white;
-            font-family: "Comic Sans MS", cursive, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            flex-shrink: 0;
+            border-radius: 50%;
             overflow: hidden;
-            cursor: default;
-
+            background-color: var(--vp-c-bg-soft);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s ease;
+            &:hover {
+                transform: scale(1.1);
+            }
             .avatar-link {
+                display: block;
                 width: 100%;
                 height: 100%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                color: inherit;
-                text-decoration: none;
-                transition: transform 0.2s ease;
-
-                &:focus {
-                    outline: none;
-                }
-
-                &:hover {
-                    transform: scale(1.05);
-                }
-
-                &:hover img {
-                    pointer-events: none;
-                }
             }
-
             .avatar-img {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                border-radius: 100%;
-                -webkit-user-drag: none;
-                user-drag: none;
-                -moz-user-select: none;
-                -webkit-user-select: none;
-                -ms-user-select: none;
-                user-select: none;
             }
-
             .avatar-text,
             .avatar-icon {
-                font-weight: bold;
-                font-size: inherit;
-                display: flex;
-                align-items: center;
-                justify-content: center;
                 width: 100%;
                 height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                font-size: 1.3rem;
+                font-weight: bold;
+                color: white;
+                user-select: none;
+                font-family: "Comic Sans MS", cursive, sans-serif;
             }
-
             .loading-spinner {
                 width: 1.2rem;
                 height: 1.2rem;
                 border: 2px solid rgba(255, 255, 255, 0.3);
-                border-top: 2px solid white;
+                border-top-color: white;
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
             }
         }
 
+        .message-content {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+            max-width: calc(100% - #{$msgbox-left});
+            min-width: 0;
+        }
+
         .nickname {
-            user-select: none;
-            position: relative;
-            margin: 0 0 0.15rem $msgbox-left !important;
-            font-weight: 600;
             font-size: 0.85rem;
+            font-weight: 600;
             color: var(--vp-c-text-2);
+            margin-left: 0.5rem;
         }
 
         .message-box {
             position: relative;
-            margin-left: $msgbox-left;
             width: fit-content;
-            max-width: calc(100% - #{$msgbox-left});
-            border-radius: 0.5rem;
+            max-width: 100%;
+            border-radius: 0.2rem 0.5rem 0.5rem 0.5rem;
             background-color: var(--vp-c-bg);
             word-break: break-word;
             border: 1px solid var(--vp-c-border);
-            padding: 0.5rem 0.5rem !important;
+            padding: 0.5rem 0.8rem;
+            font-size: 14px;
+            line-height: 1.6;
+
+            :deep(p),
+            :deep(summary) {
+                margin: 0 !important;
+            }
 
             &::before {
                 content: "";
@@ -483,12 +452,10 @@
                 top: 8px;
                 width: 0;
                 height: 0;
-                border: 6px solid transparent;
-                border-right-color: var(--vp-c-bg);
+                border: $arrow-size solid transparent;
+                border-right-color: var(--vp-c-border);
                 border-left: 0;
-                filter: drop-shadow(-1px 0 0 var(--vp-c-border));
             }
-
             &::after {
                 content: "";
                 position: absolute;
@@ -496,46 +463,32 @@
                 top: 9px;
                 width: 0;
                 height: 0;
-                border: 5px solid transparent;
+                border: ($arrow-size - 1px) solid transparent;
                 border-right-color: var(--vp-c-bg);
                 border-left: 0;
-                z-index: 1;
             }
 
-            .vp-doc p,
-            .vp-doc :deep(summary) {
-                margin: 4px 0 !important;
+            .vp-doc p {
+                margin: 0 !important;
             }
 
-            .vp-doc p,
-            .vp-doc summary {
-                margin: 4px 0 !important;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .message-box {
-                max-width: calc(100% - 3rem) !important;
-            }
-
-            &.location-right {
-                .message-box {
-                    max-width: calc(100% - 3rem) !important;
-                    margin-right: 3rem !important;
-                }
-
-                .nickname {
-                    margin-right: 3rem !important;
-                }
+            .vp-doc *:first-child {
+                margin-top: 0 !important;
             }
         }
     }
 
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
+    .message-box {
+        *:first-child {
+            margin-top: 0 !important;
         }
-        100% {
+        *:last-child {
+            margin-bottom: 0 !important;
+        }
+    }
+
+    @keyframes spin {
+        to {
             transform: rotate(360deg);
         }
     }

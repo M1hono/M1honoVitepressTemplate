@@ -26,12 +26,13 @@ const wordCount = ref(0);
 const imageCount = ref(0);
 const pageViews = ref(0);
 
-const readTime = computed(() =>
-    utils.vitepress.readingTime.calculateTotalTime(
+const readTime = computed(() => {
+    const time = utils.vitepress.readingTime.calculateTotalTime(
         wordCount.value,
         imageCount.value
-    )
-);
+    );
+    return typeof time === 'number' ? time : 0;
+});
 
 function analyze() {
     if (typeof window !== 'undefined' && typeof document !== 'undefined') {
@@ -50,7 +51,8 @@ function analyze() {
         imageCount.value = imgs?.length || 0;
         
         const words = clone.textContent || "";
-        wordCount.value = utils.content.countWord(words);
+        const count = utils.content.countWord(words);
+        wordCount.value = typeof count === 'number' ? count : 0;
     }
 }
 
@@ -60,8 +62,9 @@ onMounted(() => {
     const checkPageViews = () => {
         const pvElement = document.querySelector('#busuanzi_value_page_pv');
         const text = pvElement?.innerHTML;
-        if (text && !isNaN(parseInt(text))) {
-            pageViews.value = parseInt(text);
+        const parsed = parseInt(text || '0');
+        if (!isNaN(parsed)) {
+            pageViews.value = parsed;
         }
     };
     
@@ -82,10 +85,10 @@ const icon = (key: string) => {
 };
 
 const metadataContent = computed(() => ({
-    update: t.lastUpdated.replace('{date}', update.value),
-    wordCount: t.wordCount.replace('{count}', wordCount.toString()),
-    readTime: t.readingTime.replace('{time}', readTime.value.toString()),
-    pageViews: t.pageViews.replace('{count}', (pageViews.value || 0).toString()),
+    update: t.lastUpdated.replace('{date}', update.value || ''),
+    wordCount: t.wordCount.replace('{count}', String(wordCount.value || 0)),
+    readTime: t.readingTime.replace('{time}', String(readTime.value || 0)),
+    pageViews: t.pageViews.replace('{count}', String(pageViews.value || 0)),
 }));
 
 const metadataKeys = ["update", "wordCount", "readTime", "pageViews"] as const;

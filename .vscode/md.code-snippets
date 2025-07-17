@@ -145,7 +145,13 @@
         "description": "Frontmatter: Add external links with text, URL, and priority."
     },
 
-        "@fm: Hero Snippets": {
+    "@fm: Back Path": {
+        "prefix": "@fm-backpath",
+        "body": ["backPath: \"${1:../}\""],
+        "description": "Frontmatter: Set a custom back path for the 'Back' button."
+    },
+
+    "@fm: Hero Snippets": {
         "prefix": "@fm-hero-snippets",
         "body": [
             "hero:",
@@ -595,7 +601,7 @@
     "@Icon: JavaScript": {
         "prefix": "@icon-js",
         "body": [
-            "js=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNmN2RmMWUiIGQ9Ik0zIDNoMTh2MThIM1ptMTYuNTI1IDE0LjVjLS4zLS4zNTQtLjc5NS0uNjI5LTEuNzE3LS42MjljLS44ODEgMC0xLjQzOS4zMTgtMS40MzkuNzE4YzAgLjM5Ni4zNzMuNjM3IDEuMTU2Ljk2N2MxLjMzMi41ODYgMi4yODEgMS4wOTMgMi4yODEgMi4zOGMwIDEuMzItMS4yMDMgMi4xNDMtMi45NzQgMi4xNDNjLTEuMjEzIDAtMi4yNzEtLjQ2Mi0yLjk1LTEuMDc0bC44NzUtMS4yNzNjLjQzMy4zODkgMS4wNjQuNzI0IDEuNjY0LjcyNGMuNzA2IDAgMS4wNjQtLjMzMSAxLjA2NC0uNzMzYzAtLjQ0OS0uMzc2LS43MjQtMS4yNDUtMS4wMzNjLTEuMzI1LS40ODgtMi4xMzItMS4yNS0yLjEzMi0yLjM2M2MwLTEuMzk0IDEuMDI5LTIuMTQzIDIuODU2LTIuMTQzYzEuMDY0IDAgMS43NDUuMzI4IDIuMzc3Ljg1OWwtLjgzIDEuMjQxWm0tNS44NDUtLjMzNWMuMzY2LjgxNS4zNjYgMS41NzcuMzY2IDIuNDd2My45MDZoLTEuODc2VjE5LjZjMC0xLjUyNy0uMDYtMi4xOC0uNTUtMi40OGMtLjQxLS4yODgtMS4wNzYtLjI3NC0xLjYxOC0uMTA3Yy0uMzc4LjExNy0uNzEzLjMzNS0uNzEzIDEuMDc0djUuMDU2SDYuNDI3VjEyLjgyaDEuODc2djIuMTEzYy43NDctLjM5OSAxLjU3Ny0uNzM4IDIuNjQ1LS43MzhjLjc2NCAwIDEuNTc3LjI1MyAyLjA2OS43ODdjLjQ5OC41NTIuNjI2IDEuMTU3LjcyMyAxLjk5MVoiLz48L3N2Zz4="
+            "js=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxZW0iIGhlaWdodD0iMWVtIiB2aWV3Qm94PSIwIDAgMjQgMjQiPjxwYXRoIGZpbGw9IiNmN2RmMWUiIGQ9Ik0zIDNoMTh2MThIM1ptMTYuNTI1IDE0LjVjLS4zLS4zNTQtLjc5NS0uNjI5LTEuNzE3LS42MjljLS44ODEgMC0xLjQzOS4zMTgtMS40MzkuNzE4YzAgLjM5Ni4zNzMuNjM3IDEuMTU2Ljk2N2MxLjMzMi41ODYgMi4yODEgMS4wOTMgMi4yODEgMi4zOGMwIDEuMzItMS4yMDMgMi4xNDMtMi45NzQgMi4xNDNjLTEuMjEzIDAtMi4yNzEuNDYyLTIuOTUxLjA3NGwuODc1LTEuMjczYy40MzMuMzg5IDEuMDY0LjcyNCAxLjY2NC43MjRjLjcwNiAwIDEuMDY0LS4zMzEgMS4wNjQtLjczM2MwLS40NDktLjM3Ni0uNzI0LTEuMjQ1LTEuMDMzYy0xLjMyNS0uNDg4LTIuMTMyLTEuMjUtMi4xMzItMi4zNjNjMC0xLjM5NCAxLjAyOS0yLjE0MyAyLjg1Ni0yLjE0M2MxLjA2NCAwIDEuNzQ1LjMyOCAyLjM3Ny44NTlsLS44MzEgMS4yNDFabS01Ljg0NS0uMzM1Yy4zNjYuODE1LjM2NiAxLjU3Ny4zNjYgMi40N3YzLjkwNmgtMS44NzZWMTkuNmMwLTEuNTI3LS4wNi0yLjE4LS41NS0yLjQ4Yy0uNDEtLjI4OC0xLjA3Ni0uMjc0LTEuNjE4LS4xMDdjLS4zNzguMTE3LS43MTMuMzM1LS43MTMgMS4wNzR2NS4wNTZINi40MjdWMi44MmExLjg3NiAyLjExM2MuNzQ3LS4zOTkgMS41NzctLjczOCAyLjY0NS0uNzM4Yy43NjQgMCAxLjU3Ny4yNTMgMi4wNjkuNzg3Yy40OTguNTUyLjYyNiAxLjE1Ny43MjMgMS45OTFaIi8+PC9zdmc+="
         ],
         "description": "JavaScript icon variable for LiteTree."
     },
@@ -1524,138 +1530,41 @@
         "description": "Frontmatter: 批量插入多个标签。"
     },
 
-    // ---------- Chat Components ----------
+    // ---------- Chat Components (YAML Syntax) ----------
+        // ---------- Chat Components ----------
         "@Chat Panel": {
             "prefix": "@chat-panel",
             "body": [
-                "::::chat {\"title\": \"$1\"}",
+                ":::: chat title=\"${1:Chat Title}\" ${2|max-height=\"300px\",transparent|}",
+                "::: message nickname=\"${3:User1}\" location=\"left\"",
+                "${4:Hello!}",
+                ":::",
+                "",
+                "::: message nickname=\"${5:User2}\" location=\"right\"",
+                "${6:Hi there! How can I help you?}",
+                ":::",
                 "$0",
                 "::::"
             ],
-            "description": "Chat panel container using markdown syntax"
-        },
-        "@Chat Panel scrollable": {
-            "prefix": "@chat-panel-scroll",
-            "body": [
-                "::::chat {\"title\": \"$1\", \"maxHeight\": \"$2\", \"autoScroll\": ${3|true,false|}}",
-                "$0",
-                "::::"
-            ],
-            "description": "Chat panel with scroll configuration using markdown syntax"
+            "description": "Creates a chat panel with a title and optional attributes."
         },
         "@Chat Message": {
             "prefix": "@chat-message",
             "body": [
-                ":::message {\"nickname\": \"$1\"}",
-                "$0",
+                "::: message nickname=\"${1:User}\" location=\"${2|left,right|}\"",
+                "${0:Message content}",
                 ":::"
             ],
-            "description": "Basic chat message using markdown syntax"
+            "description": "Adds a basic chat message with nickname and location."
         },
-        "@Chat Message full": {
+        "@Chat Message (Full)": {
             "prefix": "@chat-message-full",
             "body": [
-                ":::message {\"nickname\": \"$1\", \"avatar-type\": \"${2|text,github,icon,custom,avatarmap|}\", \"location\": \"${3|left,right|}\", \"color\": \"$4\", \"avatar\": \"$5\"}",
-                "$0",
+                "::: message nickname=\"${1:User}\" location=\"${2|left,right|}\" avatar-type=\"${3|text,icon,github,avatarmap,custom|}\" avatar=\"${4}\" avatar-link=\"${5}\" color=\"${6}\" bubble-color=\"${7}\" text-color=\"${8}\"",
+                "${0:Message content}",
                 ":::"
             ],
-            "description": "Chat message with all configuration options using markdown syntax"
-        },
-        "@Chat Message github": {
-            "prefix": "@chat-message-github",
-            "body": [
-                ":::message {\"nickname\": \"$1\", \"avatar-type\": \"github\", \"location\": \"${2|left,right|}\"}",
-                "$0",
-                ":::"
-            ],
-            "description": "Chat message with GitHub avatar using markdown syntax"
-        },
-        "@Chat Message github link": {
-            "prefix": "@chat-message-github-link",
-            "body": [
-                ":::message {\"nickname\": \"$1\", \"avatar-type\": \"github\", \"avatar-link\": \"https://github.com/$1\", \"location\": \"${2|left,right|}\"}",
-                "$0",
-                ":::"
-            ],
-            "description": "Chat message with GitHub avatar and automatic link using markdown syntax"
-        },
-        "@Chat Message icon": {
-            "prefix": "@chat-message-icon",
-            "body": [
-                ":::message {\"nickname\": \"${1|user,bot,system,admin,guest,ai,helper,support|}\", \"avatar-type\": \"icon\", \"location\": \"${2|left,right|}\"}",
-                "$0",
-                ":::"
-            ],
-            "description": "Chat message with icon avatar using markdown syntax"
-        },
-        "@Chat Message custom": {
-            "prefix": "@chat-message-custom",
-            "body": [
-                ":::message {\"nickname\": \"$1\", \"avatar-type\": \"custom\", \"avatar\": \"$2\", \"avatar-link\": \"$3\", \"location\": \"${4|left,right|}\", \"color\": \"$5\"}",
-                "$0",
-                ":::"
-            ],
-            "description": "Chat message with custom avatar and link using markdown syntax"
-        },
-        "@Chat Message positioned": {
-            "prefix": "@chat-message-pos",
-            "body": [
-                ":::message {\"nickname\": \"$1\", \"location\": \"${2|left,right|}\", \"color\": \"$3\"}",
-                "$0",
-                ":::"
-            ],
-            "description": "Chat message with position and color using markdown syntax"
-        },
-        "@Chat conversation": {
-            "prefix": "@chat-conv",
-            "body": [
-                "::::chat {\"title\": \"$1\"}",
-                ":::message {\"nickname\": \"$2\", \"location\": \"right\", \"color\": \"$3\"}",
-                "$4",
-                ":::",
-                "",
-                ":::message {\"nickname\": \"$5\", \"avatar-type\": \"icon\", \"location\": \"left\"}",
-                "$0",
-                ":::",
-                "::::"
-            ],
-            "description": "Complete chat conversation structure using markdown syntax"
-        },
-        "@Chat demo": {
-            "prefix": "@chat-demo",
-            "body": [
-                ":::demo $1",
-                "::::chat {\"title\": \"$2\"}",
-                ":::message {\"nickname\": \"$3\", \"location\": \"right\"}",
-                "$4",
-                ":::",
-                "",
-                ":::message {\"nickname\": \"$5\", \"avatar-type\": \"icon\"}",
-                "$0",
-                ":::",
-                "::::",
-                ":::"
-            ],
-            "description": "Chat component demo block using markdown syntax"
-        },
-        "@Chat left-right test": {
-            "prefix": "@chat-lr-test",
-            "body": [
-                "::::chat {\"title\": \"${1:左右对齐测试}\"}",
-                ":::message {\"nickname\": \"User\", \"location\": \"right\", \"avatar-type\": \"icon\"}",
-                "${2:这是右侧的用户消息}",
-                ":::",
-                "",
-                ":::message {\"nickname\": \"Assistant\", \"location\": \"left\", \"avatar-type\": \"icon\"}",
-                "${3:这是左侧的助手回复}",
-                ":::",
-                "",
-                ":::message {\"nickname\": \"User\", \"location\": \"right\", \"avatar-type\": \"icon\"}",
-                "${4:气泡尖角测试：这条消息应该有指向右侧的尖角}",
-                ":::",
-                "::::"
-            ],
-            "description": "Left-right alignment test for chat messages using markdown syntax"
+            "description": "Adds a fully-featured chat message with all available options."
         },
 
     // ---------- VPHero Component ----------

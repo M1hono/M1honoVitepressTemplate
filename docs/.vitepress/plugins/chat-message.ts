@@ -1,6 +1,31 @@
 import { container } from "@mdit/plugin-container";
 import type { PluginSimple } from "markdown-it";
 
+const parseAttrs = (info: string): Record<string, string> => {
+    const attrs: Record<string, string> = {};
+    const attrRegex = /([a-zA-Z0-9\-_]+)(?:="([^"]*)")?/g;
+    let match;
+    while ((match = attrRegex.exec(info)) !== null) {
+        const [, key, value] = match;
+        attrs[key] = value === undefined ? "true" : value;
+    }
+    return attrs;
+};
+
+const attrsToPropsStr = (attrs: Record<string, string>): string => {
+    return Object.entries(attrs)
+        .map(([key, value]) => {
+            if (value === "true") {
+                return key;
+            }
+            if (value === "false") {
+                return `:${key}="false"`;
+            }
+            return `${key}="${value}"`;
+        })
+        .join(" ");
+};
+
 /**
  * Chat Plugin for VitePress
  * Provides both chat panel and chat message containers
@@ -40,81 +65,28 @@ import type { PluginSimple } from "markdown-it";
  * ::::
  */
 export const chatPlugin: PluginSimple = (md) => {
-    // Chat Panel Container
-    md.use((md) =>
-        container(md, {
-            name: "chat",
-            openRender: (tokens, index) => {
-                const info: string = tokens[index].info
-                    .trim()
-                    .slice("chat".length)
-                    .trim();
-                
-                // Parse attributes from info string
-                const attrs: Record<string, string> = {};
-                
-                // Parse attributes: title="Chat Demo" max-height="400px"
-                const attrRegex = /(\w+(?:-\w+)*)="([^"]*)"/g;
-                let match;
-                while ((match = attrRegex.exec(info)) !== null) {
-                    const [, key, value] = match;
-                    attrs[key] = value;
-                }
-                
-                // Convert kebab-case to camelCase for Vue props
-                const convertedAttrs: Record<string, string> = {};
-                Object.entries(attrs).forEach(([key, value]) => {
-                    const camelKey = key.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-                    convertedAttrs[camelKey] = value;
-                });
-                
-                // Build props string
-                const propsStr = Object.entries(convertedAttrs)
-                    .map(([key, value]) => ` ${key}="${value}"`)
-                    .join('');
-                
-                return `<ChatPanel${propsStr}>`;
-            },
-            closeRender: () => `</ChatPanel>`,
-        })
-    );
+    md.use(container, {
+        name: "chat",
+        openRender: (tokens, index) => {
+            const info = tokens[index].info.trim().slice("chat".length).trim();
+            const attrs = parseAttrs(info);
+            const propsStr = attrsToPropsStr(attrs);
+            return `<ChatPanel ${propsStr}>`;
+        },
+        closeRender: () => `</ChatPanel>`,
+    });
 
-    // Chat Message Container (nested within chat)
-    md.use((md) =>
-        container(md, {
-            name: "message",
-            openRender: (tokens, index) => {
-                const info: string = tokens[index].info
-                    .trim()
-                    .slice("message".length)
-                    .trim();
-                
-                // Parse attributes from info string
-                const attrs: Record<string, string> = {};
-                
-                // Parse attributes: nickname="Alice" avatar-type="github" location="right" avatar-link="https://example.com"
-                const attrRegex = /(\w+(?:-\w+)*)="([^"]*)"/g;
-                let match;
-                while ((match = attrRegex.exec(info)) !== null) {
-                    const [, key, value] = match;
-                    attrs[key] = value;
-                }
-                
-                // Convert kebab-case to camelCase for Vue props
-                const convertedAttrs: Record<string, string> = {};
-                Object.entries(attrs).forEach(([key, value]) => {
-                    const camelKey = key.replace(/-([a-z])/g, (_, letter) => letter.toUpperCase());
-                    convertedAttrs[camelKey] = value;
-                });
-                
-                // Build props string
-                const propsStr = Object.entries(convertedAttrs)
-                    .map(([key, value]) => ` ${key}="${value}"`)
-                    .join('');
-                
-                return `<ChatMessage${propsStr}>`;
-            },
-            closeRender: () => `</ChatMessage>`,
-        })
-    );
+    md.use(container, {
+        name: "message",
+        openRender: (tokens, index) => {
+            const info = tokens[index].info
+                .trim()
+                .slice("message".length)
+                .trim();
+            const attrs = parseAttrs(info);
+            const propsStr = attrsToPropsStr(attrs);
+            return `<ChatMessage ${propsStr}>`;
+        },
+        closeRender: () => `</ChatMessage>`,
+    });
 }; 
