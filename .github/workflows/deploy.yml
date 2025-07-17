@@ -34,18 +34,18 @@ jobs:
         with:
           node-version: 20
           cache: yarn
+          cache-dependency-path: docs/yarn.lock
 
       - name: Install dependencies
+        working-directory: docs
         run: yarn install --frozen-lockfile
 
       - name: Read deployment config
         id: config
+        working-directory: docs
         run: |
-          # Install ts-node for TypeScript support
-          yarn add -D ts-node
-          
           # Run deployment config reader script
-          node docs/.vitepress/scripts/read-deploy-config.js >> $GITHUB_OUTPUT
+          node .vitepress/scripts/read-deploy-config.js >> $GITHUB_OUTPUT
 
   # Build the site
   build:
@@ -62,16 +62,19 @@ jobs:
         with:
           node-version: 20
           cache: yarn
+          cache-dependency-path: docs/yarn.lock
 
       - name: Setup Pages (GitHub Pages only)
         if: needs.config.outputs.deployment-type == 'github-pages'
         uses: actions/configure-pages@v4
 
       - name: Install dependencies
+        working-directory: docs
         run: yarn install --frozen-lockfile
 
       - name: Build with VitePress
-        run: yarn docs:build
+        working-directory: docs
+        run: yarn build
 
       - name: Upload GitHub Pages artifact
         if: needs.config.outputs.deployment-type == 'github-pages'
@@ -151,6 +154,11 @@ jobs:
         with:
           node-version: 20
           cache: yarn
+          cache-dependency-path: docs/yarn.lock
+
+      - name: Install dependencies
+        working-directory: docs
+        run: yarn install --frozen-lockfile
 
       - name: Download build artifact
         uses: actions/download-artifact@v4
@@ -159,6 +167,7 @@ jobs:
           path: ./docs/.vitepress/dist
 
       - name: Run custom deployment
+        working-directory: docs
         run: |
           # Run deploy command if specified
           if [ -n "${{ needs.config.outputs.custom-deploy-command }}" ]; then
