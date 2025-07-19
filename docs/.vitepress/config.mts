@@ -1,27 +1,14 @@
-import { defineConfig } from 'vitepress';
-import { withMermaid } from 'vitepress-plugin-mermaid';
-import { commonConfig } from './config/common-config';
-import { 
-    buildVitePressConfig,
-    getSearchLocales,
-} from "./utils/config";
-import { isFeatureEnabled } from "./config/project-config";
+import { defineConfig } from "vitepress";
+import { withMermaid } from "vitepress-plugin-mermaid";
 
-const vitePressConfig = buildVitePressConfig();
+import { commonConfig } from "./config/common-config"
+import { generateLocalesConfigAuto } from "./config/project-config"
 
-const config: any = {
-    ...commonConfig,
-    ...vitePressConfig,
-};
+const locales = await generateLocalesConfigAuto(false);
 
-if (isFeatureEnabled('search') && commonConfig.search) {
-    config.search = {
-        ...commonConfig.search,
-        options: {
-            ...commonConfig.search.options,
-            locales: getSearchLocales()
-        }
-    };
-}
-
-export default withMermaid(defineConfig(config));
+export default withMermaid(
+    defineConfig({
+        ...(commonConfig as any),
+        locales
+    })
+);

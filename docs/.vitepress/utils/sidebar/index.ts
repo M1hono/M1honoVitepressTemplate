@@ -30,4 +30,3 @@ export * from './lib'
  * This plugin integrates the sidebar generator into the Vite build process.
  */
 export { sidebarPlugin } from './plugin'
-

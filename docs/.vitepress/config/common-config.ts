@@ -4,9 +4,9 @@ import { fileURLToPath } from "url";
 import { 
     getProjectInfo, 
     isFeatureEnabled, 
-    getLanguageCodes, 
+    getLanguageCodes,
+    getPaths,
 } from "./project-config";
-import { getVitepressPath } from "../utils/config/path-resolver";
 import { sidebarPlugin } from "../utils/sidebar/";
 import { markdown } from "./markdown-plugins";
 import {
@@ -16,6 +16,7 @@ import {
 import { GitChangelog, GitChangelogMarkdownSection } from '@nolebase/vitepress-plugin-git-changelog/vite';
 
 const projectInfo = getProjectInfo();
+const projectPaths = getPaths();
 import contributors from "../config/contributors.json";
 
 interface Contributor {
@@ -38,9 +39,9 @@ export const commonConfig = {
     base: projectInfo.base,
     i18nRouting: true,
     
-    srcDir: "./src",
-    outDir: "./.vitepress/dist",
-    cacheDir: "./.vitepress/cache",
+    srcDir: projectPaths.src,
+    outDir: projectPaths.build,
+    cacheDir: projectPaths.cache,
     
     lastUpdated: true,
     cleanUrls: true,
@@ -149,8 +150,8 @@ export const commonConfig = {
             sidebarPlugin({
                 languages: getLanguageCodes(),
                 debug: process.env.NODE_ENV === 'development',
-                docsDir: './src',
-                cacheDir: getVitepressPath('cache/sidebar')
+                docsDir: projectPaths.docs,
+                cacheDir: projectPaths.cache
             }),
             groupIconVitePlugin({
                 customIcon: {
@@ -209,15 +210,15 @@ export const commonConfig = {
                 },
                 {
                     find: "@utils",
-                    replacement: resolve(__dirname, "../utils"),
+                    replacement: resolve(projectPaths.vitepress, "utils"),
                 },
                 {
                     find: "@config",
-                    replacement: resolve(__dirname, "../utils/config"),
+                    replacement: resolve(projectPaths.vitepress, "utils/config"),
                 },
                 {
                     find: "@components",
-                    replacement: resolve(__dirname, "../theme/components"),
+                    replacement: resolve(projectPaths.vitepress, "theme/components"),
                 },
             ],
         }

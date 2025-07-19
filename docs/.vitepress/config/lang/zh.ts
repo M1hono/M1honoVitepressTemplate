@@ -1,6 +1,6 @@
 import type { DefaultTheme } from 'vitepress';
-import { getSidebarSyncWithTags } from '../../utils/config/sidebar-tags-integration';
-import { getProjectInfo, getLanguageByCode } from '../project-config';
+import { getProjectInfo, getLanguageByCode, getLangCodeFromLink } from '../project-config';
+import { getSidebarSync } from '../../utils/sidebar';
 
 const projectInfo = getProjectInfo();
 const langConfig = getLanguageByCode('zh-CN')!;
@@ -12,8 +12,17 @@ export const zh_CN = <DefaultTheme.Config>{
     title: projectInfo.name,
     description: projectInfo.description,
     themeConfig: {
-        nav: [],
-        sidebar: getSidebarSyncWithTags(langConfig.code),
+        nav: [
+            {
+                text: "首页",
+                link: "/",
+            },
+            {
+                text: "文档",
+                link: "/docs/introduction",
+            }
+        ],
+        sidebar: getSidebarSync(getLangCodeFromLink(langConfig.link!)),
         outline: {
             level: "deep",
             label: "页面导航",

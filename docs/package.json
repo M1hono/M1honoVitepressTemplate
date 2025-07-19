@@ -100,7 +100,6 @@
         "typescript": "^5.8.3",
         "vitepress-markdown-timeline": "^1.2.2",
         "vitepress-plugin-llms": "^1.4.0",
-        "vitepress-plugin-sidebar-tags": "^0.2.4",
         "vue-echarts": "^7.0.3",
         "yarn": "^1.22.22"
     }
