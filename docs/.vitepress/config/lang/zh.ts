@@ -1,5 +1,5 @@
 import type { DefaultTheme } from 'vitepress';
-import { getProjectInfo, getLanguageByCode, getLangCodeFromLink } from '../project-config';
+import { getProjectInfo, getLanguageByCode, getLangCodeFromLink, getSearchLocaleKey } from '../project-config';
 import { getSidebarSync } from '../../utils/sidebar';
 
 const projectInfo = getProjectInfo();
@@ -16,10 +16,6 @@ export const zh_CN = <DefaultTheme.Config>{
             {
                 text: "首页",
                 link: "/",
-            },
-            {
-                text: "文档",
-                link: "/docs/introduction",
             }
         ],
         sidebar: getSidebarSync(getLangCodeFromLink(langConfig.link!)),
@@ -51,7 +47,7 @@ export const zh_CN = <DefaultTheme.Config>{
 };
 
 export const search: DefaultTheme.AlgoliaSearchOptions["locales"] = {
-    root: {
+    [getSearchLocaleKey(langConfig.code)]: {
         placeholder: "搜索文档",
         translations: {
             button: {

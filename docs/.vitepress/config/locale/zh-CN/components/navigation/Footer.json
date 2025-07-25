@@ -1,9 +1,8 @@
 {
-    "authorName": "M1hono",
     "copyright": "Copyright",
-    "icpNumber": "",
-    "license": "Licensed under CC BY-SA 4.0",
-    "privacyPolicy": "隐私政策",
-    "totalViews": "总浏览量",
-    "visitors": "访客"
+    "icpNumber": "ICP Filing",
+    "license": "Licensed under",
+    "privacyPolicy": "Privacy Policy",
+    "totalViews": "Total Views",
+    "visitors": "Visitors"
 }

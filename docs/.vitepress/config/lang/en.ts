@@ -1,5 +1,5 @@
 import type { DefaultTheme } from 'vitepress';
-import { getProjectInfo, getLanguageByCode, getLangCodeFromLink } from '../project-config';
+import { getProjectInfo, getLanguageByCode, getLangCodeFromLink, getSearchLocaleKey } from '../project-config';
 import { getSidebarSync } from '../../utils/sidebar';
 
 const projectInfo = getProjectInfo();
@@ -16,11 +16,7 @@ export const en_US = <DefaultTheme.Config>{
             {
                 text: "Home",
                 link: "/",
-            },
-            {
-                text: "Docs",
-                link: "/docs/introduction",
-            }
+            }   
         ],
         sidebar: getSidebarSync(getLangCodeFromLink(langConfig.link!)),
         outline: {
@@ -51,7 +47,7 @@ export const en_US = <DefaultTheme.Config>{
 };
 
 export const search: DefaultTheme.AlgoliaSearchOptions["locales"] = {
-    en: {
+    [getSearchLocaleKey(langConfig.code)]: {
         placeholder: "Search docs",
         translations: {
             button: {

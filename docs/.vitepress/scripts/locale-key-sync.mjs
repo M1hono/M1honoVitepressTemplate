@@ -110,6 +110,160 @@ const jsonFileHandler = {
     }
 };
 
+const tsFileHandler = {
+    async write(filePath, data, isDefaultLang = false) {
+        await fs.mkdir(path.dirname(filePath), { recursive: true });
+        
+        const tsContent = generateFooterTsContent(data, isDefaultLang);
+        await fs.writeFile(filePath, tsContent, 'utf-8');
+    }
+};
+
+function generateFooterTsContent(data, isDefaultLang = false) {
+    const imports = `import type { FooterConfig } from '../../../utils/content/footer';
+import { createIconConfig, createLinkConfig, createGroupConfig } from '../../../utils/content/footer';`;
+
+    if (isDefaultLang) {
+        return `${imports}
+
+export const footerConfig: FooterConfig = {
+    beian: {
+        showIcon: true,
+        icp: {
+            icon: createIconConfig(
+                'fluent:globe-shield-48-filled',
+                'rgba(20, 150, 255, 1)',
+                'rgba(100, 200, 255, 1)'
+            ),
+            number: '${data.beian?.icp?.number || 'ICP Registration No. 12345678'}',
+            rel: 'noopener noreferrer',
+        },
+        police: {
+            icon: createIconConfig(
+                'fluent:shield-checkmark-48-filled',
+                'rgba(50, 200, 50, 1)',
+                'rgba(100, 255, 100, 1)'
+            ),
+            number: '${data.beian?.police?.number || 'Public Security Registration No. 12345678'}',
+            rel: 'noopener noreferrer',
+        },
+    },
+    author: {
+        icon: createIconConfig('mdi:copyright', '#999', '#ccc'),
+        name: '${data.author?.name || 'Your Name'}',
+        link: '${data.author?.link || 'https://github.com/yourusername'}',
+        rel: 'noopener noreferrer',
+        text: '${data.author?.text || 'All Rights Reserved.'}',
+    },
+    group: [
+        createGroupConfig(
+            'External Links',
+            [
+                createLinkConfig(
+                    'GitHub',
+                    'https://github.com/M1hono/M1honoVitepressTemplate',
+                    'mdi:github',
+                    {
+                        rel: 'noopener noreferrer',
+                        iconColors: { light: 'rgba(0, 0, 0, 1)', dark: 'rgba(255, 255, 255, 1)' },
+                    }
+                ),
+                createLinkConfig(
+                    'Documentation',
+                    'https://vitepress.dev',
+                    'mdi:book-open-page-variant',
+                    {
+                        rel: 'noopener noreferrer',
+                        iconColors: { light: 'rgba(100, 150, 200, 1)', dark: 'rgba(150, 200, 255, 1)' },
+                    }
+                ),
+            ],
+            'bx:link',
+            { light: 'rgba(255, 87, 51, 1)', dark: 'rgba(255, 130, 100, 1)' }
+        ),
+        createGroupConfig(
+            'Resources',
+            [
+                createLinkConfig(
+                    'Downloads',
+                    '/downloads',
+                    'mdi:download',
+                    {
+                        iconColors: { light: 'rgba(100, 200, 150, 1)', dark: 'rgba(150, 255, 200, 1)' },
+                    }
+                ),
+                createLinkConfig(
+                    'FAQ',
+                    '/faq',
+                    'mdi:help-circle',
+                    {
+                        iconColors: { light: 'rgba(200, 100, 150, 1)', dark: 'rgba(255, 150, 200, 1)' },
+                    }
+                ),
+            ],
+            'mdi:tools',
+            { light: 'rgba(150, 200, 100, 1)', dark: 'rgba(200, 255, 150, 1)' }
+        ),
+    ],
+};
+
+export default footerConfig;`;
+    } else {
+        return `${imports}
+
+export const footerConfig: FooterConfig = {
+    beian: {
+        showIcon: true,
+        icp: {
+            icon: createIconConfig(
+                'fluent:globe-shield-48-filled',
+                'rgba(20, 150, 255, 1)',
+                'rgba(100, 200, 255, 1)'
+            ),
+            number: '',
+            rel: 'noopener noreferrer',
+        },
+        police: {
+            icon: createIconConfig(
+                'fluent:shield-checkmark-48-filled',
+                'rgba(50, 200, 50, 1)',
+                'rgba(100, 255, 100, 1)'
+            ),
+            number: '',
+            rel: 'noopener noreferrer',
+        },
+    },
+    author: {
+        icon: createIconConfig('mdi:copyright', '#999', '#ccc'),
+        name: '',
+        link: '',
+        rel: 'noopener noreferrer',
+        text: '',
+    },
+    group: [
+        createGroupConfig(
+            '',
+            [
+                createLinkConfig(
+                    '',
+                    '',
+                    'mdi:github',
+                    {
+                        rel: 'noopener noreferrer',
+                        iconColors: { light: 'rgba(0, 0, 0, 1)', dark: 'rgba(255, 255, 255, 1)' },
+                    }
+                ),
+            ],
+            'bx:link',
+            { light: 'rgba(255, 87, 51, 1)', dark: 'rgba(255, 130, 100, 1)' }
+        ),
+    ],
+};
+
+export default footerConfig;`;
+    }
+}
+
 async function syncTranslationFile(filePath, componentKeys, useDefaults) {
     const existingTranslations = await jsonFileHandler.read(filePath);
     const newTranslations = { ...existingTranslations };
@@ -144,6 +298,25 @@ async function syncSnippetFiles(lang, additionalFiles) {
         } catch {
             console.log(`Creating empty snippet file '${baseName}.json' for ${lang}...`);
             await fs.writeFile(filePath, JSON.stringify([], null, 4), 'utf-8');
+        }
+    }
+}
+
+async function syncFooterFiles(languages, primaryLanguage) {
+    console.log('\n🔄 Processing footer.ts files...');
+    
+    for (const lang of languages) {
+        const footerPath = path.join(LOCALE_DIR, lang, 'footer.ts');
+        const isDefaultLang = lang === primaryLanguage;
+        
+        try {
+            await fs.access(footerPath);
+            console.log(`   ✅ Found existing footer.ts for ${lang}`);
+        } catch {
+            console.log(`   📄 Creating footer.ts for ${lang}...`);
+            const defaultFooterData = {}; // 空对象，实际内容由generateFooterTsContent生成
+            await tsFileHandler.write(footerPath, defaultFooterData, isDefaultLang);
+            console.log(`   ✅ Created footer.ts for ${lang}`);
         }
     }
 }
@@ -233,6 +406,8 @@ async function main() {
     for (const lang of languages) {
         await syncSnippetFiles(lang, customSnippets);
     }
+
+    await syncFooterFiles(languages, primaryLanguage);
 
     console.log(`\n✅ i18n synchronization complete!`);
     console.log(`📊 Summary: ${processedCount} components processed, ${totalKeysCount} total translation keys`);

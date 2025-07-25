@@ -1,4 +1,4 @@
-import type { DefaultTheme, HeadConfig } from "vitepress";
+import type { DefaultTheme, HeadConfig, UserConfig } from "vitepress";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
 import { 
@@ -6,6 +6,7 @@ import {
     isFeatureEnabled, 
     getLanguageCodes,
     getPaths,
+    autoDiscoverLanguageModules,
 } from "./project-config";
 import { sidebarPlugin } from "../utils/sidebar/";
 import { markdown } from "./markdown-plugins";
@@ -28,16 +29,10 @@ function generateAvatarUrl(username: string) {
     return `https://github.com/${username}.png`;
 }
 
-/**
- * Common configuration shared across all locales
- * Language-specific configurations should be in lang/ files
- * You should  change the base, icon, 
- */
-export const commonConfig = {
+export const commonConfig: UserConfig<DefaultTheme.Config> = {
     title: projectInfo.name,
     description: projectInfo.description,
     base: projectInfo.base,
-    i18nRouting: true,
     
     srcDir: projectPaths.src,
     outDir: projectPaths.build,
@@ -49,7 +44,12 @@ export const commonConfig = {
     ignoreDeadLinks: true,
 
     head: [
-        ["link", { rel: "icon", href: `${projectInfo.base}logo.svg` }],
+        ["link", { 
+            rel: "icon", 
+            href: projectInfo.favicon.startsWith('http') 
+                ? projectInfo.favicon 
+                : `${projectInfo.base}${projectInfo.favicon}` 
+        }],
         ["meta", { name: "keywords", content: (projectInfo as any).keyWords?.join(", ") || "vitepress, template, documentation" }],
         ["meta", { name: "author", content: projectInfo.author }],
         ["meta", { property: "og:title", content: projectInfo.name }],
@@ -58,38 +58,101 @@ export const commonConfig = {
         ["meta", { property: "og:type", content: "website" }],
     ] as HeadConfig[],
 
-    search: isFeatureEnabled('search') ? {
-        provider: "algolia",
-        options: {
-            appId: projectInfo.algolia.appId,
-            apiKey: projectInfo.algolia.apiKey, 
-            indexName: projectInfo.algolia.indexName,
-        }
-    } : undefined,
+    transformHead({ assets }) {
+        const faviconHref = projectInfo.favicon.startsWith('http') 
+            ? projectInfo.favicon 
+            : `${projectInfo.base}${projectInfo.favicon}`;
+        return [
+            ["link", { rel: "icon", href: faviconHref }],
+        ];
+    },
 
     markdown: { ...markdown },
 
-    themeConfig: {
-        logo: "/logo.svg",
-        
-        socialLinks: [
-            {
-                icon: "github",
-                link: projectInfo.repository.url,
+    mermaid: isFeatureEnabled('mermaid') ? {
+        startOnLoad: true,
+        securityLevel: "loose",
+        theme: "default",
+    } : undefined,
+
+    vue: {
+        template: {
+            compilerOptions: {
+                whitespace: "preserve"
             },
-        ],
+        },
+    },
 
-        // footer: {
-        //     message: `Built with VitePress ? | ${projectInfo.license} License`,
-        //     copyright: `Copyright © ${new Date().getFullYear()} ${projectInfo.author}`,
-        // },
+    themeConfig: {
+        logo: projectInfo.logo,
+        
+        socialLinks: (projectInfo.headerSocialLinks && projectInfo.headerSocialLinks.length > 0) ? projectInfo.headerSocialLinks : [],
 
-        // editLink: {
-        //     pattern: `${projectInfo.repository.url}/edit/main/docs/src/:path`,
-        // },
+        langMenuLabel: "Change Language",
+
+        editLink: isFeatureEnabled('editLink') && projectInfo.editLink ? {
+            pattern: projectInfo.editLink.pattern,
+            text: projectInfo.editLink.text || "Edit this page"
+        } : undefined,
     } satisfies DefaultTheme.Config,
 
     vite: {
+        resolve: {
+            alias: [
+                {
+                    find: /^.*\/VPHero\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/VPHero.vue",
+                            import.meta.url
+                        )
+                    ),
+                },
+                {
+                    find: /^.*\/VPFeatures\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/VPFeatures.vue",
+                            import.meta.url
+                        )
+                    ),
+                },
+                {
+                    find: /^.*\/VPButton\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/VPButton.vue",
+                            import.meta.url
+                        )
+                    ),
+                },
+                {
+                    find: /^.*\/VPNavBarTranslations\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/VPNavBarTranslations.vue",
+                            import.meta.url
+                        )
+                    ),
+                },
+                {
+                    find: "@utils",
+                    replacement: resolve(projectPaths.vitepress, "utils"),
+                },
+                {
+                    find: "@config",
+                    replacement: resolve(projectPaths.vitepress, "config"),
+                },
+                {
+                    find: "@components",
+                    replacement: resolve(projectPaths.vitepress, "theme/components"),
+                },
+                {
+                    find: "@/locale",
+                    replacement: resolve(projectPaths.config, "locale"),
+                },
+            ],
+        },
         optimizeDeps: {
             exclude: [
                 "@nolebase/vitepress-plugin-git-changelog",
@@ -105,7 +168,8 @@ export const commonConfig = {
                 'vitepress-plugin-nprogress',
                 'vitepress-plugin-tabs/client',
                 '@lite-tree/vue'
-            ]
+            ],
+            force: true
         },
         build: {
             chunkSizeWarningLimit: 1500,
@@ -117,7 +181,8 @@ export const commonConfig = {
                 "vuetify",
                 "@nolebase/*",
                 "vitepress-plugin-tabs",
-                "shiki-magic-move"
+                "shiki-magic-move",
+                "markdown-it-multiple-choice"
             ],
             external: [
                 "path",
@@ -170,58 +235,6 @@ export const commonConfig = {
                 },
             })
         ],
-        resolve: {
-            alias: [
-                {
-                    find: /^.*\/VPHero\.vue$/,
-                    replacement: fileURLToPath(
-                        new URL(
-                            "../theme/components/VPHero.vue",
-                            import.meta.url
-                        )
-                    ),
-                },
-                {
-                    find: /^.*\/VPFeatures\.vue$/,
-                    replacement: fileURLToPath(
-                        new URL(
-                            "../theme/components/VPFeatures.vue",
-                            import.meta.url
-                        )
-                    ),
-                },
-                {
-                    find: /^.*\/VPButton\.vue$/,
-                    replacement: fileURLToPath(
-                        new URL(
-                            "../theme/components/VPButton.vue",
-                            import.meta.url
-                        )
-                    ),
-                },
-                {
-                    find: /^.*\/VPNavBarTranslations\.vue$/,
-                    replacement: fileURLToPath(
-                        new URL(
-                            "../theme/components/VPNavBarTranslations.vue",
-                            import.meta.url
-                        )
-                    ),
-                },
-                {
-                    find: "@utils",
-                    replacement: resolve(projectPaths.vitepress, "utils"),
-                },
-                {
-                    find: "@config",
-                    replacement: resolve(projectPaths.vitepress, "utils/config"),
-                },
-                {
-                    find: "@components",
-                    replacement: resolve(projectPaths.vitepress, "theme/components"),
-                },
-            ],
-        }
     },
 };
 

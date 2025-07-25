@@ -6,6 +6,7 @@ import { MarkdownOptions } from "vitepress";
 import timeline from "vitepress-markdown-timeline";
 import { BiDirectionalLinks } from "@nolebase/markdown-it-bi-directional-links";
 import { InlineLinkPreviewElementTransform } from "@nolebase/vitepress-plugin-inline-link-preview/markdown-it";
+import multipleChoicePlugin from 'markdown-it-multiple-choice'
 import { tabsMarkdownPlugin } from "vitepress-plugin-tabs";
 import mdFootnote from "markdown-it-footnote";
 import mdTaskLists from "markdown-it-task-lists";
@@ -33,6 +34,8 @@ import { groupIconMdPlugin } from "vitepress-plugin-group-icons";
 import MagicMovePlugin from "../plugins/magic-move";
 import { dialogPlugin } from "../plugins/dialog";
 import { chatPlugin } from "../plugins/chat-message";
+import { withMarkmap } from "../plugins/markmap";
+import { isFeatureEnabled } from "./project-config";
 import ts from "typescript";
 
 import fs from "fs";
@@ -74,7 +77,8 @@ export const markdown: MarkdownOptions = {
         md.use(tabsMarkdownPlugin);
         md.use(dialogPlugin);
         md.use(chatPlugin);
-
+        md.use(multipleChoicePlugin);
+        
         md.use(mdFootnote);
         md.use(mdTaskLists);
         md.use(mdDeflist);
@@ -97,6 +101,11 @@ export const markdown: MarkdownOptions = {
         md.use(tab, iframes);
 
         md.use(card);
+        
+        if (isFeatureEnabled('markmap')) {
+            withMarkmap(md, { showToolbar: false });
+        }
+        
         if (magicMoveShiki) {
             md.use(MagicMovePlugin, magicMoveShiki, {
                 light: "github-light",

@@ -22,7 +22,23 @@ export const projectConfig: ProjectConfig = {
         "A feature-rich VitePress template with advanced plugins and configurations",
     version: "1.0.0",
     author: "M1hono",
-    license: "MIT",
+    license: "CC BY-SA 4.0",
+
+    /**
+     * Favicon configuration
+     * Can be a local file path (relative to base) or external URL
+     */
+    favicon: "logo.png", // or "favicon.ico" or "https://example.com/icon.svg"
+
+    /**
+     * Logo configuration
+     * Can be a simple string path or an object with light/dark theme logos
+     */
+    logo: {
+        light: "/logo.png",
+        dark: "/logodark.png",
+        alt: "Site Logo",
+    },
     repository: {
         type: "git",
         url: "https://github.com/M1hono/M1honoVitepressTemplate",
@@ -91,8 +107,11 @@ export const projectConfig: ProjectConfig = {
         search: false,
         gitChangelog: true,
         mermaid: true,
+        drawio: true,
+        markmap: true,
         multilingual: true,
         autoSidebar: true,
+        editLink: true,
     },
 
     customSnippetFileNames: [],
@@ -120,6 +139,26 @@ export const projectConfig: ProjectConfig = {
      */
     copyLinkConfig: {
         removeLanguage: false,
+    },
+
+    /**
+     * Header social media links
+     */
+    headerSocialLinks: [
+        {
+            icon: "github",
+            link: "https://github.com/M1hono/M1honoVitepressTemplate",
+            ariaLabel: "GitHub Repository",
+        },
+    ],
+
+    /**
+     * Edit link configuration
+     */
+    editLink: {
+        pattern:
+            "https://github.com/M1hono/M1honoVitepressTemplate/edit/main/docs/src/:path",
+        text: "Edit this page on GitHub",
     },
 
     /**
@@ -159,6 +198,44 @@ export const projectConfig: ProjectConfig = {
             targetPath: "/{1}/reference/components/",
         },
     ],
+
+    /**
+     * Footer options configuration
+     */
+    footerOptions: {
+        showIcp: false,
+        showPolice: false,
+        showLicense: true,
+        licenseText: "CC BY-SA 4.0",
+        licenseLink: "https://creativecommons.org/licenses/by-sa/4.0/",
+    },
+
+    /**
+     * Draw.io plugin configuration
+     */
+    drawio: {
+        width: "100%",
+        height: "600px",
+        page: 0,
+        darkMode: "auto",
+        resize: true,
+        pages: true,
+        zoom: true,
+        layers: false,
+        lightbox: true,
+        highlight: "#0000ff",
+        transparent: false,
+    },
+
+    /**
+     * Markdown Variables plugin configuration
+     */
+    mdVar: {
+        prefix: "%",
+        noVarPrefix: "\\%",
+        persistence: true,
+        styling: "default",
+    },
 };
 
 /**
@@ -292,6 +369,64 @@ export interface SpecialBackPath {
 }
 
 /**
+ * Footer options configuration interface
+ */
+export interface FooterOptionsConfig {
+    /** Whether to show ICP filing information */
+    showIcp: boolean;
+    /** Whether to show police filing information */
+    showPolice: boolean;
+    /** Whether to show license information */
+    showLicense: boolean;
+    /** License text to display */
+    licenseText: string;
+    /** License link URL */
+    licenseLink: string;
+}
+
+/**
+ * Draw.io plugin configuration interface
+ */
+export interface DrawioConfig {
+    /** Default width of diagrams */
+    width: string;
+    /** Default height of diagrams */
+    height: string;
+    /** Start page index */
+    page: number;
+    /** Dark mode setting */
+    darkMode: "light" | "dark" | "auto";
+    /** Enable toolbar resize */
+    resize: boolean;
+    /** Enable toolbar change pages */
+    pages: boolean;
+    /** Enable toolbar zoom */
+    zoom: boolean;
+    /** Enable toolbar layers */
+    layers: boolean;
+    /** Enable toolbar lightbox */
+    lightbox: boolean;
+    /** Highlight color */
+    highlight: string;
+    /** Transparent background */
+    transparent: boolean;
+}
+
+/**
+ * Markdown Variables plugin configuration interface
+ */
+export interface MdVarConfig {
+    /** Strings that start with this prefix are treated as variables */
+    prefix: string;
+    /** Strings that start with this prefix are NOT treated as variables */
+    noVarPrefix: string;
+    /** Enable variable persistence across pages */
+    persistence: boolean;
+    /** Styling theme: "default", "thr" (The Hacker Recipes), or custom CSS */
+    styling: "default" | "thr" | string;
+}
+
+/**
  * Deployment configuration interface for different deployment strategies
  * SSH credentials (host, username, private key) are managed via GitHub repository secrets for security
  *
@@ -400,6 +535,21 @@ export interface ProjectConfig {
     /** License type (e.g., "MIT", "Apache-2.0") for legal information */
     license: string;
 
+    /** Favicon path (relative to base) or external URL */
+    favicon: string;
+
+    /** Logo configuration - can be string for single logo or object for light/dark themes */
+    logo:
+        | string
+        | {
+              /** Logo for light theme */
+              light: string;
+              /** Logo for dark theme */
+              dark: string;
+              /** Alt text for the logo */
+              alt?: string;
+          };
+
     /** Git repository information for source links and integrations */
     repository: {
         /** Repository type, typically "git" */
@@ -428,10 +578,16 @@ export interface ProjectConfig {
         gitChangelog: boolean;
         /** Enable Mermaid diagram support in markdown */
         mermaid: boolean;
+        /** Enable Draw.io diagram support in markdown */
+        drawio: boolean;
+            /** Enable Markmap diagram support in markdown */
+    markmap: boolean;
         /** Enable multi-language support and language switcher */
         multilingual: boolean;
         /** Enable automatic sidebar generation from file structure */
         autoSidebar: boolean;
+        /** Enable edit link in page footer */
+        editLink: boolean;
     };
 
     /** Custom code snippet file names for hero page floating animation effects */
@@ -458,6 +614,28 @@ export interface ProjectConfig {
 
     /** Configuration for the "Copy Link" button */
     copyLinkConfig: CopyLinkConfig;
+
+    /** Social media links in header */
+    headerSocialLinks?: Array<{
+        icon: string | { svg: string };
+        link: string;
+        ariaLabel?: string;
+    }>;
+
+    /** Edit link configuration */
+    editLink?: {
+        pattern: string;
+        text?: string;
+    };
+
+    /** Footer options configuration */
+    footerOptions: FooterOptionsConfig;
+
+    /** Draw.io plugin configuration */
+    drawio: DrawioConfig;
+
+    /** Markdown Variables plugin configuration */
+    mdVar: MdVarConfig;
 }
 
 /**
@@ -624,8 +802,15 @@ export function getProjectInfo() {
         version: projectConfig.version,
         author: projectConfig.author,
         license: projectConfig.license,
+        favicon: projectConfig.favicon,
+        logo: projectConfig.logo,
         repository: projectConfig.repository,
         homepage: projectConfig.homepage,
+        headerSocialLinks: projectConfig.headerSocialLinks,
+        editLink: projectConfig.editLink,
+        footerOptions: projectConfig.footerOptions,
+        drawio: projectConfig.drawio,
+        mdVar: projectConfig.mdVar,
         algolia: {
             appId: projectConfig.algolia.appId,
             apiKey: projectConfig.algolia.apiKey,
@@ -893,6 +1078,23 @@ export function getLangCodeFromLink(path: string): string {
 }
 
 /**
+ * Get the appropriate search locale key for a language
+ * Returns 'root' for default language, language code for others
+ * @param langCode - Language code (e.g., 'en-US', 'zh-CN')
+ * @returns 'root' for default language, or the language code for non-default languages
+ *
+ * @example
+ * ```ts
+ * const searchKey = getSearchLocaleKey('en-US'); // returns 'root' if en-US is default
+ * const searchKey = getSearchLocaleKey('zh-CN'); // returns 'zh-CN' if not default
+ * ```
+ */
+export function getSearchLocaleKey(langCode: string): string {
+    const defaultLang = getDefaultLanguage();
+    return langCode === defaultLang.code ? "root" : langCode;
+}
+
+/**
  * Dynamically generate VitePress locales configuration
  * Imports and combines all language configurations from the lang directory
  * @param useRootForDefault - Whether to use 'root' key for default language (VitePress standard) or explicit language codes
@@ -923,7 +1125,9 @@ export async function generateLocalesConfig(
     for (const lang of projectConfig.languages) {
         try {
             // Dynamic import based on fileName from language config
-            const langModule = await import(`./lang/${lang.fileName}`);
+            const langModule = await import(
+                /* @vite-ignore */ `./lang/${lang.fileName}`
+            );
 
             // Try multiple possible keys to find the language configuration
             const possibleKeys = [
@@ -937,8 +1141,8 @@ export async function generateLocalesConfig(
 
             // Try each possible key until we find a match
             for (const key of possibleKeys) {
-                if (langModule[key]) {
-                    langConfig = langModule[key];
+                if (langModule[key as keyof typeof langModule]) {
+                    langConfig = langModule[key as keyof typeof langModule];
                     break;
                 }
             }
@@ -951,7 +1155,7 @@ export async function generateLocalesConfig(
                     useRootForDefault && lang.isDefault ? "root" : lang.code;
                 locales[localeKey] = {
                     label: lang.displayName,
-                    ...langConfig,
+                    ...(langConfig as any),
                 };
             } else {
                 console.warn(
@@ -974,18 +1178,21 @@ export async function generateLocalesConfig(
 /**
  * Automatically discover and import all language modules
  * Uses dynamic imports based on project configuration
- * @returns Promise resolving to object containing all language configurations
+ * @returns Promise resolving to object containing all language configurations and search locales
  *
  * @example
  * ```ts
- * const langModules = await autoDiscoverLanguageModules();
- * console.log(langModules); // { en_US: {...}, zh_CN: {...} }
+ * const result = await autoDiscoverLanguageModules();
+ * console.log(result.langModules); // { en_US: {...}, zh_CN: {...} }
+ * console.log(result.searchLocales); // { root: {...}, 'zh-CN': {...} }
  * ```
  */
-export async function autoDiscoverLanguageModules(): Promise<
-    Record<string, any>
-> {
+export async function autoDiscoverLanguageModules(): Promise<{
+    langModules: Record<string, any>;
+    searchLocales: Record<string, any>;
+}> {
     const langModules: Record<string, any> = {};
+    const searchLocales: Record<string, any> = {};
 
     for (const lang of projectConfig.languages) {
         if (!lang.fileName) {
@@ -997,9 +1204,11 @@ export async function autoDiscoverLanguageModules(): Promise<
 
         try {
             // Dynamic import based on fileName from language config
-            const langModule = await import(`./lang/${lang.fileName}`);
+            const langModule = await import(
+                /* @vite-ignore */ `./lang/${lang.fileName}`
+            );
 
-            // Try multiple possible export keys
+            // Try multiple possible export keys for language config
             const possibleKeys = [
                 lang.code.replace("-", "_"), // en-US -> en_US, zh-CN -> zh_CN
                 lang.fileName.replace(".ts", "").replace("-", "_"), // en.ts -> en, zh.ts -> zh
@@ -1025,6 +1234,13 @@ export async function autoDiscoverLanguageModules(): Promise<
                     }. Available exports: ${Object.keys(langModule).join(", ")}`
                 );
             }
+
+            // Also try to extract search configuration if it exists
+            if (langModule.search) {
+                // Use the search configuration directly as exported
+                // The language files should manage their own key structure
+                Object.assign(searchLocales, langModule.search);
+            }
         } catch (error) {
             console.warn(
                 `Failed to load language module for ${lang.code}:`,
@@ -1033,31 +1249,36 @@ export async function autoDiscoverLanguageModules(): Promise<
         }
     }
 
-    return langModules;
+    return { langModules, searchLocales };
 }
 
 /**
  * Fully automated VitePress locales configuration generation
  * Automatically discovers, imports, and configures all language modules
  * @param useRootForDefault - Whether to use 'root' key for default language (VitePress standard) or explicit language codes
- * @returns Promise resolving to VitePress-compatible locales configuration
+ * @returns Promise resolving to VitePress-compatible locales configuration and search locales
  *
  * @example
  * ```ts
  * // In config.mts - completely automated!
  * import { generateLocalesConfigAuto } from './config/project-config';
  *
+ * const { locales, searchLocales } = await generateLocalesConfigAuto(false);
  * export default defineConfig({
  *   ...commonConfig,
- *   locales: await generateLocalesConfigAuto(false) // or true for VitePress standard
+ *   locales
  * });
  * ```
  */
 export async function generateLocalesConfigAuto(
     useRootForDefault: boolean = false
 ) {
-    const langModules = await autoDiscoverLanguageModules();
-    return generateLocalesConfigFromModules(langModules, useRootForDefault);
+    const { langModules, searchLocales } = await autoDiscoverLanguageModules();
+    const locales = generateLocalesConfigFromModules(
+        langModules,
+        useRootForDefault
+    );
+    return { locales, searchLocales };
 }
 
 /**
@@ -1101,9 +1322,11 @@ export function generateLocalesConfigFromModules(
 
         // Try each possible key until we find a match
         for (const key of possibleKeys) {
-            if (langModules[key]) {
-                langConfig = langModules[key];
-                usedKey = key;
+            if (langModules[key as keyof typeof langModules]) {
+                langConfig = langModules[
+                    key as keyof typeof langModules
+                ] as any;
+                usedKey = key as string;
                 break;
             }
         }
@@ -1116,7 +1339,7 @@ export function generateLocalesConfigFromModules(
                 useRootForDefault && lang.isDefault ? "root" : lang.code;
             locales[localeKey] = {
                 label: lang.displayName,
-                ...langConfig,
+                ...(langConfig as any),
             };
         } else {
             console.warn(

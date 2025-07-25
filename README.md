@@ -26,7 +26,6 @@ docs/
 ├── .vitepress/          # VitePress configuration
 ├── src/                 # Documentation source files
 ├── package.json         # Dependencies and scripts
-└── public/              # Static assets
 ```
 
 ## Features
@@ -46,7 +45,6 @@ Your documentation site will be available at `https://yourusername.github.io/you
 ## Links
 
 - [Live Demo](http://m1hono.github.io/M1honoVitepressTemplate/)
-- [Complete Documentation](./docs/README.md)
 
 ## License
 
