@@ -3178,7 +3178,7 @@ marked@^15.0.12, marked@^15.0.7:
   resolved "https://registry.npmjs.org/marked/-/marked-15.0.12.tgz"
   integrity sha512-8dD6FusOQSrpv9Z1rdNMdlSgQOIP880DHqnohobOmYLElGEqAL/JvxvuxZO16r4HtjTlfPRDC1hbvxC9dPN2nA==
 
-markmap-common@*:
+markmap-common@*, markmap-common@^0.18.9:
   version "0.18.9"
   resolved "https://registry.npmjs.org/markmap-common/-/markmap-common-0.18.9.tgz"
   integrity sha512-MV2HQO7IGIm3jWEJXSG8vmdpqf4WIDXcEyAEN52lrWR1qD53Zg5l81JwjXoZ2l0rY5mofKYqUFlmdM2fqTGMVg==

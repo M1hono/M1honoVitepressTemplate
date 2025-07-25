@@ -134,9 +134,42 @@ export function generateTagData(docsDir: string = getSrcPath(), language?: strin
     };
 }
 
+function compareTagData(newData: any, existingData: any): boolean {
+    if (!existingData) return false;
+    
+    const newDataWithoutTimestamp = { ...newData };
+    const existingDataWithoutTimestamp = { ...existingData };
+    
+    delete newDataWithoutTimestamp.generatedAt;
+    delete existingDataWithoutTimestamp.generatedAt;
+    
+    return JSON.stringify(newDataWithoutTimestamp) === JSON.stringify(existingDataWithoutTimestamp);
+}
+
+function writeFileIfChanged(filePath: string, newData: any): boolean {
+    let existingData = null;
+    
+    if (existsSync(filePath)) {
+        try {
+            const existingContent = readFileSync(filePath, 'utf-8');
+            existingData = JSON.parse(existingContent);
+        } catch (error) {
+            console.warn(`Failed to read existing file ${filePath}:`, error);
+        }
+    }
+    
+    if (!compareTagData(newData, existingData)) {
+        writeFileSync(filePath, JSON.stringify(newData, null, 2), 'utf-8');
+        return true;
+    }
+    
+    return false;
+}
+
 export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outputDir: string = getPaths().public) {
     const results: Record<string, any> = {};
     const languages = getLanguages();
+    let hasChanges = false;
     
     console.log(`🏷️  Generating tag data for languages: ${getSupportedLanguages().join(', ')}`);
     
@@ -152,9 +185,14 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
             results[langConfig.code] = data;
 
             const outputPath = resolve(outputDir, `tag-data-${langConfig.code}.json`);
-            writeFileSync(outputPath, JSON.stringify(data, null, 2), 'utf-8');
+            const fileChanged = writeFileIfChanged(outputPath, data);
             
-            console.log(`   ✅ Generated ${data.totalTags} tags for ${data.totalPages} pages`);
+            if (fileChanged) {
+                hasChanges = true;
+                console.log(`   ✅ Updated ${data.totalTags} tags for ${data.totalPages} pages`);
+            } else {
+                console.log(`   ⏭️  No changes for ${langConfig.displayName} (${data.totalTags} tags, ${data.totalPages} pages)`);
+            }
         } catch (error) {
             console.error(`   ❌ Failed to generate tag data for ${langConfig.displayName}:`, error);
         }
@@ -175,9 +213,21 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
             ])
         )
     };
-    writeFileSync(indexPath, JSON.stringify(indexData, null, 2), 'utf-8');
+    
+    const indexChanged = writeFileIfChanged(indexPath, indexData);
+    if (indexChanged) {
+        hasChanges = true;
+        console.log(`   ✅ Updated index file`);
+    } else {
+        console.log(`   ⏭️  No changes for index file`);
+    }
 
-    console.log(`🎉 Tag data generation completed! Files written to ${outputDir}`);
+    if (hasChanges) {
+        console.log(`🎉 Tag data updated! Files written to ${outputDir}`);
+    } else {
+        console.log(`😊 No changes detected, files unchanged`);
+    }
+    
     return results;
 }
 
