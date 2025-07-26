@@ -4,10 +4,11 @@ import { fileURLToPath } from "url";
 import { 
     getProjectInfo, 
     isFeatureEnabled, 
-    getLanguageCodes,
     getPaths,
+    getLanguageLinks,
     autoDiscoverLanguageModules,
 } from "./project-config";
+
 import { sidebarPlugin } from "../utils/sidebar/";
 import { markdown } from "./markdown-plugins";
 import {
@@ -31,7 +32,7 @@ function generateAvatarUrl(username: string) {
 
 export const commonConfig: UserConfig<DefaultTheme.Config> = {
     title: projectInfo.name,
-    description: projectInfo.description,
+    description: 'A template for Vitepress documentation',
     base: projectInfo.base,
     
     srcDir: projectPaths.src,
@@ -53,7 +54,7 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
         ["meta", { name: "keywords", content: (projectInfo as any).keyWords?.join(", ") || "vitepress, template, documentation" }],
         ["meta", { name: "author", content: projectInfo.author }],
         ["meta", { property: "og:title", content: projectInfo.name }],
-        ["meta", { property: "og:description", content: projectInfo.description }],
+        ["meta", { property: "og:description", content: 'A template for Vitepress documentation' }],
         ["meta", { property: "og:url", content: projectInfo.homepage }],
         ["meta", { property: "og:type", content: "website" }],
     ] as HeadConfig[],
@@ -204,6 +205,7 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
             __VUE_PROD_DEVTOOLS__: false
         },
         plugins: [
+            // @ts-ignore
             GitChangelog({
                 repoURL: () => projectInfo.repository.url,
                 mapAuthors: (contributors as Contributor[]).map((author) => ({
@@ -211,13 +213,16 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                     avatar: generateAvatarUrl(author.avatar),
                 })),
             }),
+            // @ts-ignore
             GitChangelogMarkdownSection(),
+            // @ts-ignore
             sidebarPlugin({
-                languages: getLanguageCodes(),
+                languages: getLanguageLinks().map(link => link.replace(/^\/|\/$/g, '')),
                 debug: process.env.NODE_ENV === 'development',
                 docsDir: projectPaths.docs,
                 cacheDir: projectPaths.cache
             }),
+            // @ts-ignore
             groupIconVitePlugin({
                 customIcon: {
                     json: localIconLoader(

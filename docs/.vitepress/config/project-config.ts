@@ -18,8 +18,6 @@ export const projectConfig: ProjectConfig = {
     base: "/M1honoVitepressTemplate/",
 
     keyWords: ["VitePress", "template", "documentation", "wiki", "markdown"],
-    description:
-        "A feature-rich VitePress template with advanced plugins and configurations",
     version: "1.0.0",
     author: "M1hono",
     license: "CC BY-SA 4.0",
@@ -523,9 +521,6 @@ export interface ProjectConfig {
     /** SEO keywords array for meta tags and search engine optimization */
     keyWords: string[];
 
-    /** Project description for meta tags, README, and site metadata */
-    description: string;
-
     /** Current project version for display and tracking */
     version: string;
 
@@ -687,6 +682,20 @@ export function getLanguageCodes(): string[] {
 }
 
 /**
+ * Get all language links
+ * @returns Array of language links (e.g., ['/zh/', '/en/'])
+ *
+ * @example
+ * ```ts
+ * const links = getLanguageLinks();
+ * // Returns: ['/zh/', '/en/']
+ * ```
+ */
+export function getLanguageLinks(): string[] {
+    return projectConfig.languages.map((lang) => lang.link);
+}
+
+/**
  * Find language configuration by language code
  * @param code - Language code to search for (e.g., 'en-US', 'zh-CN')
  * @returns Language configuration or undefined if not found
@@ -798,7 +807,6 @@ export function getProjectInfo() {
     return {
         name: projectConfig.name,
         base: projectConfig.base,
-        description: projectConfig.description,
         version: projectConfig.version,
         author: projectConfig.author,
         license: projectConfig.license,
@@ -1066,14 +1074,15 @@ export function getSpecialBackPaths(): SpecialBackPath[] {
  * @returns The corresponding language code (e.g., 'zh-CN') or the default language code if no match is found.
  */
 export function getLangCodeFromLink(path: string): string {
-    const languages = getLanguages();
     const defaultLang = getDefaultLanguage();
-
-    for (const lang of languages) {
-        if (lang.link && lang.link !== "/" && path.startsWith(lang.link)) {
-            return lang.code;
-        }
+    
+    // Extract language code from path like /zh/, /en/, /zh-CN/
+    const match = path.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)\//);
+    if (match) {
+        return match[1];
     }
+    
+    // If no language code found in path, return default
     return defaultLang.code;
 }
 

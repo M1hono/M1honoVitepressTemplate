@@ -9,8 +9,8 @@ export const en_US = <DefaultTheme.Config>{
     label: langConfig.displayName,
     lang: langConfig.giscusLang,
     link: langConfig.link,
-    title: projectInfo.name,
-    description: projectInfo.description,
+    title: 'Mihono Vitepress Template',
+    description: 'A template for Vitepress documentation',
     themeConfig: {
         nav: [
             {

@@ -9,8 +9,8 @@ export const zh_CN = <DefaultTheme.Config>{
     label: langConfig.displayName,
     lang: langConfig.giscusLang,
     link: langConfig.link,
-    title: projectInfo.name,
-    description: projectInfo.description,
+    title: 'Mihono Vitepress 模版',
+    description: '一个基于 Vitepress 的文档模版',
     themeConfig: {
         nav: [
             {

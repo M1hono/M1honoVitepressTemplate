@@ -144,6 +144,10 @@ export class ConfigReaderService {
         return finalConfig;
     }
 
+    public async getLocalFrontmatter(absoluteIndexMdPath: string): Promise<Partial<DirectoryConfig>> {
+        return await this.getFrontmatter(absoluteIndexMdPath);
+    }
+
     /**
      * @method clearCache
      * @description Clears the internal caches for global configuration and frontmatter data.

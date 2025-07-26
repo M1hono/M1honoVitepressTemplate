@@ -1,11 +1,13 @@
 import { getSidebar, getConfiguredLanguages, configureSidebar } from "../utils/sidebar/index.ts";
-import { getLanguageCodes } from "../config/project-config.js";
+import { getLanguageLinks } from "../config/project-config.js";
 import { getSrcPath, getVitepressPath } from "../utils/config/path-resolver.js";
 
 async function buildSidebars() {
     console.log("🚀 Starting sidebar generation...");
     
-    const languages = getLanguageCodes();
+    const languageLinks = getLanguageLinks();
+    // Convert links like '/zh/', '/en/' to language codes like 'zh', 'en'
+    const languages = languageLinks.map(link => link.replace(/^\/|\/$/g, ''));
     const srcPath = getSrcPath();
     const cachePath = getVitepressPath("cache/sidebar");
     

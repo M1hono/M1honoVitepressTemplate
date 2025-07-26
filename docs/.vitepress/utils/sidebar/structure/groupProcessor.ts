@@ -127,11 +127,26 @@ export async function processGroup(
     let groupEffectiveConfig: EffectiveDirConfig;
     
     try {
-        groupEffectiveConfig = await configReader.getEffectiveConfig(
-            groupIndexPath,
-            lang,
-            isDevMode
-        );
+        const groupFrontmatter = await configReader.getLocalFrontmatter(groupIndexPath);
+        
+        const baseConfig = {
+            ...parentDirEffectiveConfig,
+            externalLinks: [],
+            groups: [],
+            itemOrder: {}
+        };
+        
+        groupEffectiveConfig = {
+            ...baseConfig,
+            ...groupFrontmatter,
+            title: groupTitle,
+            root: false,
+            priority: groupConfig.priority ?? (groupFrontmatter.priority || 0),
+            maxDepth: groupConfig.maxDepth ?? (groupFrontmatter.maxDepth || parentDirEffectiveConfig.maxDepth),
+            path: groupContentAbsPath,
+            _baseRelativePathForChildren: '',
+            itemOrder: Array.isArray(groupFrontmatter.itemOrder) ? {} : (groupFrontmatter.itemOrder || {})
+        };
     } catch (error) {
         groupEffectiveConfig = {
             ...parentDirEffectiveConfig,
@@ -140,7 +155,10 @@ export async function processGroup(
             priority: groupConfig.priority ?? 0,
             maxDepth: groupConfig.maxDepth ?? parentDirEffectiveConfig.maxDepth,
             path: groupContentAbsPath,
-            _baseRelativePathForChildren: ''
+            _baseRelativePathForChildren: '',
+            externalLinks: [],
+            groups: [],
+            itemOrder: {}
         };
     }
 

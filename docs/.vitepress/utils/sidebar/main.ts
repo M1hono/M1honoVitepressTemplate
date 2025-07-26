@@ -310,11 +310,25 @@ export async function generateSidebars(
                     const groupIndexPath = path.join(groupContentAbsPath, 'index.md');
                     
                     try {
-                        groupEffectiveConfig = await configReader.getEffectiveConfig(
-                            groupIndexPath,
-                            lang,
-                            isDevMode
-                        );
+                        const groupFrontmatter = await configReader.getLocalFrontmatter(groupIndexPath);
+                        
+                        const baseConfig = {
+                            ...effectiveConfig,
+                            externalLinks: [],
+                            groups: [],
+                            itemOrder: {}
+                        };
+                        
+                        groupEffectiveConfig = {
+                            ...baseConfig,
+                            ...groupFrontmatter,
+                            title: groupTitle,
+                            root: false,
+                            priority: groupConfig.priority ?? (groupFrontmatter.priority || 0),
+                            maxDepth: groupConfig.maxDepth ?? (groupFrontmatter.maxDepth || effectiveConfig.maxDepth),
+                            _baseRelativePathForChildren: '',
+                            itemOrder: Array.isArray(groupFrontmatter.itemOrder) ? {} : (groupFrontmatter.itemOrder || {})
+                        };
                     } catch (error) {
                         groupEffectiveConfig = {
                             ...effectiveConfig,
@@ -322,18 +336,12 @@ export async function generateSidebars(
                             root: false,
                             priority: groupConfig.priority ?? 0,
                             maxDepth: groupConfig.maxDepth ?? effectiveConfig.maxDepth,
-                            _baseRelativePathForChildren: ''
+                            _baseRelativePathForChildren: '',
+                            externalLinks: [],
+                            groups: [],
+                            itemOrder: {}
                         };
                     }
-                    
-                    groupEffectiveConfig = {
-                        ...groupEffectiveConfig,
-                        title: groupTitle,
-                        priority: groupConfig.priority ?? groupEffectiveConfig.priority ?? 0,
-                        maxDepth: groupConfig.maxDepth ?? groupEffectiveConfig.maxDepth,
-                        groups: [],
-                        _baseRelativePathForChildren: ''
-                    };
                     
                     const groupStructuralItems = await structuralGenerator.generateSidebarView(
                         groupContentAbsPath,
