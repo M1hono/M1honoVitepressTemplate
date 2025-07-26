@@ -19,12 +19,9 @@
 
     interface MarkMapViewProps {
         markdown: string;
-        showToolbar?: boolean;
     }
 
-    const props = withDefaults(defineProps<MarkMapViewProps>(), {
-        showToolbar: false,
-    });
+    const props = defineProps<MarkMapViewProps>();
 
     const isDark = computed(() => {
         if (typeof document === "undefined") return false;

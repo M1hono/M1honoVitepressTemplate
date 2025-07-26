@@ -103,7 +103,7 @@ export const markdown: MarkdownOptions = {
         md.use(card);
         
         if (isFeatureEnabled('markmap')) {
-            withMarkmap(md, { showToolbar: false });
+            withMarkmap(md);
         }
         
         if (magicMoveShiki) {
