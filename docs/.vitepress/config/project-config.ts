@@ -1342,10 +1342,17 @@ export function generateLocalesConfigFromModules(
 
         if (langConfig) {
             // Choose locale key based on mode:
-            // - useRootForDefault: use 'root' for default language (VitePress standard)
+            // - useRootForDefault: use 'root' for default language, link-based codes for others
             // - !useRootForDefault: use explicit language codes (legacy compatibility)
-            const localeKey =
-                useRootForDefault && lang.isDefault ? "root" : lang.code;
+            let localeKey: string;
+            if (useRootForDefault && lang.isDefault) {
+                localeKey = "root";
+            } else if (useRootForDefault) {
+                // Use language code extracted from link (e.g., '/en/' -> 'en')
+                localeKey = getLangCodeFromLink(lang.link);
+            } else {
+                localeKey = lang.code;
+            }
             locales[localeKey] = {
                 label: lang.displayName,
                 ...(langConfig as any),
