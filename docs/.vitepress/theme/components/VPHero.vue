@@ -1175,16 +1175,13 @@
         transform-origin: center;
         animation: float-curve var(--float-duration, 20s) ease-in-out infinite;
         animation-fill-mode: both;
-        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-        backdrop-filter: blur(1px);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
     }
 
     .dark .floating-word {
         opacity: 0;
         color: var(--custom-dark-color, var(--custom-color, var(--vp-c-text-2)));
-        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-        filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
     }
 
     .word-group:nth-child(odd) .floating-word:nth-child(odd) {
