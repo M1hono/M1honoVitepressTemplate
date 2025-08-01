@@ -153,10 +153,7 @@
 
     "@fm: Hero Snippets": {
         "prefix": "@fm-hero-snippets",
-        "body": [
-            "hero:",
-            "  customSnippet: ${1|true,'my-snippets'|}"
-        ],
+        "body": ["hero:", "  customSnippet: ${1|true,'custom'|}"],
         "description": "Frontmatter: Configure custom floating word snippets for the VPHero component. Use 'true' for custom.json or provide a custom filename (without .json)."
     },
 
@@ -178,7 +175,9 @@
     },
     "@fm: Difficulty": {
         "prefix": "@fm-difficulty",
-        "body": ["difficulty: ${1|easy,medium,hard,beginner,intermediate,advanced,expert|}"],
+        "body": [
+            "difficulty: ${1|easy,medium,hard,beginner,intermediate,advanced,expert|}"
+        ],
         "description": "Frontmatter: Set difficulty level for sidebar tags."
     },
     "@fm: Category": {
@@ -198,7 +197,9 @@
     },
     "@fm: Language": {
         "prefix": "@fm-language",
-        "body": ["language: ${1|javascript,typescript,python,java,rust,go,php|}"],
+        "body": [
+            "language: ${1|javascript,typescript,python,java,rust,go,php|}"
+        ],
         "description": "Frontmatter: Set programming language for sidebar tags."
     },
     "@fm: Score": {
@@ -220,7 +221,7 @@
 
     // ===================================================================
     // ============== VITEPRESS BUILT-IN MARKDOWN FEATURES ===============
-    // =================================================================== 
+    // ===================================================================
 
     "@vp: Info Container": {
         "prefix": "@vp-info",
@@ -404,42 +405,6 @@
         ],
         "description": "Custom error alert."
     },
-    "@Custom Alert Advanced": {
-        "prefix": "@custom-alert-advanced",
-        "body": [
-            "::: alert {\"type\": \"${1|success,info,warning,error|}\", \"title\": \"${2:Alert Title}\", \"variant\": \"${3|flat,elevated,tonal,outlined,text,plain|}\", \"density\": \"${4|default,comfortable,compact|}\"}",
-            "${5:Alert content}",
-            ":::"
-        ],
-        "description": "Advanced custom alert with variant and density options."
-    },
-    "@Custom Alert Styled": {
-        "prefix": "@custom-alert-styled",
-        "body": [
-            "::: alert {\"type\": \"${1|success,info,warning,error|}\", \"title\": \"${2:Alert Title}\", \"variant\": \"${3|flat,elevated,tonal,outlined,text,plain|}\", \"border\": \"${4|start,end,top,bottom,true,false|}\", \"color\": \"${5:purple}\"}",
-            "${6:Alert content}",
-            ":::"
-        ],
-        "description": "Styled custom alert with border and color options."
-    },
-    "@Custom Alert Themed": {
-        "prefix": "@custom-alert-themed",
-        "body": [
-            "::: alert {\"type\": \"${1|success,info,warning,error|}\", \"title\": \"${2:Alert Title}\", \"lightColor\": \"${3:#e8f5e8}\", \"darkColor\": \"${4:#2d4a2d}\"}",
-            "${5:Alert content}",
-            ":::"
-        ],
-        "description": "Themed custom alert with light and dark colors."
-    },
-    "@Custom Alert Icon": {
-        "prefix": "@custom-alert-icon",
-        "body": [
-            "::: alert {\"type\": \"${1|success,info,warning,error|}\", \"title\": \"${2:Alert Title}\", \"icon\": \"${3:mdi-star}\"}",
-            "${4:Alert content}",
-            ":::"
-        ],
-        "description": "Custom alert with custom icon."
-    },
     "@Custom Alert Full": {
         "prefix": "@custom-alert-full",
         "body": [
@@ -448,76 +413,6 @@
             ":::"
         ],
         "description": "Full-featured custom alert with all configuration options."
-    },
-    "@Custom Alert Minimal": {
-        "prefix": "@custom-alert-minimal",
-        "body": [
-            "::: alert {\"type\": \"${1|success,info,warning,error|}\"}",
-            "${2:Alert content}",
-            ":::"
-        ],
-        "description": "Minimal custom alert with only type specified."
-    },
-
-    // ---------- Single Configuration Properties ----------
-    "@Alert Config: Type": {
-        "prefix": "@alert-config-type",
-        "body": ["\"type\": \"${1|success,info,warning,error|}\""],
-        "description": "Alert type property."
-    },
-    "@Alert Config: Title": {
-        "prefix": "@alert-config-title",
-        "body": ["\"title\": \"${1:Alert Title}\""],
-        "description": "Alert title property."
-    },
-    "@Alert Config: Text": {
-        "prefix": "@alert-config-text",
-        "body": ["\"text\": \"${1:Text content}\""],
-        "description": "Alert text property."
-    },
-    "@Alert Config: Variant": {
-        "prefix": "@alert-config-variant",
-        "body": [
-            "\"variant\": \"${1|flat,elevated,tonal,outlined,text,plain|}\""
-        ],
-        "description": "Alert variant property."
-    },
-    "@Alert Config: Density": {
-        "prefix": "@alert-config-density",
-        "body": ["\"density\": \"${1|default,comfortable,compact|}\""],
-        "description": "Alert density property."
-    },
-    "@Alert Config: Border": {
-        "prefix": "@alert-config-border",
-        "body": ["\"border\": \"${1|start,end,top,bottom,true,false|}\""],
-        "description": "Alert border property."
-    },
-    "@Alert Config: Color": {
-        "prefix": "@alert-config-color",
-        "body": ["\"color\": \"${1:purple}\""],
-        "description": "Alert color property."
-    },
-    "@Alert Config: Light Color": {
-        "prefix": "@alert-config-light-color",
-        "body": ["\"lightColor\": \"${1:#e8f5e8}\""],
-        "description": "Alert light theme color property."
-    },
-    "@Alert Config: Dark Color": {
-        "prefix": "@alert-config-dark-color",
-        "body": ["\"darkColor\": \"${1:#2d4a2d}\""],
-        "description": "Alert dark theme color property."
-    },
-    "@Alert Config: Icon": {
-        "prefix": "@alert-config-icon",
-        "body": ["\"icon\": \"${1:mdi-star}\""],
-        "description": "Alert icon property."
-    },
-    "@Alert Config: Theme Colors": {
-        "prefix": "@alert-config-theme-colors",
-        "body": [
-            "\"lightColor\": \"${1:#e8f5e8}\", \"darkColor\": \"${2:#2d4a2d}\""
-        ],
-        "description": "Alert light and dark theme colors."
     },
 
     // ---------- Markmap Plugin ----------
@@ -538,120 +433,28 @@
         ],
         "description": "Basic markmap mindmap diagram."
     },
-    "@Markmap Links": {
-        "prefix": "@markmap-links",
+    "@Markmap Full": {
+        "prefix": "@markmap-full",
         "body": [
             "```markmap",
-            "# ${1:Navigation}",
+            "# ${1:Main Topic}",
             "",
-            "## ${2:Internal Pages}",
-            "- [${3:Home}](${4:/})",
-            "- [${5:Guide}](${6:./guide.md})",
+            "## ${2:Section 1}",
+            "### ${3:Subsection 1.1}",
+            "- ${4:Item 1}",
+            "- ${5:Item 2}",
+            "  - [${6:Link Text}](${7:https://example.com})",
             "",
-            "## ${7:External Links}",
-            "- [${8:GitHub}](${9:https://github.com})",
-            "- [${10:Documentation}](${11:https://vitepress.dev})",
+            "### ${8:Subsection 1.2}",
+            "- ${9:Item 3}",
+            "- ${10:Item 4}",
+            "",
+            "## ${11:Section 2}",
+            "- ${12:Item 5}",
+            "- ${13:Item 6}",
             "```"
         ],
-        "description": "Markmap with internal and external links."
-    },
-    "@Markmap Hierarchy": {
-        "prefix": "@markmap-hierarchy",
-        "body": [
-            "```markmap",
-            "# ${1:Project Structure}",
-            "",
-            "## ${2:Frontend}",
-            "### ${3:Technologies}",
-            "- ${4:Vue.js}",
-            "- ${5:TypeScript}",
-            "- ${6:Vite}",
-            "",
-            "### ${7:Components}",
-            "- ${8:UI Components}",
-            "  - ${9:Buttons}",
-            "  - ${10:Forms}",
-            "- ${11:Layout Components}",
-            "",
-            "## ${12:Backend}",
-            "### ${13:API}",
-            "- ${14:REST API}",
-            "- ${15:GraphQL}",
-            "```"
-        ],
-        "description": "Multi-level hierarchical markmap."
-    },
-    "@Markmap Learning": {
-        "prefix": "@markmap-learning",
-        "body": [
-            "```markmap",
-            "# ${1:Learning Path}",
-            "",
-            "## ${2:Basics}",
-            "- ${3:HTML/CSS}",
-            "- ${4:JavaScript}",
-            "  - ${5:Variables}",
-            "  - ${6:Functions}",
-            "  - ${7:Objects}",
-            "",
-            "## ${8:Frameworks}",
-            "### ${9:Vue.js}",
-            "- ${10:Composition API}",
-            "- ${11:Single File Components}",
-            "- ${12:State Management}",
-            "",
-            "### ${13:React}",
-            "- ${14:Hooks}",
-            "- ${15:JSX}",
-            "- ${16:Redux}",
-            "",
-            "## ${17:Tools}",
-            "- ${18:Git}",
-            "- ${19:VS Code}",
-            "- ${20:npm/yarn}",
-            "```"
-        ],
-        "description": "Learning roadmap markmap example."
-    },
-    "@Markmap Simple": {
-        "prefix": "@markmap-simple",
-        "body": [
-            "```markmap",
-            "# ${1:Topic}",
-            "",
-            "## ${2:Point 1}",
-            "## ${3:Point 2}",
-            "## ${4:Point 3}",
-            "```"
-        ],
-        "description": "Simple markmap with just main points."
-    },
-    "@Markmap Resources": {
-        "prefix": "@markmap-resources",
-        "body": [
-            "```markmap",
-            "# ${1:Development Resources}",
-            "",
-            "## ${2:Documentation}",
-            "- [${3:Vue.js}](https://vuejs.org)",
-            "- [${4:VitePress}](https://vitepress.dev)",
-            "- [${5:TypeScript}](https://typescriptlang.org)",
-            "",
-            "## ${6:Tools}",
-            "### ${7:Code Editors}",
-            "- [${8:VS Code}](https://code.visualstudio.com)",
-            "- [${9:WebStorm}](https://jetbrains.com/webstorm)",
-            "",
-            "### ${10:Version Control}",
-            "- [${11:Git}](https://git-scm.com)",
-            "- [${12:GitHub}](https://github.com)",
-            "",
-            "## ${13:Learning}",
-            "- [${14:MDN}](https://developer.mozilla.org)",
-            "- [${15:JavaScript.info}](https://javascript.info)",
-            "```"
-        ],
-        "description": "Resource-oriented markmap with links."
+        "description": "Full-featured markmap with hierarchy and links."
     },
 
     // ---------- Other Plugins & Components ----------
@@ -679,8 +482,8 @@
         ],
         "description": "Basic file tree structure component."
     },
-    "@File Tree Advanced": {
-        "prefix": "@file-tree-advanced",
+    "@File Tree Full": {
+        "prefix": "@file-tree-full",
         "body": [
             "<LiteTree>",
             "// Define style variables",
@@ -695,7 +498,7 @@
             "        ${8:file.txt}  // {#${2:success}}${9:Completed}",
             "</LiteTree>"
         ],
-        "description": "Advanced file tree with variables and styling."
+        "description": "Full-featured file tree with variables and styling."
     },
 
     // ---------- LiteTree Variables ----------
@@ -913,291 +716,31 @@
     // ===================== MAGIC MOVE COMPONENTS =======================
     // ===================================================================
 
-    "@Magic Move Basic": {
-        "prefix": "@magic-move",
+    "@Magic Move Full": {
+        "prefix": "@magic-move-full",
         "body": [
             ":::magic-move",
             "```${1:js} [${2:app.js}]",
-            "${3:console.log('Hello World');}",
+            "${3:// Step 1: Basic setup}",
+            "console.log('Hello World');",
             "```",
             "```${1:js} [${2:app.js}]",
-            "${4:console.log('Hello Vue!');}",
-            "```",
-            ":::"
-        ],
-        "description": "Basic Magic Move with animated code transitions."
-    },
-
-    "@Magic Move Multi-File": {
-        "prefix": "@magic-move-files",
-        "body": [
-            ":::magic-move",
-            "```${1:js} [${2:main.js}]",
-            "${3:// Initial setup}",
-            "console.log('Starting...');",
-            "```",
-            "```${4:ts} [${5:types.ts}]",
-            "${6:// Add TypeScript types}",
-            "interface Config {",
-            "  name: string;",
-            "}",
-            "```",
-            "```${1:js} [${2:main.js}]",
-            "${7:// Updated main file}",
-            "import { Config } from './types';",
-            "",
-            "const config: Config = {",
-            "  name: 'MyApp'",
-            "};",
-            "console.log('Started:', config.name);",
-            "```",
-            ":::"
-        ],
-        "description": "Magic Move showcasing multiple files with transitions."
-    },
-
-    "@Magic Move Steps": {
-        "prefix": "@magic-move-steps",
-        "body": [
-            ":::magic-move",
-            "```${1:js} [${2:component.js}]",
-            "${3:// Step 1: Basic component}",
-            "export default {",
-            "  name: '${4:MyComponent}'",
-            "}",
-            "```",
-            "```${1:js} [${2:component.js}]",
-            "${5:// Step 2: Add data}",
-            "export default {",
-            "  name: '${4:MyComponent}',",
-            "  data() {",
-            "    return {",
-            "      ${6:message}: '${7:Hello}'",
-            "    }",
-            "  }",
-            "}",
-            "```",
-            "```${1:js} [${2:component.js}]",
-            "${8:// Step 3: Add methods}",
-            "export default {",
-            "  name: '${4:MyComponent}',",
-            "  data() {",
-            "    return {",
-            "      ${6:message}: '${7:Hello}'",
-            "    }",
-            "  },",
-            "  methods: {",
-            "    ${9:updateMessage}() {",
-            "      this.${6:message} = '${10:Updated!}';",
-            "    }",
-            "  }",
-            "}",
-            "```",
-            ":::"
-        ],
-        "description": "Magic Move showing step-by-step code evolution."
-    },
-
-    "@Magic Move Languages": {
-        "prefix": "@magic-move-langs",
-        "body": [
-            ":::magic-move",
-            "```${1:js} [${2:example.js}]",
-            "${3:// JavaScript version}",
+            "${4:// Step 2: Add functionality}",
             "function greet(name) {",
             "  return `Hello, \\${name}!`;",
             "}",
+            "console.log(greet('Vue'));",
             "```",
-            "```${4:ts} [${5:example.ts}]",
-            "${6:// TypeScript version}",
+            "```${5:ts} [${6:app.ts}]",
+            "${7:// Step 3: Add TypeScript}",
             "function greet(name: string): string {",
             "  return `Hello, \\${name}!`;",
             "}",
-            "```",
-            "```${7:py} [${8:example.py}]",
-            "${9:# Python version}",
-            "def greet(name: str) -> str:",
-            "    return f\"Hello, {name}!\"",
+            "console.log(greet('TypeScript'));",
             "```",
             ":::"
         ],
-        "description": "Magic Move comparing the same logic across different languages."
-    },
-
-    "@Magic Move Config": {
-        "prefix": "@magic-move-config",
-        "body": [
-            ":::magic-move",
-            "```${1:json} [${2:package.json}]",
-            "${3:{",
-            "  \"name\": \"${4:my-project}\",",
-            "  \"version\": \"${5:1.0.0}\"",
-            "}}",
-            "```",
-            "```${1:json} [${2:package.json}]",
-            "${6:{",
-            "  \"name\": \"${4:my-project}\",",
-            "  \"version\": \"${5:1.0.0}\",",
-            "  \"dependencies\": {",
-            "    \"${7:vue}\": \"${8:^3.0.0}\"",
-            "  }",
-            "}}",
-            "```",
-            "```${9:js} [${10:vite.config.js}]",
-            "${11:// Add build configuration}",
-            "import { defineConfig } from 'vite';",
-            "import vue from '@vitejs/plugin-vue';",
-            "",
-            "export default defineConfig({",
-            "  plugins: [vue()]",
-            "});",
-            "```",
-            ":::"
-        ],
-        "description": "Magic Move for configuration file changes."
-    },
-
-    "@Magic Move Refactor": {
-        "prefix": "@magic-move-refactor",
-        "body": [
-            ":::magic-move",
-            "```${1:js} [${2:utils.js}]",
-            "${3:// Before refactoring}",
-            "function processData(data) {",
-            "  let result = [];",
-            "  for(let i = 0; i < data.length; i++) {",
-            "    if(data[i].active) {",
-            "      result.push({",
-            "        id: data[i].id,",
-            "        name: data[i].name.toUpperCase()",
-            "      });",
-            "    }",
-            "  }",
-            "  return result;",
-            "}",
-            "```",
-            "```${1:js} [${2:utils.js}]",
-            "${4:// After refactoring}",
-            "function processData(data) {",
-            "  return data",
-            "    .filter(item => item.active)",
-            "    .map(item => ({",
-            "      id: item.id,",
-            "      name: item.name.toUpperCase()",
-            "    }));",
-            "}",
-            "```",
-            ":::"
-        ],
-        "description": "Magic Move demonstrating code refactoring."
-    },
-
-    "@Magic Move Vue SFC": {
-        "prefix": "@magic-move-vue",
-        "body": [
-            ":::magic-move",
-            "```vue [${1:Component.vue}]",
-            "${2:<!-- Template only -->}",
-            "<template>",
-            "  <div>${3:Hello World}</div>",
-            "</template>",
-            "```",
-            "```vue [${1:Component.vue}]",
-            "${4:<!-- Add script -->}",
-            "<template>",
-            "  <div>{{ ${5:message} }}</div>",
-            "</template>",
-            "",
-            "<script>",
-            "export default {",
-            "  data() {",
-            "    return {",
-            "      ${5:message}: '${6:Hello Vue!}'",
-            "    }",
-            "  }",
-            "}",
-            "</script>",
-            "```",
-            "```vue [${1:Component.vue}]",
-            "${7:<!-- Add styling -->}",
-            "<template>",
-            "  <div class=\"${8:greeting}\">{{ ${5:message} }}</div>",
-            "</template>",
-            "",
-            "<script>",
-            "export default {",
-            "  data() {",
-            "    return {",
-            "      ${5:message}: '${6:Hello Vue!}'",
-            "    }",
-            "  }",
-            "}",
-            "</script>",
-            "",
-            "<style scoped>",
-            ".${8:greeting} {",
-            "  ${9:color: #42b883;}",
-            "  ${10:font-weight: bold;}",
-            "}",
-            "</style>",
-            "```",
-            ":::"
-        ],
-        "description": "Magic Move for Vue Single File Component evolution."
-    },
-
-    "@Magic Move API": {
-        "prefix": "@magic-move-api",
-        "body": [
-            ":::magic-move",
-            "```${1:js} [${2:api.js}]",
-            "${3:// Basic fetch}",
-            "async function fetchUser(id) {",
-            "  const response = await fetch(`/api/users/\\${id}`);",
-            "  return response.json();",
-            "}",
-            "```",
-            "```${1:js} [${2:api.js}]",
-            "${4:// Add error handling}",
-            "async function fetchUser(id) {",
-            "  try {",
-            "    const response = await fetch(`/api/users/\\${id}`);",
-            "    if (!response.ok) {",
-            "      throw new Error('Failed to fetch user');",
-            "    }",
-            "    return response.json();",
-            "  } catch (error) {",
-            "    console.error('Error:', error);",
-            "    throw error;",
-            "  }",
-            "}",
-            "```",
-            "```${1:js} [${2:api.js}]",
-            "${5:// Add caching}",
-            "const userCache = new Map();",
-            "",
-            "async function fetchUser(id) {",
-            "  if (userCache.has(id)) {",
-            "    return userCache.get(id);",
-            "  }",
-            "  ",
-            "  try {",
-            "    const response = await fetch(`/api/users/\\${id}`);",
-            "    if (!response.ok) {",
-            "      throw new Error('Failed to fetch user');",
-            "    }",
-            "    const user = await response.json();",
-            "    userCache.set(id, user);",
-            "    return user;",
-            "  } catch (error) {",
-            "    console.error('Error:', error);",
-            "    throw error;",
-            "  }",
-            "}",
-            "```",
-            ":::"
-        ],
-        "description": "Magic Move showing API function enhancement."
+        "description": "Full-featured Magic Move with multiple steps and language transitions."
     },
 
     // ===================================================================
@@ -1218,89 +761,6 @@
             "```"
         ],
         "description": "Mermaid flowchart diagram."
-    },
-    "@Mermaid: Journey": {
-        "prefix": "@mermaid-journey",
-        "body": [
-            "```mermaid",
-            "journey",
-            "    title ${1:My working day}",
-            "    section ${2:Go to work}",
-            "      ${3:Make tea}: ${4:5}: ${5:Me}",
-            "      ${6:Go upstairs}: ${7:3}: ${5:Me}",
-            "      ${8:Do work}: ${9:1}: ${5:Me}, ${10:Cat}",
-            "    section ${11:Go home}",
-            "      ${12:Go downstairs}: ${13:5}: ${5:Me}",
-            "      ${14:Sit down}: ${15:5}: ${5:Me}",
-            "```"
-        ],
-        "description": "Mermaid user journey diagram."
-    },
-    "@Mermaid: Sequence": {
-        "prefix": "@mermaid-sequence",
-        "body": [
-            "```mermaid",
-            "sequenceDiagram",
-            "    participant ${1:Alice}",
-            "    participant ${2:Bob}",
-            "    ${1:Alice}->>+${2:Bob}: ${3:Hello Bob, how are you?}",
-            "    ${2:Bob}-->>-${1:Alice}: ${4:Great!}",
-            "```"
-        ],
-        "description": "Mermaid sequence diagram."
-    },
-    "@Mermaid: Gantt": {
-        "prefix": "@mermaid-gantt",
-        "body": [
-            "```mermaid",
-            "gantt",
-            "    title ${1:A Gantt Diagram}",
-            "    dateFormat  YYYY-MM-DD",
-            "    section ${2:Section}",
-            "    ${3:A task}           :${4:a1}, ${5:2014-01-01}, ${6:30d}",
-            "    ${7:Another task}     :${8:after a1}  , ${9:20d}",
-            "    section ${10:Another}",
-            "    ${11:Task in sec}      :${12:2014-01-12}  , ${13:12d}",
-            "    ${14:another task}      : ${15:24d}",
-            "```"
-        ],
-        "description": "Mermaid Gantt chart."
-    },
-    "@Mermaid: Class": {
-        "prefix": "@mermaid-class",
-        "body": [
-            "```mermaid",
-            "classDiagram",
-            "    class ${1:Animal} {",
-            "        +${2:String name}",
-            "        +${3:int age}",
-            "        +${4:isMammal()}",
-            "        +${5:mate()}",
-            "    }",
-            "    class ${6:Duck}{",
-            "        +${7:String beakColor}",
-            "        +${8:swim()}",
-            "        +${9:quack()}",
-            "    }",
-            "    ${1:Animal} <|-- ${6:Duck}",
-            "```"
-        ],
-        "description": "Mermaid class diagram."
-    },
-    "@Mermaid: State": {
-        "prefix": "@mermaid-state",
-        "body": [
-            "```mermaid",
-            "stateDiagram-v2",
-            "    [*] --> ${1:Still}",
-            "    ${1:Still} --> [*]",
-            "    ${1:Still} --> ${2:Moving}",
-            "    ${2:Moving} --> ${1:Still}",
-            "    ${2:Moving} --> ${3:Crash}",
-            "    ${3:Crash} --> [*]",
-            "```"
-        ],
-        "description": "Mermaid state diagram."
     },
 
     // ---------- Timeline Plugin ----------
@@ -1398,8 +858,8 @@
     },
 
     // ---------- Advanced Carousel Configurations ----------
-    "@Carousel Advanced": {
-        "prefix": "@carousel-advanced",
+    "@Carousel Full": {
+        "prefix": "@carousel-full",
         "body": [
             "::: carousels#{\"cycle\": ${1|true,false|}, \"interval\": ${2:3000}, \"arrows\": ${3|true,false|}, \"undelimiters\": ${4|true,false|}}",
             "@tab",
@@ -1410,19 +870,7 @@
             "![${9:Image 3}](${10:/path/to/image3.png})",
             ":::"
         ],
-        "description": "Advanced image carousel with full configuration."
-    },
-    "@Carousel Simple": {
-        "prefix": "@carousel-simple",
-        "body": [
-            "::: carousels",
-            "@tab",
-            "![${1:Image 1}](${2:/path/to/image1.png})",
-            "@tab",
-            "![${3:Image 2}](${4:/path/to/image2.png})",
-            ":::"
-        ],
-        "description": "Simple image carousel with default settings."
+        "description": "Full-featured image carousel with all configuration options."
     },
 
     // ---------- Iframe Component ----------
@@ -1433,14 +881,6 @@
             ":::"
         ],
         "description": "Embedded iframe component."
-    },
-    "@Iframe Advanced": {
-        "prefix": "@iframe-advanced",
-        "body": [
-            ":::iframes#{\"src\": \"${1:https://example.com}\", \"height\": \"${2:500px}\", \"width\": \"${3:100%}\"}",
-            ":::"
-        ],
-        "description": "Advanced iframe with width and height configuration."
     },
 
     // ---------- Stepper Component ----------
@@ -1457,29 +897,6 @@
             ":::"
         ],
         "description": "Step-by-step guide component."
-    },
-    "@Stepper Advanced": {
-        "prefix": "@stepper-advanced",
-        "body": [
-            "::: stepper",
-            "@tab ${1:准备工作}",
-            "在开始之前，请确保：",
-            "- ${2:安装必要的工具}",
-            "- ${3:准备开发环境}",
-            "",
-            "@tab ${4:安装配置}",
-            "按照以下步骤进行配置：",
-            "1. ${5:下载配置文件}",
-            "2. ${6:修改配置参数}",
-            "",
-            "@tab ${7:测试验证}",
-            "配置完成后进行测试：",
-            "```${8:bash}",
-            "${9:npm test}",
-            "```",
-            ":::"
-        ],
-        "description": "Advanced stepper with detailed content and code blocks."
     },
 
     // ---------- Steps Component ----------
@@ -1500,34 +917,6 @@
         ],
         "description": "Numbered steps component with nested hierarchy."
     },
-    "@Steps Simple": {
-        "prefix": "@steps-simple",
-        "body": [
-            ":::steps",
-            "1. ${1:Step 1}",
-            "2. ${2:Step 2}",
-            "3. ${3:Step 3}",
-            ":::"
-        ],
-        "description": "Simple numbered steps component."
-    },
-    "@Steps Detailed": {
-        "prefix": "@steps-detailed",
-        "body": [
-            ":::steps",
-            "1. ${1:Install dependencies}",
-            "    1. ${2:Install Node.js}",
-            "    2. ${3:Install package manager}",
-            "        1. ${4:npm install}",
-            "        2. ${5:yarn install}",
-            "2. ${6:Configure project}",
-            "    1. ${7:Create config file}",
-            "    2. ${8:Set environment variables}",
-            "3. ${9:Run the application}",
-            ":::"
-        ],
-        "description": "Detailed steps component with practical examples."
-    },
 
     // ---------- Linkcard Component ----------
     "@Linkcard": {
@@ -1536,18 +925,6 @@
             "<Linkcard url=\"${1:https://example.com}\" title=\"${2:Title}\" description=\"${3:Description}\" logo=\"${4:/logo.png}\"/>"
         ],
         "description": "Link card component."
-    },
-    "@Linkcard Full": {
-        "prefix": "@linkcard-full",
-        "body": [
-            "<Linkcard",
-            "  url=\"${1:https://github.com/PickAID/CrychicDoc}\"",
-            "  title=\"${2:CrychicDoc Repository}\"",
-            "  description=\"${3:A comprehensive documentation site for Minecraft modding}\"",
-            "  logo=\"${4:https://github.com/favicon.ico}\"",
-            "/>"
-        ],
-        "description": "Full-featured link card component."
     },
 
     // ---------- Contributors Component ----------
@@ -1563,21 +940,6 @@
             "/>"
         ],
         "description": "Contributors component for GitHub repositories."
-    },
-    "@Contributors Advanced": {
-        "prefix": "@contributors-advanced",
-        "body": [
-            "<Contributors",
-            "  owner=\"${1:PickAID}\"",
-            "  repo=\"${2:CrychicDoc}\"",
-            "  :maxCount=\"${3:200}\"",
-            "  :showContributions=\"${4|true,false|}\"",
-            "  :enableCache=\"${5|true,false|}\"",
-            "  title=\"${6:Project Contributors}\"",
-            "  locale=\"${7|zh-CN,en-US|}\"",
-            "/>"
-        ],
-        "description": "Advanced contributors component with custom title and locale."
     },
 
     // ---------- Responsible Editor Component ----------
@@ -1608,56 +970,7 @@
     },
 
     // ---------- Demo Container Combinations ----------
-    "@Demo Mermaid": {
-        "prefix": "@demo-mermaid",
-        "body": [
-            ":::demo ${1:Mermaid Example}",
-            "```mermaid",
-            "${2:flowchart TD}",
-            "    ${3:A[Start] --> B[End]}",
-            "```",
-            ":::"
-        ],
-        "description": "Demo block with Mermaid diagram."
-    },
-    "@Demo Timeline": {
-        "prefix": "@demo-timeline",
-        "body": [
-            ":::: demo ${1:Timeline Example}",
-            "::: timeline ${2:2023-05-24}",
-            "- **${3:Event title}**",
-            "- ${4:Event description}",
-            ":::",
-            "::::"
-        ],
-        "description": "Demo block with timeline component."
-    },
-    "@Demo Video": {
-        "prefix": "@demo-video",
-        "body": [
-            ":::demo ${1:Video Example}",
-            "<${2|BilibiliVideo,YoutubeVideo|} ${3|bvid,videoId|}=\"${4:video_id}\" />",
-            ":::"
-        ],
-        "description": "Demo block with video component."
-    },
-    "@Demo Chart": {
-        "prefix": "@demo-chart",
-        "body": [
-            ":::demo ${1:Damage Chart Example}",
-            "<DamageChart",
-            "  mode=\"${2|static,interactive|}\"",
-            "  :incomingDamage=\"${3:50}\"",
-            "  :armorToughness=\"${4:0}\"",
-            "  :minDamage=\"${5:0}\"",
-            "  :maxDamage=\"${6:60}\"",
-            "  :maxArmorPoints=\"${7:100}\"",
-            "  :isJavaEdition=\"${8|true,false|}\"",
-            "/>",
-            ":::"
-        ],
-        "description": "Demo block with damage chart component."
-    },
+
     "@fm: Tags (Batch)": {
         "prefix": "@fm-tags-batch",
         "body": ["tags:", "  - ${1:tag1}", "  - ${2:tag2}", "  - ${3:tag3}"],
@@ -1665,41 +978,32 @@
     },
 
     // ---------- Chat Components (YAML Syntax) ----------
-        // ---------- Chat Components ----------
-        "@Chat Panel": {
-            "prefix": "@chat-panel",
-            "body": [
-                ":::: chat title=\"${1:Chat Title}\" ${2|max-height=\"300px\",transparent|}",
-                "::: message nickname=\"${3:User1}\" location=\"left\"",
-                "${4:Hello!}",
-                ":::",
-                "",
-                "::: message nickname=\"${5:User2}\" location=\"right\"",
-                "${6:Hi there! How can I help you?}",
-                ":::",
-                "$0",
-                "::::"
-            ],
-            "description": "Creates a chat panel with a title and optional attributes."
-        },
-        "@Chat Message": {
-            "prefix": "@chat-message",
-            "body": [
-                "::: message nickname=\"${1:User}\" location=\"${2|left,right|}\"",
-                "${0:Message content}",
-                ":::"
-            ],
-            "description": "Adds a basic chat message with nickname and location."
-        },
-        "@Chat Message (Full)": {
-            "prefix": "@chat-message-full",
-            "body": [
-                "::: message nickname=\"${1:User}\" location=\"${2|left,right|}\" avatar-type=\"${3|text,icon,github,avatarmap,custom|}\" avatar=\"${4}\" avatar-link=\"${5}\" color=\"${6}\" bubble-color=\"${7}\" text-color=\"${8}\"",
-                "${0:Message content}",
-                ":::"
-            ],
-            "description": "Adds a fully-featured chat message with all available options."
-        },
+    // ---------- Chat Components ----------
+    "@Chat Panel": {
+        "prefix": "@chat-panel",
+        "body": [
+            ":::: chat title=\"${1:Chat Title}\" ${2|max-height=\"300px\",transparent|}",
+            "::: message nickname=\"${3:User1}\" location=\"left\"",
+            "${4:Hello!}",
+            ":::",
+            "",
+            "::: message nickname=\"${5:User2}\" location=\"right\"",
+            "${6:Hi there! How can I help you?}",
+            ":::",
+            "$0",
+            "::::"
+        ],
+        "description": "Creates a chat panel with a title and optional attributes."
+    },
+    "@Chat Message": {
+        "prefix": "@chat-message",
+        "body": [
+            "::: message nickname=\"${1:User}\" location=\"${2|left,right|}\"",
+            "${0:Message content}",
+            ":::"
+        ],
+        "description": "Adds a basic chat message with nickname and location."
+    },
 
     // ---------- VPHero Component ----------
     "@Hero": {
@@ -1711,58 +1015,21 @@
             "  name: \"${1:Project Name}\"",
             "  text: \"${2:Project Description}\"",
             "  tagline: \"${3:Your project's tagline here}\"",
-            "  actions:",
-            "    - theme: brand",
-            "      text: \"${4:Get Started}\"",
-            "      link: \"${5:/guide/}\"",
-            "---",
-            "",
-            "$0"
-        ],
-        "description": "Simple hero page layout."
-    },
-    "@Hero Image": {
-        "prefix": "@hero-image",
-        "body": [
-            "---",
-            "layout: home",
-            "hero:",
-            "  name: \"${1:Project Name}\"",
-            "  text: \"${2:Project Description}\"",
-            "  tagline: \"${3:Your project's tagline here}\"",
             "  image:",
             "    src: \"${4:/logo.png}\"",
             "    alt: \"${5:Project Logo}\"",
+            "  customSnippet: ${6|true,'custom'|}",
             "  actions:",
             "    - theme: brand",
-            "      text: \"${6:Get Started}\"",
-            "      link: \"${7:/guide/}\"",
+            "      text: \"${7:Get Started}\"",
+            "      link: \"${8:/guide/}\"",
             "---",
             "",
             "$0"
         ],
-        "description": "Hero page with image."
+        "description": "Complete hero page layout with image and snippets support."
     },
-    "@Hero Animated": {
-        "prefix": "@hero-animated",
-        "body": [
-            "---",
-            "layout: home",
-            "hero:",
-            "  name: \"${1:Project Name}\"",
-            "  text: \"${2:Project Description}\"",
-            "  tagline: \"${3:Your project's tagline here}\"",
-            "  customSnippet: ${4|true,'custom'|}",
-            "  actions:",
-            "    - theme: brand",
-            "      text: \"${5:Get Started}\"",
-            "      link: \"${6:/guide/}\"",
-            "---",
-            "",
-            "$0"
-        ],
-        "description": "Hero page with floating code snippets animation."
-    },
+
     "@Hero Action": {
         "prefix": "@hero-action",
         "body": [
@@ -1772,6 +1039,7 @@
         ],
         "description": "Add hero action button."
     },
+
     "@Hero Config": {
         "prefix": "@hero-config",
         "body": [
@@ -1779,82 +1047,130 @@
             "  name: \"${1:Project Name}\"",
             "  text: \"${2:Project Description}\"",
             "  tagline: \"${3:Your project's tagline here}\"",
+            "  image:",
+            "    src: \"${4:/logo.png}\"",
+            "    alt: \"${5:Project Logo}\"",
+            "  customSnippet: ${6|true,'custom'|}",
             "  actions:",
             "    - theme: brand",
-            "      text: \"${4:Get Started}\"",
-            "      link: \"${5:/guide/}\""
+            "      text: \"${7:Get Started}\"",
+            "      link: \"${8:/guide/}\""
         ],
-        "description": "Hero configuration block only."
+        "description": "Hero configuration block for existing pages."
     },
-    "Insert Bills component with inline data": {
-		"prefix": "@bills-with-data",
-		"body": [
-			"<Bills :bills='[",
-			"  {",
-			"    \"date\": \"${1:YYYY-MM-DD}\",",
-			"    \"exchanged-amount\": ${2:0.00},",
-			"    \"target\": \"${3:Target/Source}\",",
-			"    \"operator\": \"${4:Operator}\",",
-			"    \"description\": \"${5:Description of the transaction}\",",
-			"    \"type\": \"${6|income,outlay|}\"",
-			"  }",
-			"]' />"
-		],
-		"description": "Inserts a Bills component with inline JSON data. For optional fields like 'original-amount', add them manually."
-	},
-	"@Bills Component": {
-		"prefix": "@bill",
-		"body": [
-			"<Bills />"
-		],
-		"description": "Inserts a basic Bills component that uses the default data source."
-	},
-	"Sample Bill Data": {
-		"prefix": "@bill-data",
-		"body": [
-			"[",
-			"  {",
-			"    \"date\": \"2025-07-01\",",
-			"    \"exchanged-amount\": 216.35,",
-			"    \"target\": \"Mirror 酱\",",
-			"    \"operator\": \"Pigeon0v0\",",
-			"    \"description\": \"开发者分成提现\",",
-			"    \"type\": \"income\"",
-			"  },",
-			"  {",
-			"    \"date\": \"2025-06-15\",",
-			"    \"original-amount\": 17.94,",
-			"    \"original-unit\": \"$\",",
-			"    \"exchanged-amount\": 128.76,",
-			"    \"target\": \"NameCheap\",",
-			"    \"operator\": \"EncVar\",",
-			"    \"description\": \"购买域名 pclc.cc\",",
-			"    \"type\": \"outlay\"",
-			"  },",
-			"  {",
-			"    \"date\": \"2025-06-15\",",
-			"    \"exchanged-amount\": 89.03,",
-			"    \"target\": \"Vercel\",",
-			"    \"operator\": \"Pigeon0v0\",",
-			"    \"description\": \"Pro 订阅\",",
-			"    \"type\": \"outlay\"",
-			"  }",
-			"]"
-		],
-		"description": "Provides a sample JSON array of bill data, suitable for use in bills.json or for inline data."
-	},
-	"Sample Bill Object": {
-		"prefix": "@bill-object",
-		"body": [
-			"  {",
-			"    \"date\": \"${1:YYYY-MM-DD}\",",
-			"    \"exchanged-amount\": ${2:0.00},",
-			"    \"target\": \"${3:Target/Source}\",",
-			"    \"operator\": \"${4:Operator}\",",
-			"    \"description\": \"${5:Description of the transaction}\",",
-			"    \"type\": \"${6|income,outlay|}\"$0",
-			"  }"
-		],
-		"description": "Provides a single JSON object for a bill, perfect for adding to an existing array."
-	}
+
+    "Bills Component": {
+        "prefix": "@bills",
+        "body": ["<Bills />"],
+        "description": "Inserts a basic Bills component that uses the default data source."
+    },
+
+    "Bills Component with Data (Optional)": {
+        "prefix": "@bills-component-with-config",
+        "body": [
+            "<Bills :bills='[",
+            "  {",
+            "    \"date\": \"${1:YYYY-MM-DD}\",",
+            "    \"exchanged-amount\": ${2:0.00},",
+            "    \"target\": \"${3:Target/Source}\",",
+            "    \"operator\": \"${4:Operator}\",",
+            "    \"description\": \"${5:Description}\",",
+            "    \"type\": \"${6|income,outlay|}\"",
+            "  }${0}",
+            "]' />"
+        ],
+        "description": "Bills component with inline data (required fields only)."
+    },
+
+    "Bills Component with Data (Full)": {
+        "prefix": "@bills-component-with-config-full",
+        "body": [
+            "<Bills :bills='[",
+            "  {",
+            "    \"date\": \"${1:YYYY-MM-DD}\",",
+            "    \"exchanged-amount\": ${2:0.00},",
+            "    \"target\": \"${3:Target/Source}\",",
+            "    \"operator\": \"${4:Operator}\",",
+            "    \"description\": \"${5:Description}\",",
+            "    \"type\": \"${6|income,outlay|}\",",
+            "    \"original-amount\": ${7:0.00},",
+            "    \"original-unit\": \"${8:USD}\",",
+            "    \"target-unit\": \"${9:CNY}\"",
+            "  }${0}",
+            "]' />"
+        ],
+        "description": "Bills component with inline data including all optional currency conversion fields."
+    },
+
+    "Bill Data Template (Optional)": {
+        "prefix": "@bill-data",
+        "body": [
+            "[",
+            "  {",
+            "    \"date\": \"${1:YYYY-MM-DD}\",",
+            "    \"exchanged-amount\": ${2:0.00},",
+            "    \"target\": \"${3:Target/Source}\",",
+            "    \"operator\": \"${4:Operator}\",",
+            "    \"description\": \"${5:Description}\",",
+            "    \"type\": \"${6|income,outlay|}\"",
+            "  }${7:,}",
+            "  ${0:// Add more bill objects as needed}",
+            "]"
+        ],
+        "description": "Template for bill data array with required fields only."
+    },
+
+    "Bill Data Template (Full)": {
+        "prefix": "@bill-data-full",
+        "body": [
+            "[",
+            "  {",
+            "    \"date\": \"${1:YYYY-MM-DD}\",",
+            "    \"exchanged-amount\": ${2:0.00},",
+            "    \"target\": \"${3:Target/Source}\",",
+            "    \"operator\": \"${4:Operator}\",",
+            "    \"description\": \"${5:Description}\",",
+            "    \"type\": \"${6|income,outlay|}\",",
+            "    \"original-amount\": ${7:0.00},",
+            "    \"original-unit\": \"${8:USD}\",",
+            "    \"target-unit\": \"${9:CNY}\"",
+            "  }${10:,}",
+            "  ${0:// Add more bill objects as needed}",
+            "]"
+        ],
+        "description": "Template for bill data array with all fields including optional currency conversion."
+    },
+
+    "Bill Object (Optional)": {
+        "prefix": "@bill-object",
+        "body": [
+            "{",
+            "  \"date\": \"${1:YYYY-MM-DD}\",",
+            "  \"exchanged-amount\": ${2:0.00},",
+            "  \"target\": \"${3:Target/Source}\",",
+            "  \"operator\": \"${4:Operator}\",",
+            "  \"description\": \"${5:Description}\",",
+            "  \"type\": \"${6|income,outlay|}\"",
+            "}${0}"
+        ],
+        "description": "Template for a single bill object with required fields only."
+    },
+
+    "Bill Object (Full)": {
+        "prefix": "@bill-object-full",
+        "body": [
+            "{",
+            "  \"date\": \"${1:YYYY-MM-DD}\",",
+            "  \"exchanged-amount\": ${2:0.00},",
+            "  \"target\": \"${3:Target/Source}\",",
+            "  \"operator\": \"${4:Operator}\",",
+            "  \"description\": \"${5:Description}\",",
+            "  \"type\": \"${6|income,outlay|}\",",
+            "  \"original-amount\": ${7:0.00},",
+            "  \"original-unit\": \"${8:USD}\",",
+            "  \"target-unit\": \"${9:CNY}\"",
+            "}${0}"
+        ],
+        "description": "Template for a single bill object with all fields including optional currency conversion."
+    }
 }

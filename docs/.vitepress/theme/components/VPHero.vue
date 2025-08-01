@@ -443,6 +443,7 @@
     const parallaxContainer = ref<HTMLElement | null>(null);
     const floatingWords = ref<HTMLElement[]>([]);
     const isMobile = ref(false);
+    const mobileActionsVisible = ref(false);
 
     const rotationTimer = ref<NodeJS.Timeout | null>(null);
 
@@ -498,6 +499,26 @@
     };
 
     /**
+     * Handles scroll events to show/hide mobile actions.
+     */
+    const handleScroll = () => {
+        if (!isMobile.value) return;
+        
+        const scrollY = window.scrollY;
+        const heroElement = document.querySelector('.VPHero') as HTMLElement;
+        const heroHeight = heroElement?.offsetHeight || 0;
+        const threshold = heroHeight * 0.7; // Show buttons when 70% of hero is scrolled
+        
+        if (scrollY > threshold && !mobileActionsVisible.value) {
+            mobileActionsVisible.value = true;
+            document.querySelector('.mobile-actions-section')?.classList.add('visible');
+        } else if (scrollY <= threshold && mobileActionsVisible.value) {
+            mobileActionsVisible.value = false;
+            document.querySelector('.mobile-actions-section')?.classList.remove('visible');
+        }
+    };
+
+    /**
      * Checks if a link is an external URL.
      * @param link - The URL to check.
      * @returns True if the link is external, false otherwise.
@@ -535,6 +556,9 @@
                 window.addEventListener("resize", checkMobile, {
                     passive: true,
                 });
+                window.addEventListener("scroll", handleScroll, {
+                    passive: true,
+                });
             }
         });
     });
@@ -548,6 +572,7 @@
         if (typeof window !== "undefined") {
             window.removeEventListener("mousemove", handleMouseMove);
             window.removeEventListener("resize", checkMobile);
+            window.removeEventListener("scroll", handleScroll);
         }
     });
 </script>
@@ -653,7 +678,7 @@
 
                 <div
                     v-if="actions && actions.length > 0"
-                    class="actions"
+                    class="actions mobile-hidden"
                 >
                     <motion.div
                         v-for="(action, index) in actions"
@@ -703,6 +728,36 @@
                     </slot>
                 </div>
             </motion.div>
+        </div>
+
+        <!-- Mobile Actions Section -->
+        <div
+            v-if="actions && actions.length > 0 && isMobile"
+            class="mobile-actions-section"
+        >
+            <div class="mobile-actions-container">
+                <div class="actions">
+                    <motion.div
+                        v-for="(action, index) in actions"
+                        :key="`mobile-btn-${index}`"
+                        class="action"
+                        :variants="buttonVariants"
+                        initial="hidden"
+                        :whileInView="'visible'"
+                        :viewport="{ once: true }"
+                        :custom="index"
+                    >
+                        <VPButton
+                            :theme="action.theme || 'brand'"
+                            :text="action.text"
+                            :href="normalizeActionLink(action.link)"
+                            :target="action.target || (isExternalLink(action.link) ? '_blank' : undefined)"
+                            :rel="action.rel || (isExternalLink(action.link) ? 'noopener noreferrer' : undefined)"
+                            size="medium"
+                        />
+                    </motion.div>
+                </div>
+            </div>
         </div>
 
         <div class="hero-wave">
@@ -1407,21 +1462,43 @@
             margin-bottom: 32px !important;
         }
 
-        .actions {
+        .actions.mobile-hidden {
+            display: none !important;
+        }
+
+        .mobile-actions-section {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: var(--vp-c-bg);
+            border-top: 1px solid var(--vp-c-divider);
+            padding: 16px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+
+        .mobile-actions-section.visible {
+            transform: translateY(0);
+        }
+
+        .mobile-actions-container {
+            max-width: 320px;
+            margin: 0 auto;
+        }
+
+        .mobile-actions-section .actions {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
-            max-width: 320px;
-            margin: 0 auto;
             justify-content: center;
         }
 
-        .action {
+        .mobile-actions-section .action {
             flex: 0 0 auto;
             min-width: 120px;
         }
-
-
     }
 
     @media (max-width: 480px) {
@@ -1440,12 +1517,14 @@
             margin-bottom: 24px !important;
         }
 
-        .actions {
+        .mobile-actions-section {
+            padding: 12px;
+        }
+
+        .mobile-actions-section .actions {
             gap: 10px !important;
             max-width: 280px !important;
         }
-
-
     }
 
     @media (prefers-reduced-motion: reduce) {
