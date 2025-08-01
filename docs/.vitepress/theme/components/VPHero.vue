@@ -73,6 +73,12 @@
 
     const allSnippets = ref<SnippetConfig[]>([]);
 
+    // 新增：移动端滚动控制
+    const isMobile = ref(false);
+    const scrollProgress = ref(0);
+    const showSecondaryContent = ref(false);
+    const heroContainer = ref<HTMLElement | null>(null);
+
     watch(
         () => [lang.value, frontmatter.value.hero] as const,
         async ([currentLang, heroConfig]) => {
@@ -300,6 +306,7 @@
         }, 1000);
     };
 
+    // 动画变体
     const heroContainerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -442,9 +449,6 @@
 
     const parallaxContainer = ref<HTMLElement | null>(null);
     const floatingWords = ref<HTMLElement[]>([]);
-    const isMobile = ref(false);
-    const mobileActionsVisible = ref(false);
-
     const rotationTimer = ref<NodeJS.Timeout | null>(null);
 
     watch(shouldShowFloatingWords, (isShown) => {
@@ -488,6 +492,20 @@
     };
 
     /**
+     * 处理滚动事件，控制移动端内容显示
+     */
+    const handleScroll = () => {
+        if (!isMobile.value || !heroContainer.value) return;
+
+        const scrollY = window.scrollY;
+        const heroHeight = heroContainer.value.offsetHeight;
+        const threshold = heroHeight * 0.3; // 滚动30%后显示次要内容
+
+        scrollProgress.value = Math.min(scrollY / threshold, 1);
+        showSecondaryContent.value = scrollY > threshold;
+    };
+
+    /**
      * Checks if the device is mobile and updates the reactive reference.
      */
     const checkMobile = () => {
@@ -496,26 +514,6 @@
             /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
                 navigator.userAgent,
             );
-    };
-
-    /**
-     * Handles scroll events to show/hide mobile actions.
-     */
-    const handleScroll = () => {
-        if (!isMobile.value) return;
-        
-        const scrollY = window.scrollY;
-        const heroElement = document.querySelector('.VPHero') as HTMLElement;
-        const heroHeight = heroElement?.offsetHeight || 0;
-        const threshold = heroHeight * 0.7; // Show buttons when 70% of hero is scrolled
-        
-        if (scrollY > threshold && !mobileActionsVisible.value) {
-            mobileActionsVisible.value = true;
-            document.querySelector('.mobile-actions-section')?.classList.add('visible');
-        } else if (scrollY <= threshold && mobileActionsVisible.value) {
-            mobileActionsVisible.value = false;
-            document.querySelector('.mobile-actions-section')?.classList.remove('visible');
-        }
     };
 
     /**
@@ -579,13 +577,14 @@
 
 <template>
     <div
+        ref="heroContainer"
         class="VPHero hero-enhanced"
-        :class="{ 'has-image': image || heroImageSlotExists }"
+        :class="{ 'has-image': image || heroImageSlotExists, 'mobile-scrolled': isMobile && showSecondaryContent }"
     >
         <div class="hero-bg" ref="parallaxContainer">
             <div class="bg-gradient"></div>
 
-            <div v-if="shouldShowFloatingWords" class="floating-words">
+            <div v-if="shouldShowFloatingWords && (!isMobile || showSecondaryContent)" class="floating-words">
                 <div
                     v-for="(category, catIndex) in snippetCategories"
                     :key="category.name"
@@ -614,6 +613,7 @@
         <div class="container">
             <motion.div
                 class="main"
+                :class="{ 'mobile-layout': isMobile }"
                 :variants="heroContainerVariants"
                 initial="hidden"
                 :whileInView="'visible'"
@@ -621,36 +621,57 @@
             >
                 <slot name="home-hero-info-before" />
                 <slot name="home-hero-info">
-                    <div class="heading">
-                        <h1 v-if="props.name" class="name">
-                            <motion.span
-                                v-for="(word, wordIndex) in props.name.split(' ')"
-                                :key="`word-${wordIndex}`"
-                                class="word-wrapper"
-                                :variants="wordVariants"
-                                :custom="wordIndex"
-                                initial="hidden"
-                                :whileInView="'visible'"
-                                :viewport="{ once: false, margin: '-100px' }"
-                            >
+                    <!-- 主要内容：标题和tagline（移动端始终显示） -->
+                    <div class="primary-content">
+                        <div class="heading">
+                            <h1 v-if="props.name" class="name">
                                 <motion.span
-                                    v-for="(letter, letterIndex) in word.split(
-                                        ''
-                                    )"
-                                    :key="`letter-${wordIndex}-${letterIndex}`"
-                                    class="letter"
-                                    :variants="letterVariants"
-                                    :custom="wordIndex * 5 + letterIndex"
+                                    v-for="(word, wordIndex) in props.name.split(' ')"
+                                    :key="`word-${wordIndex}`"
+                                    class="word-wrapper"
+                                    :variants="wordVariants"
+                                    :custom="wordIndex"
                                     initial="hidden"
                                     :whileInView="'visible'"
-                                        :viewport="{ once: false, margin: '-100px' }"
+                                    :viewport="{ once: false, margin: '-100px' }"
                                 >
-                                    {{ letter }}
+                                    <motion.span
+                                        v-for="(letter, letterIndex) in word.split('')"
+                                        :key="`letter-${wordIndex}-${letterIndex}`"
+                                        class="letter"
+                                        :variants="letterVariants"
+                                        :custom="wordIndex * 5 + letterIndex"
+                                        initial="hidden"
+                                        :whileInView="'visible'"
+                                        :viewport="{ once: false, margin: '-100px' }"
+                                    >
+                                        {{ letter }}
+                                    </motion.span>
+                                    <span class="word-space">&nbsp;</span>
                                 </motion.span>
-                                <span class="word-space">&nbsp;</span>
-                            </motion.span>
-                        </h1>
+                            </h1>
+                        </div>
 
+                        <motion.p
+                            v-if="props.tagline"
+                            class="tagline"
+                            :variants="taglineVariants"
+                            initial="hidden"
+                            :whileInView="'visible'"
+                            :viewport="{ once: false, margin: '-100px' }"
+                        >
+                            {{ props.tagline }}
+                        </motion.p>
+                    </div>
+
+                    <!-- 次要内容：描述文字（移动端滚动后显示） -->
+                    <div 
+                        class="secondary-content"
+                        :class="{ 
+                            'mobile-hidden': isMobile && !showSecondaryContent,
+                            'mobile-visible': isMobile && showSecondaryContent 
+                        }"
+                    >
                         <motion.h2
                             v-if="props.text"
                             class="text"
@@ -662,23 +683,17 @@
                             {{ props.text }}
                         </motion.h2>
                     </div>
-
-                    <motion.p
-                        v-if="props.tagline"
-                        class="tagline"
-                        :variants="taglineVariants"
-                        initial="hidden"
-                        :whileInView="'visible'"
-                        :viewport="{ once: false, margin: '-100px' }"
-                    >
-                        {{ props.tagline }}
-                    </motion.p>
                 </slot>
                 <slot name="home-hero-info-after" />
 
+                <!-- 按钮组（移动端滚动后显示） -->
                 <div
                     v-if="actions && actions.length > 0"
-                    class="actions mobile-hidden"
+                    class="actions"
+                    :class="{ 
+                        'mobile-hidden': isMobile && !showSecondaryContent,
+                        'mobile-visible': isMobile && showSecondaryContent 
+                    }"
                 >
                     <motion.div
                         v-for="(action, index) in actions"
@@ -703,6 +718,7 @@
                 <slot name="home-hero-actions-after" />
             </motion.div>
 
+            <!-- 图片在移动端始终显示 -->
             <div
                 v-if="(image || heroImageSlotExists) && isMobile"
                 class="image image-mobile"
@@ -730,36 +746,6 @@
             </motion.div>
         </div>
 
-        <!-- Mobile Actions Section -->
-        <div
-            v-if="actions && actions.length > 0 && isMobile"
-            class="mobile-actions-section"
-        >
-            <div class="mobile-actions-container">
-                <div class="actions">
-                    <motion.div
-                        v-for="(action, index) in actions"
-                        :key="`mobile-btn-${index}`"
-                        class="action"
-                        :variants="buttonVariants"
-                        initial="hidden"
-                        :whileInView="'visible'"
-                        :viewport="{ once: true }"
-                        :custom="index"
-                    >
-                        <VPButton
-                            :theme="action.theme || 'brand'"
-                            :text="action.text"
-                            :href="normalizeActionLink(action.link)"
-                            :target="action.target || (isExternalLink(action.link) ? '_blank' : undefined)"
-                            :rel="action.rel || (isExternalLink(action.link) ? 'noopener noreferrer' : undefined)"
-                            size="medium"
-                        />
-                    </motion.div>
-                </div>
-            </div>
-        </div>
-
         <div class="hero-wave">
             <svg
                 viewBox="0 0 1200 120"
@@ -781,6 +767,16 @@
                     class="shape-fill"
                 ></path>
             </svg>
+        </div>
+
+        <!-- 移动端滚动提示 -->
+        <div v-if="isMobile && !showSecondaryContent" class="scroll-indicator">
+            <div class="scroll-arrow">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+            <span class="scroll-text">向下滑动查看更多</span>
         </div>
     </div>
 </template>
@@ -827,6 +823,58 @@
         flex-shrink: 0;
     }
 
+    .main.mobile-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .primary-content {
+        order: 1;
+    }
+
+    .secondary-content {
+        order: 2;
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .secondary-content.mobile-hidden {
+        opacity: 0;
+        transform: translateY(30px);
+        max-height: 0;
+        overflow: hidden;
+        margin: 0;
+        pointer-events: none;
+    }
+
+    .secondary-content.mobile-visible {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 500px;
+        margin: 1rem 0;
+    }
+
+    .actions {
+        order: 3;
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .actions.mobile-hidden {
+        opacity: 0;
+        transform: translateY(30px);
+        max-height: 0;
+        overflow: hidden;
+        margin: 0;
+        pointer-events: none;
+    }
+
+    .actions.mobile-visible {
+        opacity: 1;
+        transform: translateY(0);
+        max-height: 200px;
+        margin: 1.5rem 0;
+    }
+
     .VPHero.has-image .container {
         text-align: center;
     }
@@ -844,6 +892,17 @@
 
         .VPHero.has-image .main {
             max-width: none;
+        }
+
+        /* 桌面端重置移动端样式 */
+        .secondary-content.mobile-hidden,
+        .actions.mobile-hidden {
+            opacity: 1;
+            transform: none;
+            max-height: none;
+            overflow: visible;
+            margin: revert;
+            pointer-events: auto;
         }
     }
 
@@ -966,8 +1025,6 @@
         filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
     }
 
-    
-
     .VPHero.has-image .tagline {
         margin-left: auto;
         margin-right: auto;
@@ -1005,10 +1062,6 @@
         z-index: 1;
     }
 
-
-
-
-
     .image {
         order: 1;
         margin: -40px -24px 40px;
@@ -1020,6 +1073,8 @@
         transform: none !important;
         visibility: visible !important;
         animation: mobile-fade-in 0.6s ease-out;
+        order: 0; /* 图片在移动端显示在最上方 */
+        margin-bottom: 2rem;
     }
 
     @keyframes mobile-fade-in {
@@ -1086,6 +1141,49 @@
     .image-mobile .image-src {
         transform: none !important;
         -webkit-transform: none !important;
+    }
+
+    /* 滚动提示器 */
+    .scroll-indicator {
+        position: absolute;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.5rem;
+        color: var(--vp-c-text-2);
+        z-index: 15;
+        animation: scroll-bounce 2s ease-in-out infinite;
+    }
+
+    .scroll-arrow {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: rgba(var(--vp-c-brand-rgb), 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(var(--vp-c-brand-rgb), 0.2);
+    }
+
+    .scroll-text {
+        font-size: 12px;
+        font-weight: 500;
+        text-align: center;
+        opacity: 0.8;
+    }
+
+    @keyframes scroll-bounce {
+        0%, 100% {
+            transform: translateX(-50%) translateY(0);
+        }
+        50% {
+            transform: translateX(-50%) translateY(-8px);
+        }
     }
 
     .hero-bg {
@@ -1201,8 +1299,6 @@
             opacity: 0.7;
         }
     }
-
-
 
     .floating-words {
         position: absolute;
@@ -1433,7 +1529,7 @@
 
     @media (max-width: 768px) {
         .VPHero.hero-enhanced {
-            min-height: 90vh;
+            min-height: 100vh; /* 确保满屏 */
             padding: calc(
                     var(--vp-nav-height) + var(--vp-layout-top-height, 0px) +
                         40px
@@ -1462,42 +1558,25 @@
             margin-bottom: 32px !important;
         }
 
-        .actions.mobile-hidden {
-            display: none !important;
-        }
-
-        .mobile-actions-section {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-            background: var(--vp-c-bg);
-            border-top: 1px solid var(--vp-c-divider);
-            padding: 16px;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-        }
-
-        .mobile-actions-section.visible {
-            transform: translateY(0);
-        }
-
-        .mobile-actions-container {
-            max-width: 320px;
-            margin: 0 auto;
-        }
-
-        .mobile-actions-section .actions {
+        .actions {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
+            max-width: 320px;
+            margin: 0 auto;
             justify-content: center;
         }
 
-        .mobile-actions-section .action {
+        .action {
             flex: 0 0 auto;
             min-width: 120px;
+        }
+
+        /* 移动端时隐藏滚动提示器 */
+        .mobile-scrolled .scroll-indicator {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
         }
     }
 
@@ -1517,11 +1596,7 @@
             margin-bottom: 24px !important;
         }
 
-        .mobile-actions-section {
-            padding: 12px;
-        }
-
-        .mobile-actions-section .actions {
+        .actions {
             gap: 10px !important;
             max-width: 280px !important;
         }
@@ -1535,6 +1610,10 @@
         }
 
         .floating-word {
+            animation: none !important;
+        }
+
+        .scroll-indicator {
             animation: none !important;
         }
     }

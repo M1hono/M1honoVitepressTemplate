@@ -1114,7 +1114,6 @@
             "    \"description\": \"${5:Description}\",",
             "    \"type\": \"${6|income,outlay|}\"",
             "  }${7:,}",
-            "  ${0:// Add more bill objects as needed}",
             "]"
         ],
         "description": "Template for bill data array with required fields only."
