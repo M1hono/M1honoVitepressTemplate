@@ -614,7 +614,7 @@
             <motion.div
                 class="main"
                 :class="{ 'mobile-layout': isMobile }"
-                :variants="heroContainerVariants"
+                :variants="heroContainerVariants as any"
                 initial="hidden"
                 :whileInView="'visible'"
                 :viewport="{ once: false, margin: '-50px' }"
@@ -629,7 +629,7 @@
                                     v-for="(word, wordIndex) in props.name.split(' ')"
                                     :key="`word-${wordIndex}`"
                                     class="word-wrapper"
-                                    :variants="wordVariants"
+                                    :variants="wordVariants as any"
                                     :custom="wordIndex"
                                     initial="hidden"
                                     :whileInView="'visible'"
@@ -639,7 +639,7 @@
                                         v-for="(letter, letterIndex) in word.split('')"
                                         :key="`letter-${wordIndex}-${letterIndex}`"
                                         class="letter"
-                                        :variants="letterVariants"
+                                        :variants="letterVariants as any"
                                         :custom="wordIndex * 5 + letterIndex"
                                         initial="hidden"
                                         :whileInView="'visible'"
@@ -655,7 +655,7 @@
                         <motion.p
                             v-if="props.tagline"
                             class="tagline"
-                            :variants="taglineVariants"
+                            :variants="taglineVariants as any"
                             initial="hidden"
                             :whileInView="'visible'"
                             :viewport="{ once: false, margin: '-100px' }"
@@ -675,7 +675,7 @@
                         <motion.h2
                             v-if="props.text"
                             class="text"
-                            :variants="subtitleVariants"
+                            :variants="subtitleVariants as any"
                             initial="hidden"
                             :whileInView="'visible'"
                             :viewport="{ once: false, margin: '-100px' }"
@@ -686,7 +686,7 @@
                 </slot>
                 <slot name="home-hero-info-after" />
 
-                <!-- 按钮组（移动端滚动后显示） -->
+                <!-- 按钮组（移动端滚动后显示） - 优化布局 -->
                 <div
                     v-if="actions && actions.length > 0"
                     class="actions"
@@ -699,7 +699,7 @@
                         v-for="(action, index) in actions"
                         :key="`btn-${index}`"
                         class="action"
-                        :variants="buttonVariants"
+                        :variants="buttonVariants as any"
                         initial="hidden"
                         :whileInView="'visible'"
                         :viewport="{ once: true }"
@@ -712,6 +712,7 @@
                             :target="action.target || (isExternalLink(action.link) ? '_blank' : undefined)"
                             :rel="action.rel || (isExternalLink(action.link) ? 'noopener noreferrer' : undefined)"
                             size="medium"
+                            class="hero-button"
                         />
                     </motion.div>
                 </div>
@@ -732,8 +733,8 @@
             <motion.div
                 v-else-if="image || heroImageSlotExists"
                 class="image"
-                :variants="imageVariants"
-                :whileHover="imageHover"
+                :variants="imageVariants as any"
+                :whileHover="imageHover as any"
                 initial="hidden"
                 :whileInView="'visible'"
                 :viewport="{ once: false, margin: '-50px' }"
@@ -856,6 +857,11 @@
 
     .actions {
         order: 3;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        position: relative;
+        z-index: 10;
         transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
@@ -1037,15 +1043,7 @@
         }
     }
 
-    .actions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 16px;
-        margin-top: 8px;
-        position: relative;
-        z-index: 10;
-    }
-
+    /* 按钮样式优化 */
     .VPHero.has-image .actions {
         justify-content: center;
     }
@@ -1060,6 +1058,28 @@
         flex-shrink: 0;
         position: relative;
         z-index: 1;
+    }
+
+    /* Hero专用按钮样式 */
+    .hero-button {
+        font-weight: 600 !important;
+        font-size: 16px !important;
+        padding: 12px 24px !important;
+        border-radius: 12px !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+
+    .hero-button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+    }
+
+    .hero-button:active {
+        transform: translateY(0) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
     }
 
     .image {
@@ -1559,17 +1579,24 @@
         }
 
         .actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            max-width: 320px;
-            margin: 0 auto;
             justify-content: center;
+            align-items: center;
+            max-width: 100%;
+            margin: 0 auto;
         }
 
         .action {
-            flex: 0 0 auto;
-            min-width: 120px;
+            flex: 1 1 auto;
+            max-width: 280px;
+            min-width: 140px;
+        }
+
+        .hero-button {
+            width: 100% !important;
+            justify-content: center !important;
+            min-height: 48px !important;
+            font-size: 15px !important;
+            padding: 14px 20px !important;
         }
 
         /* 移动端时隐藏滚动提示器 */
@@ -1597,8 +1624,21 @@
         }
 
         .actions {
-            gap: 10px !important;
-            max-width: 280px !important;
+            gap: 12px !important;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .action {
+            width: 100%;
+            max-width: 100%;
+        }
+
+        .hero-button {
+            width: 100% !important;
+            min-height: 50px !important;
+            font-size: 16px !important;
+            font-weight: 600 !important;
         }
     }
 
