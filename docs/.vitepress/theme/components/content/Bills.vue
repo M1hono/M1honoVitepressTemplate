@@ -14,7 +14,7 @@ import { useSafeI18n } from "../../../utils/i18n/locale";
 import { getDefaultCurrency } from "../../../config/project-config";
 
 const props = defineProps<{
-    bills: Bill[] | string;
+    bills: Bill[] | (() => Promise<Bill[]>);
     currency?: string;
 }>();
 
@@ -97,11 +97,12 @@ async function fetchAvailableCurrencies() {
 const initialize = async () => {
     isLoading.value = true;
     let sourceBills: Bill[] = [];
-    if (typeof props.bills === "string") {
+    
+    if (typeof props.bills === "function") {
         try {
-            sourceBills = JSON.parse(props.bills);
+            sourceBills = await props.bills();
         } catch (e) {
-            console.error("Failed to parse bills JSON string:", e);
+            console.error("Failed to load bills from function:", e);
         }
     } else {
         sourceBills = props.bills || [];
