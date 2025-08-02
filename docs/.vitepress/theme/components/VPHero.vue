@@ -73,7 +73,6 @@
 
     const allSnippets = ref<SnippetConfig[]>([]);
 
-    // 新增：移动端滚动控制
     const isMobile = ref(false);
     const scrollProgress = ref(0);
     const showSecondaryContent = ref(false);
@@ -106,7 +105,6 @@
                     allSnippets.value = customData;
                     return;
                 } catch (e) {
-                    // Silently fail and fall through to default.
                 }
             }
 
@@ -306,7 +304,6 @@
         }, 1000);
     };
 
-    // 动画变体
     const heroContainerVariants = {
         hidden: { opacity: 0 },
         visible: {
@@ -499,7 +496,7 @@
 
         const scrollY = window.scrollY;
         const heroHeight = heroContainer.value.offsetHeight;
-        const threshold = heroHeight * 0.3; // 滚动30%后显示次要内容
+        const threshold = heroHeight * 0.3;
 
         scrollProgress.value = Math.min(scrollY / threshold, 1);
         showSecondaryContent.value = scrollY > threshold;
@@ -900,7 +897,6 @@
             max-width: none;
         }
 
-        /* 桌面端重置移动端样式 */
         .secondary-content.mobile-hidden,
         .actions.mobile-hidden {
             opacity: 1;
@@ -1043,14 +1039,36 @@
         }
     }
 
-    /* 按钮样式优化 */
+    .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        padding-top: 32px;
+        position: relative;
+        z-index: 10;
+        transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        justify-content: center;
+        align-items: center;
+    }
+
     .VPHero.has-image .actions {
         justify-content: center;
+    }
+
+    @media (min-width: 640px) {
+        .actions {
+            padding-top: 40px;
+            gap: 20px;
+        }
     }
 
     @media (min-width: 960px) {
         .VPHero.has-image .actions {
             justify-content: flex-start;
+        }
+        
+        .actions {
+            gap: 24px;
         }
     }
 
@@ -1060,26 +1078,27 @@
         z-index: 1;
     }
 
-    /* Hero专用按钮样式 */
     .hero-button {
         font-weight: 600 !important;
         font-size: 16px !important;
-        padding: 12px 24px !important;
+        padding: 14px 28px !important;
         border-radius: 12px !important;
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12) !important;
         backdrop-filter: blur(10px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        min-width: 140px !important;
+        text-align: center !important;
     }
 
     .hero-button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
+        transform: translateY(-3px) !important;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.18) !important;
     }
 
     .hero-button:active {
-        transform: translateY(0) !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
     }
 
     .image {
@@ -1093,7 +1112,7 @@
         transform: none !important;
         visibility: visible !important;
         animation: mobile-fade-in 0.6s ease-out;
-        order: 0; /* 图片在移动端显示在最上方 */
+        order: 0;
         margin-bottom: 2rem;
     }
 
@@ -1163,7 +1182,6 @@
         -webkit-transform: none !important;
     }
 
-    /* 滚动提示器 */
     .scroll-indicator {
         position: absolute;
         bottom: 2rem;
@@ -1240,7 +1258,6 @@
         animation: bg-shift 15s ease-in-out infinite;
     }
 
-    /* Sunshine light ray effects */
     .bg-gradient::before {
         content: "";
         position: absolute;
@@ -1549,7 +1566,7 @@
 
     @media (max-width: 768px) {
         .VPHero.hero-enhanced {
-            min-height: 100vh; /* 确保满屏 */
+            min-height: 100vh;
             padding: calc(
                     var(--vp-nav-height) + var(--vp-layout-top-height, 0px) +
                         40px
@@ -1583,6 +1600,8 @@
             align-items: center;
             max-width: 100%;
             margin: 0 auto;
+            padding-top: 24px;
+            gap: 12px;
         }
 
         .action {
@@ -1599,7 +1618,6 @@
             padding: 14px 20px !important;
         }
 
-        /* 移动端时隐藏滚动提示器 */
         .mobile-scrolled .scroll-indicator {
             opacity: 0;
             pointer-events: none;
@@ -1624,9 +1642,10 @@
         }
 
         .actions {
-            gap: 12px !important;
+            gap: 16px !important;
             flex-direction: column;
             align-items: stretch;
+            padding-top: 24px;
         }
 
         .action {
