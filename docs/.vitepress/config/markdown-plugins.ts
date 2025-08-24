@@ -35,6 +35,7 @@ import MagicMovePlugin from "../plugins/magic-move";
 import { dialogPlugin } from "../plugins/dialog";
 import { chatPlugin } from "../plugins/chat-message";
 import { withMarkmap } from "../plugins/markmap";
+import { vueCharts } from "../plugins/vue-charts";
 import { isFeatureEnabled } from "./project-config";
 import ts from "typescript";
 
@@ -101,6 +102,7 @@ export const markdown: MarkdownOptions = {
         md.use(tab, iframes);
 
         md.use(card);
+        md.use(vueCharts);
         
         if (isFeatureEnabled('markmap')) {
             withMarkmap(md);
