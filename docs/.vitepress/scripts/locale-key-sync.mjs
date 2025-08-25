@@ -40,11 +40,46 @@ function parseVueFile(content, filename) {
         return null;
     }
 
-    const scriptContent = compileScript(descriptor, {
-        id: filename,
-        isTS: true,
-        inlineTemplate: true,
-    });
+    let scriptContent;
+    try {
+        console.log(`🔍 Processing script for: ${filename}`);
+        
+        if (descriptor.scriptSetup) {
+            const scriptSetupContent = descriptor.scriptSetup.content;
+            scriptContent = {
+                content: scriptSetupContent,
+                map: null,
+                bindings: {},
+                imports: {},
+                scriptAst: null,
+                scriptSetupAst: null
+            };
+            console.log(`  ✅ Successfully extracted script: ${filename}`);
+        } else {
+            console.log(`  ⚠️  No script setup found in ${filename}, skipping`);
+            return null;
+        }
+    } catch (error) {
+        console.error(`❌ Error compiling script for ${filename}:`);
+        console.error(`   Error message: ${error.message}`);
+        console.error(`   Error code: ${error.code}`);
+        if (error.loc) {
+            console.error(`   Location: line ${error.loc.start.line}, column ${error.loc.start.column}`);
+        }
+        
+        // 尝试打印相关的代码行
+        if (descriptor.styles && descriptor.styles.length > 0) {
+            descriptor.styles.forEach((style, index) => {
+                const lines = style.content.split('\n');
+                console.error(`   Style block ${index} content:`);
+                lines.forEach((line, lineNum) => {
+                    console.error(`     ${lineNum + 1}: ${line}`);
+                });
+            });
+        }
+        
+        throw error;
+    }
 
     if (!scriptContent || !scriptContent.content) return null;
 

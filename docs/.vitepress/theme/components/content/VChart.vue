@@ -16,12 +16,10 @@
     import { useData } from "vitepress";
     import { defineAsyncComponent } from "vue";
 
-    // Dynamic import of vue-echarts to avoid SSR issues
     const VueEChart = defineAsyncComponent(async () => {
         const { default: VChart } = await import("vue-echarts");
         const { use } = await import("echarts/core");
 
-        // Import required ECharts components
         const {
             LineChart,
             BarChart,
@@ -67,7 +65,6 @@
 
         const { CanvasRenderer } = await import("echarts/renderers");
 
-        // Register components
         use([
             LineChart,
             BarChart,
@@ -112,9 +109,6 @@
         return VChart;
     });
 
-    /**
-     * @description ECharts Vue component for markdown
-     */
     const props = defineProps({
         options: {
             type: Object,
@@ -136,7 +130,6 @@
 
     const { isDark } = useData();
 
-    // Compute theme based on VitePress dark mode
     const computedTheme = computed(() => {
         if (props.theme === "auto") {
             return isDark.value ? "dark" : null;
@@ -160,7 +153,6 @@
         min-height: 300px;
     }
 
-    /* Ensure proper responsive behavior */
     @media (max-width: 768px) {
         .echarts-container {
             margin: 16px 0;
