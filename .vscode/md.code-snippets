@@ -1470,5 +1470,329 @@
             "${12:Series 3} | ${2:A}: ${13:12}, ${4:B}: ${14:22}, ${6:C}: ${15:32}"
         ],
         "description": "Multi-series data template for charts."
+    },
+
+    // ===================================================================
+    // =================== VUETIFY TIMELINE PLUGIN ======================
+    // ===================================================================
+
+    // ---------- Timeline Plugin Syntax ----------
+    "@Timeline Markdown": {
+        "prefix": "@timeline",
+        "body": [
+            "```timeline",
+            "# align:${1|start,center,end|}, direction:${2|vertical,horizontal|}, density:${3|default,compact,comfortable|}",
+            "",
+            "## ${4:事件标题} | icon:${5:mdi-calendar}, color:${6:primary}, size:${7|default,small,large|}",
+            "### ${8:时间/日期}",
+            "${9:事件描述内容}",
+            "${10:支持多行文本}",
+            "",
+            "## ${11:另一个事件} | color:${12:success}",
+            "### ${13:另一个时间}",
+            "${14:另一个事件的描述}",
+            "```"
+        ],
+        "description": "创建Timeline的Markdown插件语法"
+    },
+
+    "@Timeline Simple": {
+        "prefix": "@timeline-simple",
+        "body": [
+            "```timeline",
+            "## ${1:事件标题}",
+            "### ${2:时间}",
+            "${3:事件描述}",
+            "",
+            "## ${4:另一个事件}",
+            "### ${5:另一个时间}",
+            "${6:另一个描述}",
+            "```"
+        ],
+        "description": "简单的Timeline语法"
+    },
+
+    "@Timeline with Icons": {
+        "prefix": "@timeline-icons",
+        "body": [
+            "```timeline",
+            "# align:start",
+            "",
+            "## ${1:项目启动} | icon:mdi-rocket, color:success, size:large",
+            "### ${2:2024-01-01}",
+            "${3:项目正式启动，团队开始工作}",
+            "",
+            "## ${4:开发阶段} | icon:mdi-code-braces, color:info",
+            "### ${5:2024-02-01}",
+            "${6:进入核心功能开发阶段}",
+            "",
+            "## ${7:项目发布} | icon:mdi-check-circle, color:primary, size:large",
+            "### ${8:2024-03-01}",
+            "${9:项目成功发布上线}",
+            "```"
+        ],
+        "description": "带图标的Timeline示例"
+    },
+
+    "@Timeline Horizontal": {
+        "prefix": "@timeline-horizontal",
+        "body": [
+            "```timeline",
+            "# direction:horizontal, align:center",
+            "",
+            "## ${1:阶段1}",
+            "### ${2:Q1}",
+            "${3:第一阶段内容}",
+            "",
+            "## ${4:阶段2}",
+            "### ${5:Q2}",
+            "${6:第二阶段内容}",
+            "",
+            "## ${7:阶段3}",
+            "### ${8:Q3}",
+            "${9:第三阶段内容}",
+            "```"
+        ],
+        "description": "水平方向的Timeline"
+    },
+
+    "@Timeline Dense": {
+        "prefix": "@timeline-dense",
+        "body": [
+            "```timeline",
+            "# density:compact, align:start",
+            "",
+            "## ${1:任务1} | size:small, color:${2:primary}",
+            "### ${3:时间1}",
+            "${4:简短描述}",
+            "",
+            "## ${5:任务2} | size:small, color:${6:secondary}",
+            "### ${7:时间2}",
+            "${8:简短描述}",
+            "",
+            "## ${9:任务3} | size:small, color:${10:success}",
+            "### ${11:时间3}",
+            "${12:简短描述}",
+            "```"
+        ],
+        "description": "紧凑密度的Timeline"
+    },
+
+    // ---------- Vuetify Native Components ----------
+    "@Vuetify Timeline": {
+        "prefix": "@v-timeline",
+        "body": [
+            "<v-timeline${1: align=\"start\"}>",
+            "  <v-timeline-item",
+            "    ${2:dot-color=\"primary\"}",
+            "    ${3:size=\"default\"}",
+            "    ${4:icon=\"mdi-calendar\"}",
+            "  >",
+            "    <template v-slot:opposite>",
+            "      <div class=\"${5:text-h6 font-weight-bold}\">${6:时间/日期}</div>",
+            "    </template>",
+            "    <div>",
+            "      <div class=\"${7:text-h6}\">${8:标题}</div>",
+            "      <p>${9:内容描述}</p>",
+            "    </div>",
+            "  </v-timeline-item>",
+            "</v-timeline>"
+        ],
+        "description": "原生Vuetify Timeline组件"
+    },
+
+    "@Vuetify Timeline Item": {
+        "prefix": "@v-timeline-item",
+        "body": [
+            "<v-timeline-item",
+            "  ${1:dot-color=\"primary\"}",
+            "  ${2:size=\"default\"}",
+            "  ${3:icon=\"mdi-calendar\"}",
+            ">",
+            "  <template v-slot:opposite>",
+            "    <div class=\"${4:text-caption}\">${5:时间}</div>",
+            "  </template>",
+            "  <div>",
+            "    <div class=\"${6:text-h6}\">${7:标题}</div>",
+            "    <p>${8:内容}</p>",
+            "  </div>",
+            "</v-timeline-item>"
+        ],
+        "description": "Vuetify Timeline项目组件"
+    },
+
+    // ===================================================================
+    // ================== NEW TIMELINE PLUGIN (CONTAINER) ==============
+    // ===================================================================
+
+    // ---------- Timeline Container ----------
+    "@Timeline": {
+        "prefix": "@timeline",
+        "body": [
+            ":::: timeline${1: align=\"${2|start,center,end|}\"}${3: density=\"${4|default,compact,comfortable|}\"}${5: direction=\"${6|vertical,horizontal|}\"}",
+            "$0",
+            "::::"
+        ],
+        "description": "Timeline容器"
+    },
+
+    "@Timeline Start": {
+        "prefix": "@timeline-start",
+        "body": [
+            ":::: timeline align=\"start\"",
+            "$0",
+            "::::"
+        ],
+        "description": "左对齐Timeline容器"
+    },
+
+    "@Timeline Center": {
+        "prefix": "@timeline-center", 
+        "body": [
+            ":::: timeline align=\"center\"",
+            "$0",
+            "::::"
+        ],
+        "description": "居中Timeline容器"
+    },
+
+    // ---------- Timeline Items (Preset Types) ----------
+    "@Item Success": {
+        "prefix": "@item-success",
+        "body": [
+            "::: timeline-item type=\"success\"",
+            "**${1:成功标题}**",
+            "",
+            "${2:成功描述}",
+            ":::"
+        ],
+        "description": "成功预设项目"
+    },
+
+    "@Item Info": {
+        "prefix": "@item-info",
+        "body": [
+            "::: timeline-item type=\"info\"",
+            "**${1:信息标题}**",
+            "",
+            "${2:信息描述}",
+            ":::"
+        ],
+        "description": "信息预设项目"
+    },
+
+    "@Item Warning": {
+        "prefix": "@item-warning",
+        "body": [
+            "::: timeline-item type=\"warning\"",
+            "**${1:警告标题}**",
+            "",
+            "${2:警告描述}",
+            ":::"
+        ],
+        "description": "警告预设项目"
+    },
+
+    "@Item Error": {
+        "prefix": "@item-error",
+        "body": [
+            "::: timeline-item type=\"error\"",
+            "**${1:错误标题}**",
+            "",
+            "${2:错误描述}",
+            ":::"
+        ],
+        "description": "错误预设项目"
+    },
+
+    "@Item Tip": {
+        "prefix": "@item-tip",
+        "body": [
+            "::: timeline-item type=\"tip\"",
+            "**${1:提示标题}**",
+            "",
+            "${2:提示描述}",
+            ":::"
+        ],
+        "description": "提示预设项目"
+    },
+
+    // ---------- Timeline Items (Card Mode) ----------
+    "@Item Card": {
+        "prefix": "@item-card",
+        "body": [
+            "::: timeline-item type=\"${1|success,info,warning,error,tip|}\" card=\"true\"",
+            "**${2:卡片标题}**",
+            "",
+            "${3:卡片内容}",
+            ":::"
+        ],
+        "description": "预设类型卡片项目"
+    },
+
+    "@Item Card Button": {
+        "prefix": "@item-card-button",
+        "body": [
+            "::: timeline-item type=\"${1|success,info,warning,error,tip|}\" card=\"true\" card-button=\"true\" card-button-text=\"${2:按钮文字}\" card-button-link=\"${3:#}\"",
+            "**${4:卡片标题}**",
+            "",
+            "${5:卡片内容}",
+            ":::"
+        ],
+        "description": "带按钮的卡片项目"
+    },
+
+    "@Item Card Full": {
+        "prefix": "@item-card-full",
+        "body": [
+            "::: timeline-item type=\"${1|success,info,warning,error,tip|}\" card=\"true\" card-button=\"true\" card-button-text=\"${2:按钮文字}\" card-button-color=\"${3|primary,secondary,success,info,warning,error|}\" card-button-link=\"${4:https://example.com}\" card-button-target=\"${5|_blank,_self|}\"",
+            "**${6:卡片标题}**",
+            "",
+            "${7:卡片内容}",
+            ":::"
+        ],
+        "description": "完整配置卡片项目"
+    },
+
+    // ---------- Timeline Items (Custom) ----------
+    "@Item Custom": {
+        "prefix": "@item-custom",
+        "body": [
+            "::: timeline-item type=\"custom\" dot-color=\"${1:primary}\" icon=\"${2:mdi-circle}\"${3: size=\"${4|small,default,large,x-large|}\"}",
+            "**${5:自定义标题}**",
+            "",
+            "${6:自定义内容}",
+            ":::"
+        ],
+        "description": "自定义Timeline项目"
+    },
+
+    "@Item Custom Full": {
+        "prefix": "@item-custom-full",
+        "body": [
+            "::: timeline-item type=\"custom\" dot-color=\"${1:purple-lighten-2}\" icon=\"${2:mdi-star}\" size=\"${3|small,default,large,x-large|}\" fill-dot=\"${4|true,false|}\" card=\"${5|true,false|}\"${6: card-color=\"purple-lighten-2\"}${7: card-icon=\"mdi-crown\"}${8: card-icon-align=\"${9|left,right|}\"}",
+            "**${10:标题}**",
+            "",
+            "${11:内容}",
+            ":::"
+        ],
+        "description": "完全自定义Timeline项目"
+    },
+
+    // ---------- End Timeline Container ----------
+    "@x4": {
+        "prefix": "@:x4",
+        "body": [
+            "::::"
+        ],
+        "description": "结束Timeline容器"
+    },
+
+    "@x3": {
+        "prefix": "@:x3",
+        "body": [
+            ":::"
+        ],
+        "description": "结束Timeline容器"
     }
 }

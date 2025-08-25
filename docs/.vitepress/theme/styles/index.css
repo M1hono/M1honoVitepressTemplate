@@ -36,6 +36,7 @@
 @import "./components/stepper.css";
 @import "./components/carousel.css";
 @import "./components/tags.css";
+@import "./components/timeline.css";
 
 /* ===== EXTERNAL PLUGIN IMPORTS ===== */
 /* VitePress plugins */

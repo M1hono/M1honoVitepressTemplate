@@ -1,0 +1,134 @@
+/* Timeline Component Styles */
+/* Support for VitePress dark mode */
+
+.timeline-card-content {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Light Mode */
+html:not(.dark) .timeline-card-content {
+    background-color: white !important;
+    color: var(--vp-c-text-1) !important;
+}
+
+/* Dark Mode */
+html.dark .timeline-card-content {
+    background-color: var(--vp-c-bg-soft) !important;
+    color: var(--vp-c-text-1) !important;
+}
+
+/* Timeline Type Presets */
+.timeline-preset-success .v-card-title {
+    background-color: var(--vp-c-success-1) !important;
+    color: white !important;
+}
+
+.timeline-preset-info .v-card-title {
+    background-color: var(--vp-c-info-1) !important;
+    color: white !important;
+}
+
+.timeline-preset-warning .v-card-title {
+    background-color: var(--vp-c-warning-1) !important;
+    color: white !important;
+}
+
+.timeline-preset-error .v-card-title {
+    background-color: var(--vp-c-danger-1) !important;
+    color: white !important;
+}
+
+.timeline-preset-tip .v-card-title {
+    background-color: var(--vp-c-tip-1) !important;
+    color: white !important;
+}
+
+/* Dark mode adjustments for presets */
+html.dark .timeline-preset-success .v-card-title {
+    background-color: var(--vp-c-success-2) !important;
+}
+
+html.dark .timeline-preset-info .v-card-title {
+    background-color: var(--vp-c-info-2) !important;
+}
+
+html.dark .timeline-preset-warning .v-card-title {
+    background-color: var(--vp-c-warning-2) !important;
+}
+
+html.dark .timeline-preset-error .v-card-title {
+    background-color: var(--vp-c-danger-2) !important;
+}
+
+html.dark .timeline-preset-tip .v-card-title {
+    background-color: var(--vp-c-tip-2) !important;
+}
+
+/* Timeline dots for presets */
+.timeline-preset-success .v-timeline-item__dot {
+    background-color: var(--vp-c-success-1) !important;
+}
+
+.timeline-preset-info .v-timeline-item__dot {
+    background-color: var(--vp-c-info-1) !important;
+}
+
+.timeline-preset-warning .v-timeline-item__dot {
+    background-color: var(--vp-c-warning-1) !important;
+}
+
+.timeline-preset-error .v-timeline-item__dot {
+    background-color: var(--vp-c-danger-1) !important;
+}
+
+.timeline-preset-tip .v-timeline-item__dot {
+    background-color: var(--vp-c-tip-1) !important;
+}
+
+/* Dark mode dot adjustments */
+html.dark .timeline-preset-success .v-timeline-item__dot {
+    background-color: var(--vp-c-success-2) !important;
+}
+
+html.dark .timeline-preset-info .v-timeline-item__dot {
+    background-color: var(--vp-c-info-2) !important;
+}
+
+html.dark .timeline-preset-warning .v-timeline-item__dot {
+    background-color: var(--vp-c-warning-2) !important;
+}
+
+html.dark .timeline-preset-error .v-timeline-item__dot {
+    background-color: var(--vp-c-danger-2) !important;
+}
+
+html.dark .timeline-preset-tip .v-timeline-item__dot {
+    background-color: var(--vp-c-tip-2) !important;
+}
+
+/* Card text responsive to theme */
+.timeline-card-content {
+    background-color: transparent !important;
+}
+
+html:not(.dark) .timeline-card-content {
+    color: var(--vp-c-text-1) !important;
+}
+
+html.dark .timeline-card-content {
+    color: var(--vp-c-text-1) !important;
+}
+
+/* Buttons in timeline cards */
+.timeline-card-content .v-btn {
+    transition: all 0.3s ease;
+}
+
+/* Timeline line dark mode */
+html.dark .v-timeline-item__divider::before {
+    background-color: var(--vp-c-divider) !important;
+}
+
+html.dark .v-timeline-item__divider::after {
+    background-color: var(--vp-c-divider) !important;
+}

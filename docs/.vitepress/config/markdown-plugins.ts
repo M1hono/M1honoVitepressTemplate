@@ -3,7 +3,6 @@ import { argv, cwd, env } from "node:process";
 
 import { MarkdownOptions } from "vitepress";
 
-import timeline from "vitepress-markdown-timeline";
 import { BiDirectionalLinks } from "@nolebase/markdown-it-bi-directional-links";
 import { InlineLinkPreviewElementTransform } from "@nolebase/vitepress-plugin-inline-link-preview/markdown-it";
 import multipleChoicePlugin from 'markdown-it-multiple-choice'
@@ -21,6 +20,7 @@ import { ruby } from "@mdit/plugin-ruby";
 import { demo } from "@mdit/plugin-demo";
 import { dl } from "@mdit/plugin-dl";
 import { stepper } from "../plugins/stepper";
+import { vuetifyTimeline } from "../plugins/vuetify-timeline";
 import { tab } from "@mdit/plugin-tab";
 import { mark } from "@mdit/plugin-mark";
 import { ins } from "@mdit/plugin-ins";
@@ -74,7 +74,6 @@ export const markdown: MarkdownOptions = {
         md.use(BiDirectionalLinks());
         md.use(groupIconMdPlugin);
         
-        md.use(timeline);
         md.use(tabsMarkdownPlugin);
         md.use(dialogPlugin);
         md.use(chatPlugin);
@@ -103,6 +102,7 @@ export const markdown: MarkdownOptions = {
 
         md.use(card);
         md.use(vueCharts);
+        md.use(vuetifyTimeline);
         
         if (isFeatureEnabled('markmap')) {
             withMarkmap(md);
