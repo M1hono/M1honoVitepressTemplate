@@ -1,5 +1,5 @@
 import type { DefaultTheme } from 'vitepress';
-import { getProjectInfo, getLanguageByCode, getLangCodeFromLink, getSearchLocaleKey } from '../project-config';
+import { getProjectInfo, getLanguageByCode, getLangCodeFromLink, getSearchLocaleKey, isFeatureEnabled } from '../project-config';
 import { getSidebarSync } from '../../utils/sidebar';
 
 const projectInfo = getProjectInfo();
@@ -34,9 +34,10 @@ export const zh_CN = <DefaultTheme.Config>{
                 timeStyle: "medium",
             },
         },
-        editLink: {
-            text: "在 GitHub 上编辑此页面",
-        },
+        editLink: isFeatureEnabled('editLink') && projectInfo.editLink ? {
+            pattern: projectInfo.editLink.pattern,
+            text: projectInfo.editLink.text || "在 GitHub 上编辑此页面"
+        } : undefined,
         langMenuLabel: "切换语言",
         returnToTopLabel: "回到顶部",
         sidebarMenuLabel: "菜单",
