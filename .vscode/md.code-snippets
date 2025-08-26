@@ -1452,107 +1452,6 @@
     // ===================================================================
 
     // ---------- Timeline Plugin Syntax ----------
-    "@Timeline Markdown": {
-        "prefix": "@timeline",
-        "body": [
-            "```timeline",
-            "# align:${1|start,center,end|}, direction:${2|vertical,horizontal|}, density:${3|default,compact,comfortable|}",
-            "",
-            "## ${4:事件标题} | icon:${5:mdi-calendar}, color:${6:primary}, size:${7|default,small,large|}",
-            "### ${8:时间/日期}",
-            "${9:事件描述内容}",
-            "${10:支持多行文本}",
-            "",
-            "## ${11:另一个事件} | color:${12:success}",
-            "### ${13:另一个时间}",
-            "${14:另一个事件的描述}",
-            "```"
-        ],
-        "description": "创建Timeline的Markdown插件语法"
-    },
-
-    "@Timeline Simple": {
-        "prefix": "@timeline-simple",
-        "body": [
-            "```timeline",
-            "## ${1:事件标题}",
-            "### ${2:时间}",
-            "${3:事件描述}",
-            "",
-            "## ${4:另一个事件}",
-            "### ${5:另一个时间}",
-            "${6:另一个描述}",
-            "```"
-        ],
-        "description": "简单的Timeline语法"
-    },
-
-    "@Timeline with Icons": {
-        "prefix": "@timeline-icons",
-        "body": [
-            "```timeline",
-            "# align:start",
-            "",
-            "## ${1:项目启动} | icon:mdi-rocket, color:success, size:large",
-            "### ${2:2024-01-01}",
-            "${3:项目正式启动，团队开始工作}",
-            "",
-            "## ${4:开发阶段} | icon:mdi-code-braces, color:info",
-            "### ${5:2024-02-01}",
-            "${6:进入核心功能开发阶段}",
-            "",
-            "## ${7:项目发布} | icon:mdi-check-circle, color:primary, size:large",
-            "### ${8:2024-03-01}",
-            "${9:项目成功发布上线}",
-            "```"
-        ],
-        "description": "带图标的Timeline示例"
-    },
-
-    "@Timeline Horizontal": {
-        "prefix": "@timeline-horizontal",
-        "body": [
-            "```timeline",
-            "# direction:horizontal, align:center",
-            "",
-            "## ${1:阶段1}",
-            "### ${2:Q1}",
-            "${3:第一阶段内容}",
-            "",
-            "## ${4:阶段2}",
-            "### ${5:Q2}",
-            "${6:第二阶段内容}",
-            "",
-            "## ${7:阶段3}",
-            "### ${8:Q3}",
-            "${9:第三阶段内容}",
-            "```"
-        ],
-        "description": "水平方向的Timeline"
-    },
-
-    "@Timeline Dense": {
-        "prefix": "@timeline-dense",
-        "body": [
-            "```timeline",
-            "# density:compact, align:start",
-            "",
-            "## ${1:任务1} | size:small, color:${2:primary}",
-            "### ${3:时间1}",
-            "${4:简短描述}",
-            "",
-            "## ${5:任务2} | size:small, color:${6:secondary}",
-            "### ${7:时间2}",
-            "${8:简短描述}",
-            "",
-            "## ${9:任务3} | size:small, color:${10:success}",
-            "### ${11:时间3}",
-            "${12:简短描述}",
-            "```"
-        ],
-        "description": "紧凑密度的Timeline"
-    },
-
     "@Timeline": {
         "prefix": "@timeline",
         "body": [
@@ -1585,656 +1484,70 @@
 
     // ---------- Timeline Items (Preset Types) ----------
     // ===== Timeline项目预设 =====
-    "@Item Type": {
-        "prefix": "@item-type",
+    "@Timeline Item Type": {
+        "prefix": "@timelineitem-type",
         "body": [
-            "::: timeline-item type=\"${1:success}\"",
+            "::: timeline-item type=\"${1|success,info,warning,error,tip,start,finish,milestone,deadline,meeting,launch,pause,stop,review,approve,reject,pending,progress,complete,todo,doing,done,bug,bug_investigating,bug_fixed,feature,feature_designing,feature_developing,feature_testing,feature_released,task_created,task_assigned,task_started,task_paused,task_resumed,task_completed,task_cancelled,build_started,build_success,build_failed,deploy,deploy_staging,deploy_production,rollback,security,security_issue,security_fixed,performance,performance_issue,performance_optimized,documentation,documentation_updated,release,hotfix,maintenance,optimization,testing,refactor,meeting_completed,decision_made,backup_created,user_feedback,issue_escalated,database_migration,api_deprecated,dependency_updated|}\"",
             "**${2:标题}**",
             "",
             "${3:内容描述}",
             ":::"
         ],
-        "description": "Type预设项目 - 支持自动补全"
+        "description": "Type预设项目 - 支持所有可用type自动补全"
     },
 
-    "@Item": {
-        "prefix": "@item",
+    "@Timeline Item": {
+        "prefix": "@timelineitem",
         "body": [
-            "::: timeline-item ${1:type=\"success\"}",
+            "::: timeline-item",
             "**${2:标题}**",
             "",
             "${3:内容描述}",
             ":::"
         ],
-        "description": "通用Timeline项目"
+        "description": "通用Timeline项目 - 支持所有type和基础颜色选项"
     },
 
-    // ===== 纯颜色预设 =====
-    "@Item Color Red": {
-        "prefix": "@item-color-red",
+    // ===== 颜色预设 =====
+    "@Timeline Item Color": {
+        "prefix": "@timelineitem-color",
         "body": [
-            "::: timeline-item dot-color=\"red\"",
-            "**${1:红色标题}**",
+            "::: timeline-item dot-color=\"${1|red,pink,purple,indigo,blue,lightblue,cyan,teal,green,lightgreen,lime,yellow,amber,orange,deeporange,brown,grey,bluegrey,black,white|}\"",
+            "**${2:标题}**",
             "",
-            "${2:内容描述}",
+            "${3:内容描述}",
             ":::"
         ],
-        "description": "纯红色项目 - 无预设图标"
+        "description": "颜色预设项目 - 支持自动补全"
     },
 
-    "@Item Color Pink": {
-        "prefix": "@item-color-pink",
+    "@Timeline Item Years": {
+        "prefix": "@timelineitem-years",
         "body": [
-            "::: timeline-item dot-color=\"pink\"",
-            "**${1:粉色标题}**",
+            "::: timeline-item dot-color=\"${1|cyan,green,pink,amber,orange,red,purple,blue,teal,indigo|}\" size=\"small\" opposite=\"${2:年份或时间}\"",
+            "**${3:标题}**",
             "",
-            "${2:内容描述}",
+            "${4:内容描述}",
             ":::"
         ],
-        "description": "纯粉色项目 - 无预设图标"
+        "description": "带年份/时间显示的Timeline项目 - 支持opposite属性"
     },
-
-    "@Item Color Purple": {
-        "prefix": "@item-color-purple",
-        "body": [
-            "::: timeline-item dot-color=\"purple\"",
-            "**${1:紫色标题}**",
-            "",
-            "${2:内容描述}",
-            ":::"
-        ],
-        "description": "纯紫色项目 - 无预设图标"
-    },
-
-    "@Item Color Blue": {
-        "prefix": "@item-color-blue",
-        "body": [
-            "::: timeline-item dot-color=\"blue\"",
-            "**${1:蓝色标题}**",
-            "",
-            "${2:内容描述}",
-            ":::"
-        ],
-        "description": "纯蓝色项目 - 无预设图标"
-    },
-
-    "@Item Color Green": {
-        "prefix": "@item-color-green",
-        "body": [
-            "::: timeline-item dot-color=\"green\"",
-            "**${1:绿色标题}**",
-            "",
-            "${2:内容描述}",
-            ":::"
-        ],
-        "description": "纯绿色项目 - 无预设图标"
-    },
-
-    "@Item Color Orange": {
-        "prefix": "@item-color-orange",
-        "body": [
-            "::: timeline-item dot-color=\"orange\"",
-            "**${1:橙色标题}**",
-            "",
-            "${2:内容描述}",
-            ":::"
-        ],
-        "description": "纯橙色项目 - 无预设图标"
-    },
-
-    "@Item Color Yellow": {
-        "prefix": "@item-color-yellow",
-        "body": [
-            "::: timeline-item dot-color=\"yellow\"",
-            "**${1:黄色标题}**",
-            "",
-            "${2:内容描述}",
-            ":::"
-        ],
-        "description": "纯黄色项目 - 无预设图标"
-    },
-
-    "@Item Color Grey": {
-        "prefix": "@item-color-grey",
-        "body": [
-            "::: timeline-item dot-color=\"grey\"",
-            "**${1:灰色标题}**",
-            "",
-            "${2:内容描述}",
-            ":::"
-        ],
-        "description": "纯灰色项目 - 无预设图标"
-    },
-
-    // ===== 通用工作流预设 =====
-    "@Item Start": {
-        "prefix": "@item-start",
-        "body": [
-            "::: timeline-item type=\"start\"",
-            "**${1:开始}**",
-            "",
-            "${2:开始执行}",
-            ":::"
-        ],
-        "description": "开始预设 - 绿色播放图标"
-    },
-
-    "@Item Finish": {
-        "prefix": "@item-finish",
-        "body": [
-            "::: timeline-item type=\"finish\"",
-            "**${1:完成}**",
-            "",
-            "${2:任务完成}",
-            ":::"
-        ],
-        "description": "完成预设 - 紫色旗帜图标"
-    },
-
-    "@Item Milestone": {
-        "prefix": "@item-milestone",
-        "body": [
-            "::: timeline-item type=\"milestone\"",
-            "**${1:里程碑}**",
-            "",
-            "${2:重要里程碑达成}",
-            ":::"
-        ],
-        "description": "里程碑预设 - 琥珀色奖杯图标"
-    },
-
-    "@Item Deadline": {
-        "prefix": "@item-deadline",
-        "body": [
-            "::: timeline-item type=\"deadline\"",
-            "**${1:截止时间}**",
-            "",
-            "${2:重要截止日期}",
-            ":::"
-        ],
-        "description": "截止时间预设 - 红色时钟图标"
-    },
-
-    "@Item Meeting": {
-        "prefix": "@item-meeting",
-        "body": [
-            "::: timeline-item type=\"meeting\"",
-            "**${1:会议}**",
-            "",
-            "${2:会议安排}",
-            ":::"
-        ],
-        "description": "会议预设 - 蓝色日历加号图标"
-    },
-
-    "@Item Launch": {
-        "prefix": "@item-launch",
-        "body": [
-            "::: timeline-item type=\"launch\"",
-            "**${1:启动发布}**",
-            "",
-            "${2:产品正式发布}",
-            ":::"
-        ],
-        "description": "启动发布预设 - 深紫色火箭图标"
-    },
-
-    "@Item Review": {
-        "prefix": "@item-review",
-        "body": [
-            "::: timeline-item type=\"review\"",
-            "**${1:审查}**",
-            "",
-            "${2:审查进行中}",
-            ":::"
-        ],
-        "description": "审查预设 - 靛蓝色眼睛图标"
-    },
-
-    "@Item Approve": {
-        "prefix": "@item-approve",
-        "body": [
-            "::: timeline-item type=\"approve\"",
-            "**${1:批准}**",
-            "",
-            "${2:审批通过}",
-            ":::"
-        ],
-        "description": "批准预设 - 绿色检查图标"
-    },
-
-    "@Item Reject": {
-        "prefix": "@item-reject",
-        "body": [
-            "::: timeline-item type=\"reject\"",
-            "**${1:拒绝}**",
-            "",
-            "${2:审批拒绝}",
-            ":::"
-        ],
-        "description": "拒绝预设 - 红色关闭图标"
-    },
-
-    "@Item Pending": {
-        "prefix": "@item-pending",
-        "body": [
-            "::: timeline-item type=\"pending\"",
-            "**${1:待定}**",
-            "",
-            "${2:等待处理}",
-            ":::"
-        ],
-        "description": "待定预设 - 黄色时钟图标"
-    },
-
-    "@Item Progress": {
-        "prefix": "@item-progress",
-        "body": [
-            "::: timeline-item type=\"progress\"",
-            "**${1:进行中}**",
-            "",
-            "${2:正在进行}",
-            ":::"
-        ],
-        "description": "进行中预设 - 蓝色进度时钟图标"
-    },
-
-    "@Item Complete": {
-        "prefix": "@item-complete",
-        "body": [
-            "::: timeline-item type=\"complete\"",
-            "**${1:完成}**",
-            "",
-            "${2:全部完成}",
-            ":::"
-        ],
-        "description": "完成预设 - 绿色全选图标"
-    },
-
-    "@Item Todo": {
-        "prefix": "@item-todo",
-        "body": [
-            "::: timeline-item type=\"todo\"",
-            "**${1:待办}**",
-            "",
-            "${2:待办事项}",
-            ":::"
-        ],
-        "description": "待办预设 - 灰色复选框图标"
-    },
-
-    "@Item Doing": {
-        "prefix": "@item-doing",
-        "body": [
-            "::: timeline-item type=\"doing\"",
-            "**${1:执行中}**",
-            "",
-            "${2:正在执行}",
-            ":::"
-        ],
-        "description": "执行中预设 - 橙色锤子扳手图标"
-    },
-
-    "@Item Done": {
-        "prefix": "@item-done",
-        "body": [
-            "::: timeline-item type=\"done\"",
-            "**${1:已完成}**",
-            "",
-            "${2:任务已完成}",
-            ":::"
-        ],
-        "description": "已完成预设 - 绿色粗体检查图标"
-    },
-
-    // ===== 任务相关预设 =====
-    "@Item Task Created": {
-        "prefix": "@item-task-created",
-        "body": [
-            "::: timeline-item type=\"task_created\"",
-            "**${1:任务创建}**",
-            "",
-            "${2:新任务已创建}",
-            ":::"
-        ],
-        "description": "任务创建预设 - 加号圆圈图标"
-    },
-
-    "@Item Task Started": {
-        "prefix": "@item-task-started",
-        "body": [
-            "::: timeline-item type=\"task_started\"",
-            "**${1:任务开始}**",
-            "",
-            "${2:任务开始执行}",
-            ":::"
-        ],
-        "description": "任务开始预设 - 播放图标"
-    },
-
-    "@Item Task Completed": {
-        "prefix": "@item-task-completed",
-        "body": [
-            "::: timeline-item type=\"task_completed\"",
-            "**${1:任务完成}**",
-            "",
-            "${2:任务成功完成}",
-            ":::"
-        ],
-        "description": "任务完成预设 - 检查圆圈图标"
-    },
-
-    // ===== Bug相关预设 =====
-    "@Item Bug": {
-        "prefix": "@item-bug",
-        "body": [
-            "::: timeline-item type=\"bug\"",
-            "**${1:Bug}**",
-            "",
-            "${2:发现Bug问题}",
-            ":::"
-        ],
-        "description": "Bug预设 - 红色Bug图标"
-    },
-
-    "@Item Bug Investigating": {
-        "prefix": "@item-bug-investigating",
-        "body": [
-            "::: timeline-item type=\"bug_investigating\"",
-            "**${1:Bug调查}**",
-            "",
-            "${2:正在调查Bug原因}",
-            ":::"
-        ],
-        "description": "Bug调查预设 - 橙色放大镜图标"
-    },
-
-    "@Item Bug Fixed": {
-        "prefix": "@item-bug-fixed",
-        "body": [
-            "::: timeline-item type=\"bug_fixed\"",
-            "**${1:Bug修复}**",
-            "",
-            "${2:Bug已成功修复}",
-            ":::"
-        ],
-        "description": "Bug修复预设 - 绿色Bug检查图标"
-    },
-
-    // ===== 功能开发预设 =====
-    "@Item Feature": {
-        "prefix": "@item-feature",
-        "body": [
-            "::: timeline-item type=\"feature\"",
-            "**${1:功能需求}**",
-            "",
-            "${2:新功能需求}",
-            ":::"
-        ],
-        "description": "功能需求预设 - 蓝色灯泡轮廓图标"
-    },
-
-    "@Item Feature Designing": {
-        "prefix": "@item-feature-designing",
-        "body": [
-            "::: timeline-item type=\"feature_designing\"",
-            "**${1:功能设计}**",
-            "",
-            "${2:正在设计功能}",
-            ":::"
-        ],
-        "description": "功能设计预设 - 紫色绘图图标"
-    },
-
-    "@Item Feature Developing": {
-        "prefix": "@item-feature-developing",
-        "body": [
-            "::: timeline-item type=\"feature_developing\"",
-            "**${1:功能开发}**",
-            "",
-            "${2:正在开发功能}",
-            ":::"
-        ],
-        "description": "功能开发预设 - 蓝色代码标签图标"
-    },
-
-    "@Item Feature Testing": {
-        "prefix": "@item-feature-testing",
-        "body": [
-            "::: timeline-item type=\"feature_testing\"",
-            "**${1:功能测试}**",
-            "",
-            "${2:正在测试功能}",
-            ":::"
-        ],
-        "description": "功能测试预设 - 橙色试管图标"
-    },
-
-    "@Item Feature Released": {
-        "prefix": "@item-feature-released",
-        "body": [
-            "::: timeline-item type=\"feature_released\"",
-            "**${1:功能发布}**",
-            "",
-            "${2:新功能成功发布}",
-            ":::"
-        ],
-        "description": "功能发布预设 - 绿色火箭图标"
-    },
-
-    // ===== 任务管理预设 =====
-    "@Item Task Created": {
-        "prefix": "@item-task-created",
-        "body": [
-            "::: timeline-item type=\"task_created\"",
-            "**${1:任务创建}**",
-            "",
-            "${2:创建新任务}",
-            ":::"
-        ],
-        "description": "任务创建预设 - 灰色加号圆圈图标"
-    },
-
-    "@Item Task Started": {
-        "prefix": "@item-task-started",
-        "body": [
-            "::: timeline-item type=\"task_started\"",
-            "**${1:任务开始}**",
-            "",
-            "${2:开始执行任务}",
-            ":::"
-        ],
-        "description": "任务开始预设 - 蓝色播放图标"
-    },
-
-    "@Item Task Completed": {
-        "prefix": "@item-task-completed",
-        "body": [
-            "::: timeline-item type=\"task_completed\"",
-            "**${1:任务完成}**",
-            "",
-            "${2:任务成功完成}",
-            ":::"
-        ],
-        "description": "任务完成预设 - 绿色检查圆圈图标"
-    },
-
-    // ===== 部署相关预设 =====
-    "@Item Deploy": {
-        "prefix": "@item-deploy",
-        "body": [
-            "::: timeline-item type=\"deploy\"",
-            "**${1:部署}**",
-            "",
-            "${2:应用部署}",
-            ":::"
-        ],
-        "description": "部署预设 - 绿色云上传图标"
-    },
-
-    "@Item Deploy Production": {
-        "prefix": "@item-deploy-production",
-        "body": [
-            "::: timeline-item type=\"deploy_production\"",
-            "**${1:生产部署}**",
-            "",
-            "${2:部署到生产环境}",
-            ":::"
-        ],
-        "description": "生产部署预设 - 紫色火箭发射图标"
-    },
-
-    "@Item Rollback": {
-        "prefix": "@item-rollback",
-        "body": [
-            "::: timeline-item type=\"rollback\"",
-            "**${1:回滚}**",
-            "",
-            "${2:执行回滚操作}",
-            ":::"
-        ],
-        "description": "回滚预设 - 红色备份恢复图标"
-    },
-
-    // ===== 构建相关预设 =====
-    "@Item Build Started": {
-        "prefix": "@item-build-started",
-        "body": [
-            "::: timeline-item type=\"build_started\"",
-            "**${1:构建开始}**",
-            "",
-            "${2:开始构建应用}",
-            ":::"
-        ],
-        "description": "构建开始预设 - 蓝色锤子图标"
-    },
-
-    "@Item Build Success": {
-        "prefix": "@item-build-success",
-        "body": [
-            "::: timeline-item type=\"build_success\"",
-            "**${1:构建成功}**",
-            "",
-            "${2:构建成功完成}",
-            ":::"
-        ],
-        "description": "构建成功预设 - 绿色粗体检查图标"
-    },
-
-    "@Item Build Failed": {
-        "prefix": "@item-build-failed",
-        "body": [
-            "::: timeline-item type=\"build_failed\"",
-            "**${1:构建失败}**",
-            "",
-            "${2:构建过程失败}",
-            ":::"
-        ],
-        "description": "构建失败预设 - 红色粗体关闭图标"
-    },
-
-    // ===== 其他重要预设 =====
-    "@Item Release": {
-        "prefix": "@item-release",
-        "body": [
-            "::: timeline-item type=\"release\"",
-            "**${1:版本发布}**",
-            "",
-            "${2:新版本发布}",
-            ":::"
-        ],
-        "description": "版本发布预设 - 紫色礼品图标"
-    },
-
-    "@Item Hotfix": {
-        "prefix": "@item-hotfix",
-        "body": [
-            "::: timeline-item type=\"hotfix\"",
-            "**${1:热修复}**",
-            "",
-            "${2:紧急热修复}",
-            ":::"
-        ],
-        "description": "热修复预设 - 红色火焰图标"
-    },
-
-    "@Item Maintenance": {
-        "prefix": "@item-maintenance",
-        "body": [
-            "::: timeline-item type=\"maintenance\"",
-            "**${1:维护}**",
-            "",
-            "${2:系统维护}",
-            ":::"
-        ],
-        "description": "维护预设 - 琥珀色扳手图标"
-    },
-
-    "@Item Testing": {
-        "prefix": "@item-testing",
-        "body": [
-            "::: timeline-item type=\"testing\"",
-            "**${1:测试}**",
-            "",
-            "${2:执行测试}",
-            ":::"
-        ],
-        "description": "测试预设 - 靛蓝色试管图标"
-    },
-
-    "@Item Documentation": {
-        "prefix": "@item-documentation",
-        "body": [
-            "::: timeline-item type=\"documentation\"",
-            "**${1:文档}**",
-            "",
-            "${2:文档编写}",
-            ":::"
-        ],
-        "description": "文档预设 - 棕色书本图标"
-    },
-
-    "@Item Security": {
-        "prefix": "@item-security",
-        "body": [
-            "::: timeline-item type=\"security\"",
-            "**${1:安全检查}**",
-            "",
-            "${2:安全扫描检查}",
-            ":::"
-        ],
-        "description": "安全检查预设 - 琥珀色盾牌搜索图标"
-    },
-
-    "@Item Performance": {
-        "prefix": "@item-performance",
-        "body": [
-            "::: timeline-item type=\"performance\"",
-            "**${1:性能测试}**",
-            "",
-            "${2:性能测试评估}",
-            ":::"
-        ],
-        "description": "性能测试预设 - 青色速度计图标"
-    },
-
-
 
     // ---------- Timeline Items (Card Mode) ----------
-    "@Item Card": {
-        "prefix": "@item-card",
+    "@Timeline Item Card": {
+        "prefix": "@timelineitem-card",
         "body": [
-            "::: timeline-item type=\"${1:success}\" card=\"true\" card-title=\"${2:卡片标题}\"",
+            "::: timeline-item type=\"${1|success,info,warning,error,tip,start,finish,milestone,deadline,meeting,launch,pause,stop,review,approve,reject,pending,progress,complete,todo,doing,done,bug,bug_investigating,bug_fixed,feature,feature_designing,feature_developing,feature_testing,feature_released,task_created,task_assigned,task_started,task_paused,task_resumed,task_completed,task_cancelled,build_started,build_success,build_failed,deploy,deploy_staging,deploy_production,rollback,security,security_issue,security_fixed,performance,performance_issue,performance_optimized,documentation,documentation_updated,release,hotfix,maintenance,optimization,testing,refactor,meeting_completed,decision_made,backup_created,user_feedback,issue_escalated,database_migration,api_deprecated,dependency_updated|}\" card=\"true\" card-title=\"${2:卡片标题}\"",
             "**${3:内容标题}**",
             "",
             "${4:卡片内容}",
             ":::"
         ],
-        "description": "预设类型卡片项目 - type支持自动补全"
+        "description": "预设类型卡片项目 - 支持所有可用type自动补全"
     },
 
-    "@Item Card Color": {
-        "prefix": "@item-card-color",
+    "@Timeline Item Card Color": {
+        "prefix": "@timelineitem-card-color",
         "body": [
             "::: timeline-item dot-color=\"${1|red,pink,purple,indigo,blue,lightblue,cyan,teal,green,lightgreen,lime,yellow,amber,orange,deeporange,brown,grey,bluegrey,black,white|}\" card=\"true\" card-title=\"${2:卡片标题}\"",
             "**${3:内容标题}**",
@@ -2245,8 +1558,8 @@
         "description": "颜色预设卡片项目 - 自动主题切换"
     },
 
-    "@Item Card Custom": {
-        "prefix": "@item-card-custom",
+    "@Timeline Item Card Custom": {
+        "prefix": "@timelineitem-card-custom",
         "body": [
             "::: timeline-item dot-color=\"${1|red,pink,purple,indigo,blue,lightblue,cyan,teal,green,lightgreen,lime,yellow,amber,orange,deeporange,brown,grey,bluegrey,black,white|}\" icon=\"${2:mdi-star}\" card=\"true\" card-title=\"${3:卡片标题}\"",
             "**${4:内容标题}**",
@@ -2258,28 +1571,28 @@
     },
 
     // ---------- Timeline Items (Custom) ----------
-    "@Item Custom": {
-        "prefix": "@item-custom",
+    "@Timeline Item Custom": {
+        "prefix": "@timelineitem-custom",
         "body": [
-            "::: timeline-item dot-color=\"${1|red,pink,purple,indigo,blue,lightblue,cyan,teal,green,lightgreen,lime,yellow,amber,orange,deeporange,brown,grey,bluegrey,black,white|}\" icon=\"${2:mdi-circle}\"${3: size=\"${4|small,default,large,x-large|}\"}",
-            "**${5:自定义标题}**",
+            "::: timeline-item dot-color=\"${1|red,pink,purple,indigo,blue,lightblue,cyan,teal,green,lightgreen,lime,yellow,amber,orange,deeporange,brown,grey,bluegrey,black,white|}\" icon=\"${2:mdi-circle}\"${3: size=\"${4|small,default,large,x-large|}\"}${5: opposite=\"${6:年份或时间}\"}",
+            "**${7:自定义标题}**",
             "",
-            "${6:自定义内容}",
+            "${8:自定义内容}",
             ":::"
         ],
-        "description": "自定义Timeline项目 - 支持颜色预设"
+        "description": "自定义Timeline项目 - 支持颜色预设和opposite属性"
     },
 
-    "@Item Custom Full": {
-        "prefix": "@item-custom-full",
+    "@Timeline Item Custom Full": {
+        "prefix": "@timelineitem-custom-full",
         "body": [
-            "::: timeline-item dot-color=\"${1|red,pink,purple,indigo,blue,lightblue,cyan,teal,green,lightgreen,lime,yellow,amber,orange,deeporange,brown,grey,bluegrey,black,white|}\" icon=\"${2:mdi-star}\" size=\"${3|small,default,large,x-large|}\" fill-dot=\"${4|true,false|}\" card=\"${5|true,false|}\"${6: card-color=\"${1}\"}${7: card-icon=\"mdi-crown\"}${8: card-icon-align=\"${9|left,right|}\"}",
-            "**${10:标题}**",
+            "::: timeline-item dot-color=\"${1|red,pink,purple,indigo,blue,lightblue,cyan,teal,green,lightgreen,lime,yellow,amber,orange,deeporange,brown,grey,bluegrey,black,white|}\" icon=\"${2:mdi-star}\" size=\"${3|small,default,large,x-large|}\" fill-dot=\"${4|true,false|}\" card=\"${5|true,false|}\"${6: card-color=\"${1}\"}${7: card-icon=\"mdi-crown\"}${8: card-icon-align=\"${9|left,right|}\"}${10: opposite=\"${11:年份或时间}\"}",
+            "**${12:标题}**",
             "",
-            "${11:内容}",
+            "${13:内容}",
             ":::"
         ],
-        "description": "完全自定义Timeline项目 - 颜色预设+自动主题切换"
+        "description": "完全自定义Timeline项目 - 颜色预设+自动主题切换+opposite属性"
     },
 
     // ---------- End Timeline Container ----------

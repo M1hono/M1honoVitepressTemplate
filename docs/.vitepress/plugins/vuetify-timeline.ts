@@ -184,10 +184,18 @@ export const vuetifyTimeline: PluginSimple = (md) => {
             }
 
             const timelinePropsStr = attrsToPropsStr(timelineAttrs);
+            const oppositeText = attrs.opposite || "";
 
             let html = `<v-timeline-item ${timelinePropsStr}${
                 themeColorClass ? ` class="${themeColorClass}"` : ""
             }>`;
+
+            if (oppositeText) {
+                const dotColor = timelineAttrs["dot-color"] || "primary";
+                html += `<template v-slot:opposite>`;
+                html += `<div class="pt-1 headline font-weight-bold text-${dotColor}">${oppositeText}</div>`;
+                html += `</template>`;
+            }
 
             if (isCardMode) {
                 const cardColor =
