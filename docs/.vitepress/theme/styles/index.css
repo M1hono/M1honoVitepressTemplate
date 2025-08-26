@@ -41,7 +41,6 @@
 /* ===== EXTERNAL PLUGIN IMPORTS ===== */
 /* VitePress plugins */
 @import "vitepress-plugin-nprogress/lib/css/index.css";
-@import "vitepress-markdown-timeline/dist/theme/index.css";
 
 /* Nolebase plugins */
 @import "@nolebase/vitepress-plugin-inline-link-preview/client/style.css";

@@ -144,12 +144,24 @@ export function createContainerPlugin(pluginConfig: ContainerPluginConfig): Plug
             const config = token.meta?.config || defaultConfig;
             
             let parsedConfigString = "";
+            let classNames: string[] = [];
             
             for (const [key, mapper] of Object.entries(configMapping)) {
                 if (config[key] !== undefined) {
                     const propString = mapper(config[key]);
-                    parsedConfigString += propString;
+                    
+                    const classMatch = propString.match(/class="([^"]*)"/);
+                    if (classMatch) {
+                        classNames.push(classMatch[1]);
+                        parsedConfigString += propString.replace(/class="[^"]*"/, '');
+                    } else {
+                        parsedConfigString += propString;
+                    }
                 }
+            }
+            
+            if (classNames.length > 0) {
+                parsedConfigString += ` class="${classNames.join(' ')}"`;
             }
             
             return `<${component}${parsedConfigString}>`;
