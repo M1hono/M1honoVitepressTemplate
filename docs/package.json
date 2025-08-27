@@ -56,7 +56,6 @@
         "locale": "tsx .vitepress/scripts/locale-key-sync.mjs",
         "title": "notsxde .vitepress/scripts/update-index-titles.mjs",
         "frontmatter": "tsx .vitepress/scripts/update-frontmatter.mjs",
-        "index": "tsx .vitepress/scripts/create-indexes.mjs",
         "sync-config": "tsx .vitepress/scripts/sync-config-to-frontmatter.mjs"
     },
     "dependencies": {

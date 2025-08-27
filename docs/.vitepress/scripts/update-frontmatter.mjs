@@ -4,7 +4,8 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, relative, resolve } from "path";
 import glob from "fast-glob";
 import matter from "gray-matter";
-import { getLanguageCodes, getPaths } from '../config/project-config.ts';
+import { getLanguageCodes } from "../config/project-config.js";
+import { getSrcPath } from "../utils/config/path-resolver.js";
 
 class FrontmatterUpdater {
     constructor() {
@@ -14,7 +15,7 @@ class FrontmatterUpdater {
         this.dryRun = false;
         this.verbose = false;
         this.backup = false;
-        this.srcPath = getPaths().docs.replace("./", "");
+        this.srcPath = getSrcPath();
         this.languages = getLanguageCodes();
     }
 
