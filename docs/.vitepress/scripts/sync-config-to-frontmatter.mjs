@@ -435,23 +435,34 @@ class ConfigToFrontmatterSync {
                 changes.forEach((change) => console.log(`   ${change}`));
             }
 
-            if (hasChanges && !this.dryRun) {
+            // Only write if there are actual changes or file doesn't exist
+            if ((hasChanges || !existsSync(filePath)) && !this.dryRun) {
                 // Ensure directory exists
                 const dir = dirname(filePath);
                 if (!existsSync(dir)) {
                     mkdirSync(dir, { recursive: true });
                 }
 
-                // Write updated content
+                // Generate new content
                 const newContent = matter.stringify(
                     parsed.content,
                     parsed.data
                 );
-                writeFileSync(filePath, newContent);
-                this.processedFiles++;
 
-                if (!existsSync(filePath)) {
-                    this.createdIndexFiles++;
+                // Only write if content actually differs or file doesn't exist
+                let shouldWrite = !existsSync(filePath);
+                if (!shouldWrite && existsSync(filePath)) {
+                    const currentContent = readFileSync(filePath, "utf-8");
+                    shouldWrite = currentContent !== newContent;
+                }
+
+                if (shouldWrite) {
+                    writeFileSync(filePath, newContent);
+                    this.processedFiles++;
+
+                    if (!existsSync(filePath)) {
+                        this.createdIndexFiles++;
+                    }
                 }
             }
 

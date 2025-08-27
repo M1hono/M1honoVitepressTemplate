@@ -30,13 +30,14 @@
 @import "./plugins/demo.css";
 @import "./plugins/link-icons.css";
 @import "./plugins/alert.css";
-@import "./iframe.css";
 
 /* ===== COMPONENT STYLES ===== */
 @import "./components/stepper.css";
 @import "./components/carousel.css";
 @import "./components/tags.css";
 @import "./components/timeline.css";
+@import "./components/iframe.css";
+@import "./components/table-grid.css";
 
 /* ===== EXTERNAL PLUGIN IMPORTS ===== */
 /* VitePress plugins */

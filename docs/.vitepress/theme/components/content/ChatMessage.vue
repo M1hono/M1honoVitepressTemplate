@@ -55,7 +55,9 @@
         <div class="message-content">
             <div class="nickname" v-if="nickname">{{ nickname }}</div>
             <div class="message-box" :style="messageBubbleStyle">
-                <slot>&nbsp;</slot>
+                <div class="message-inner">
+                    <slot>&nbsp;</slot>
+                </div>
             </div>
         </div>
     </div>
@@ -439,6 +441,7 @@
             padding: 0.5rem 0.8rem;
             font-size: 14px;
             line-height: 1.6;
+            z-index: 1;
 
             :deep(p),
             :deep(summary) {
@@ -474,6 +477,31 @@
 
             .vp-doc *:first-child {
                 margin-top: 0 !important;
+            }
+            
+            .message-inner {
+                overflow: hidden;
+                width: 100%;
+            }
+            
+            /* Fix all code block negative margins with highest specificity */
+            :deep(.vp-doc div[class*="language-"]),
+            :deep(div[class*="language-"]),
+            :deep(.language),
+            :deep(.vp-block) {
+                margin: 1em 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                overflow-x: auto;
+                position: relative;
+                z-index: 0;
+            }
+            
+            /* Ensure code blocks don't overflow the message container */
+            :deep(.vp-doc div[class*="language-"] pre),
+            :deep(div[class*="language-"] pre) {
+                margin: 0 !important;
+                overflow-x: auto;
             }
         }
     }

@@ -59,15 +59,20 @@ export function createContainerPlugin(pluginConfig: ContainerPluginConfig): Plug
         const { name, component, configMapping = {}, defaultConfig = {} } = pluginConfig;
         
         md.block.ruler.before('paragraph', `container_${name}`, (state, start, end, silent) => {
-            const marker = ':::';
-            const markerLen = marker.length;
             let pos = state.bMarks[start] + state.tShift[start];
             const max = state.eMarks[start];
             
-            if (pos + markerLen > max) return false;
+            // Count consecutive colons
+            let colonCount = 0;
+            while (pos + colonCount < max && state.src[pos + colonCount] === ':') {
+                colonCount++;
+            }
             
-            const markerStr = state.src.slice(pos, pos + markerLen);
-            if (markerStr !== marker) return false;
+            // Need at least 3 colons
+            if (colonCount < 3) return false;
+            
+            const marker = ':'.repeat(colonCount);
+            const markerLen = marker.length;
             
             pos += markerLen;
             
@@ -102,7 +107,9 @@ export function createContainerPlugin(pluginConfig: ContainerPluginConfig): Plug
                     break;
                 }
                 
-                if (state.src.slice(pos, pos + markerLen) === marker) {
+                // Check for matching closing marker (same number of colons)
+                const closingColonCount = (state.src.slice(pos).match(/^:+/) || [''])[0].length;
+                if (closingColonCount === colonCount) {
                     autoClosed = true;
                     break;
                 }
@@ -145,18 +152,36 @@ export function createContainerPlugin(pluginConfig: ContainerPluginConfig): Plug
             
             let parsedConfigString = "";
             let classNames: string[] = [];
+            let stylesArray: string[] = [];
             
-            for (const [key, mapper] of Object.entries(configMapping)) {
-                if (config[key] !== undefined) {
-                    const propString = mapper(config[key]);
-                    
-                    const classMatch = propString.match(/class="([^"]*)"/);
-                    if (classMatch) {
-                        classNames.push(classMatch[1]);
-                        parsedConfigString += propString.replace(/class="[^"]*"/, '');
-                    } else {
-                        parsedConfigString += propString;
+            // Special handling for __fullConfig mapper that gets the entire config
+            if (configMapping.__fullConfig) {
+                const fullConfigResult = configMapping.__fullConfig(config);
+                parsedConfigString += fullConfigResult;
+            } else {
+                // Standard per-key mapping
+                for (const [key, mapper] of Object.entries(configMapping)) {
+                    if (config[key] !== undefined) {
+                        const propString = mapper(config[key]);
+                        
+                        const classMatch = propString.match(/class="([^"]*)"/);
+                        if (classMatch) {
+                            classNames.push(classMatch[1]);
+                            parsedConfigString += propString.replace(/class="[^"]*"/, '');
+                        } else if (propString.includes('style="')) {
+                            const styleMatch = propString.match(/style="([^"]*)"/);
+                            if (styleMatch) {
+                                stylesArray.push(styleMatch[1]);
+                            }
+                        } else {
+                            parsedConfigString += propString;
+                        }
                     }
+                }
+                
+                // Combine all styles into one style attribute
+                if (stylesArray.length > 0) {
+                    parsedConfigString += ` style="${stylesArray.join('; ')}"`;
                 }
             }
             
@@ -172,4 +197,3 @@ export function createContainerPlugin(pluginConfig: ContainerPluginConfig): Plug
         };
     };
 }
- 

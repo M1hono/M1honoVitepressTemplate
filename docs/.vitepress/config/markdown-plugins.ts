@@ -30,6 +30,7 @@ import { mdDemo } from "../plugins/demo";
 import { carousels } from "../plugins/carousels";
 import { iframes } from "../plugins/iframe";
 import { card } from "../plugins/card";
+import { chartGrid } from "../plugins/table-grid";
 import { groupIconMdPlugin } from "vitepress-plugin-group-icons";
 import MagicMovePlugin from "../plugins/magic-move";
 import { dialogPlugin } from "../plugins/dialog";
@@ -95,6 +96,7 @@ export const markdown: MarkdownOptions = {
         md.use(v_alert);
         md.use(mark);
         md.use(ins);
+        md.use(chartGrid);
 
         md.use(tab, stepper);
         md.use(tab, carousels);

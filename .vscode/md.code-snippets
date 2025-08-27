@@ -1610,5 +1610,20 @@
             ":::"
         ],
         "description": "结束Timeline容器"
+    },
+    "@Chart Grid Custom": {
+        "prefix": "@chart-grid",
+        "body": [
+            ":::: chart-grid {\"columns\": ${1:2}, \"gap\": \"${2:24px}\", \"minHeight\": \"${3:300px}\", \"responsive\": ${4|true,false|}}",
+            "",
+            "::: chart ${5|pie,bar,line,area,radar,scatter,gauge,doughnut,funnel,heatmap,sankey,graph,candlestick,boxplot,parallel,themeRiver,pictorialBar|} {\"title\": \"${6:Chart Title}\", \"height\": \"${7:300px}\"}",
+            "${8:Chart data}",
+            ":::",
+            "",
+            "$0",
+            "",
+            "::::"
+        ],
+        "description": "自定义图表网格布局，支持完整配置选项。"
     }
 }
