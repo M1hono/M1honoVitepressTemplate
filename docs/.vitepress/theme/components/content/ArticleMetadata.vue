@@ -16,11 +16,48 @@ const { t } = useSafeI18n("article-metadata", {
 
 const { page, frontmatter, lang } = useData();
 
-const update = computed(() =>
-    page.value.lastUpdated
-        ? new Date(page.value.lastUpdated).toLocaleDateString()
-        : ""
-);
+const gitTimestamp = ref<number>(0);
+const timestampCache = new Map<string, number>();
+
+async function getGitTimestamp(filePath: string): Promise<number> {
+    if (typeof window === 'undefined') return 0;
+    
+    const cached = timestampCache.get(filePath);
+    if (cached) return cached;
+
+    try {
+        const response = await fetch(`/__git_timestamp__?file=${encodeURIComponent(filePath)}`);
+        if (response.ok) {
+            const timestamp = await response.json();
+            timestampCache.set(filePath, timestamp);
+            return timestamp;
+        }
+    } catch (error) {
+        console.warn('Failed to get git timestamp:', error);
+    }
+    
+    return Date.now();
+}
+
+const update = computed(() => {
+    let timestamp = 0;
+    
+    if (frontmatter.value.lastUpdated instanceof Date) {
+        timestamp = +frontmatter.value.lastUpdated;
+    } else if (frontmatter.value.date) {
+        timestamp = +new Date(frontmatter.value.date);
+    } else if (gitTimestamp.value) {
+        timestamp = gitTimestamp.value;
+    } else {
+        timestamp = Date.now();
+    }
+    
+    return new Date(timestamp).toLocaleDateString(lang.value, {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+    });
+});
 
 const wordCount = ref(0);
 const imageCount = ref(0);
@@ -56,8 +93,16 @@ function analyze() {
     }
 }
 
-onMounted(() => {
+onMounted(async () => {
     analyze();
+    
+    if (page.value.filePath && !frontmatter.value.lastUpdated && !frontmatter.value.date) {
+        try {
+            gitTimestamp.value = await getGitTimestamp(page.value.filePath);
+        } catch (error) {
+            console.warn('Failed to get git timestamp for', page.value.filePath, error);
+        }
+    }
     
     const checkPageViews = () => {
         const pvElement = document.querySelector('#busuanzi_value_page_pv');
