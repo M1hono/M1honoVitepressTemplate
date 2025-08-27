@@ -54,10 +54,10 @@
         "sidebar": "tsx .vitepress/scripts/build-sidebar.mjs",
         "tags": "tsx .vitepress/scripts/generate-tag-data.mjs",
         "locale": "tsx .vitepress/scripts/locale-key-sync.mjs",
-        "title": "node .vitepress/scripts/update-index-titles.mjs",
-        "frontmatter": "node .vitepress/scripts/update-frontmatter.mjs",
-        "index": "node .vitepress/scripts/create-indexes.mjs",
-        "sync-config": "node .vitepress/scripts/sync-config-to-frontmatter.mjs"
+        "title": "notsxde .vitepress/scripts/update-index-titles.mjs",
+        "frontmatter": "tsx .vitepress/scripts/update-frontmatter.mjs",
+        "index": "tsx .vitepress/scripts/create-indexes.mjs",
+        "sync-config": "tsx .vitepress/scripts/sync-config-to-frontmatter.mjs"
     },
     "dependencies": {
         "@dhlx/vitepress-plugin-drawio": "^0.0.9",
