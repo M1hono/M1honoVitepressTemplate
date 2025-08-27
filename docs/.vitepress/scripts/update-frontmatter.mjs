@@ -4,8 +4,124 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, relative, resolve } from "path";
 import glob from "fast-glob";
 import matter from "gray-matter";
-import { getLanguageCodes } from "../config/project-config.js";
-import { getSrcPath } from "../utils/config/path-resolver.js";
+
+/**
+ * Load project configuration from TypeScript file
+ */
+function loadProjectConfig() {
+    try {
+        const configPath = resolve(
+            process.cwd(),
+            ".vitepress/config/project-config.ts"
+        );
+        const configContent = readFileSync(configPath, "utf-8");
+
+        // Extract languages configuration using regex
+        const languagesMatch = configContent.match(
+            /languages:\s*\[([\s\S]*?)\]/
+        );
+        if (!languagesMatch) {
+            throw new Error("Could not find languages configuration");
+        }
+
+        const languagesStr = languagesMatch[1];
+
+        // Extract individual language objects
+        const languageObjects = [];
+        const langMatches = [...languagesStr.matchAll(/\{([\s\S]*?)\}/g)];
+
+        for (const match of langMatches) {
+            const langObj = {};
+            const langContent = match[1];
+
+            // Extract properties
+            const codeMatch = langContent.match(/code:\s*"([^"]+)"/);
+            const linkMatch = langContent.match(/link:\s*"([^"]+)"/);
+            const displayNameMatch = langContent.match(
+                /displayName:\s*"([^"]+)"/
+            );
+            const isDefaultMatch = langContent.match(
+                /isDefault:\s*(true|false)/
+            );
+
+            if (codeMatch) langObj.code = codeMatch[1];
+            if (linkMatch) langObj.link = linkMatch[1];
+            if (displayNameMatch) langObj.displayName = displayNameMatch[1];
+            if (isDefaultMatch)
+                langObj.isDefault = isDefaultMatch[1] === "true";
+
+            if (langObj.code) {
+                languageObjects.push(langObj);
+            }
+        }
+
+        // Extract paths configuration
+        const pathsMatch = configContent.match(/paths:\s*\{([\s\S]*?)\}/);
+        const paths = { docs: "./docs", config: "./.vitepress/config" }; // defaults
+
+        if (pathsMatch) {
+            const pathsContent = pathsMatch[1];
+            const docsMatch = pathsContent.match(/docs:\s*"([^"]+)"/);
+            const configMatch = pathsContent.match(/config:\s*"([^"]+)"/);
+
+            if (docsMatch) paths.docs = docsMatch[1];
+            if (configMatch) paths.config = configMatch[1];
+        }
+
+        return {
+            languages: languageObjects,
+            paths: paths,
+        };
+    } catch (error) {
+        console.warn("Failed to load project config:", error.message);
+        console.warn("Using fallback configuration");
+
+        // Fallback configuration
+        return {
+            languages: [
+                {
+                    code: "zh-CN",
+                    displayName: "简体中文",
+                    isDefault: true,
+                    link: "/zh-CN/",
+                },
+                {
+                    code: "en-US",
+                    displayName: "English",
+                    isDefault: false,
+                    link: "/en-US/",
+                },
+            ],
+            paths: {
+                docs: "./src",
+                config: "./.vitepress/config",
+            },
+        };
+    }
+}
+
+/**
+ * Get language codes from project configuration
+ */
+function getLanguageCodes() {
+    const PROJECT_CONFIG = loadProjectConfig();
+    return PROJECT_CONFIG.languages.map((lang) => {
+        // Extract language code from link (e.g., /zh/ -> zh, /en/ -> en)
+        const match = lang.link?.match(/^\/([^\/]+)\//);
+        return match ? match[1] : lang.code.split("-")[0]; // fallback to first part of code
+    });
+}
+
+/**
+ * Get source path from project configuration
+ */
+function getSrcPath() {
+    const PROJECT_CONFIG = loadProjectConfig();
+    return resolve(
+        process.cwd(),
+        PROJECT_CONFIG.paths.docs.replace("./", "")
+    );
+}
 
 class FrontmatterUpdater {
     constructor() {

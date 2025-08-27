@@ -4,15 +4,131 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import matter from 'gray-matter'
-import { getLanguageCodes } from "../config/project-config.js";
-import { getSrcPath, getVitepressPath } from "../utils/config/path-resolver.js";
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const PROJECT_ROOT = process.cwd()
-const DOCS_ROOT = getSrcPath()
-const CONFIG_ROOT = getVitepressPath("config/sidebar")
+
+/**
+ * Load project configuration from TypeScript file
+ */
+function loadProjectConfig() {
+    try {
+        const configPath = path.resolve(
+            PROJECT_ROOT,
+            ".vitepress/config/project-config.ts"
+        );
+        const configContent = fs.readFileSync(configPath, "utf-8");
+
+        // Extract languages configuration using regex
+        const languagesMatch = configContent.match(
+            /languages:\s*\[([\s\S]*?)\]/
+        );
+        if (!languagesMatch) {
+            throw new Error("Could not find languages configuration");
+        }
+
+        const languagesStr = languagesMatch[1];
+
+        // Extract individual language objects
+        const languageObjects = [];
+        const langMatches = [...languagesStr.matchAll(/\{([\s\S]*?)\}/g)];
+
+        for (const match of langMatches) {
+            const langObj = {};
+            const langContent = match[1];
+
+            // Extract properties
+            const codeMatch = langContent.match(/code:\s*"([^"]+)"/);
+            const linkMatch = langContent.match(/link:\s*"([^"]+)"/);
+            const displayNameMatch = langContent.match(
+                /displayName:\s*"([^"]+)"/
+            );
+            const isDefaultMatch = langContent.match(
+                /isDefault:\s*(true|false)/
+            );
+
+            if (codeMatch) langObj.code = codeMatch[1];
+            if (linkMatch) langObj.link = linkMatch[1];
+            if (displayNameMatch) langObj.displayName = displayNameMatch[1];
+            if (isDefaultMatch)
+                langObj.isDefault = isDefaultMatch[1] === "true";
+
+            if (langObj.code) {
+                languageObjects.push(langObj);
+            }
+        }
+
+        // Extract paths configuration
+        const pathsMatch = configContent.match(/paths:\s*\{([\s\S]*?)\}/);
+        const paths = { docs: "./docs", config: "./.vitepress/config" }; // defaults
+
+        if (pathsMatch) {
+            const pathsContent = pathsMatch[1];
+            const docsMatch = pathsContent.match(/docs:\s*"([^"]+)"/);
+            const configMatch = pathsContent.match(/config:\s*"([^"]+)"/);
+
+            if (docsMatch) paths.docs = docsMatch[1];
+            if (configMatch) paths.config = configMatch[1];
+        }
+
+        return {
+            languages: languageObjects,
+            paths: paths,
+        };
+    } catch (error) {
+        console.warn("Failed to load project config:", error.message);
+        console.warn("Using fallback configuration");
+
+        // Fallback configuration
+        return {
+            languages: [
+                {
+                    code: "zh-CN",
+                    displayName: "简体中文",
+                    isDefault: true,
+                    link: "/zh-CN/",
+                },
+                {
+                    code: "en-US",
+                    displayName: "English",
+                    isDefault: false,
+                    link: "/en-US/",
+                },
+            ],
+            paths: {
+                docs: "./src",
+                config: "./.vitepress/config",
+            },
+        };
+    }
+}
+
+// Load project configuration
+const PROJECT_CONFIG = loadProjectConfig();
+
+// Use paths from project config
+const DOCS_ROOT = path.resolve(
+    PROJECT_ROOT,
+    PROJECT_CONFIG.paths.docs.replace("./", "")
+);
+const CONFIG_ROOT = path.resolve(
+    PROJECT_ROOT,
+    PROJECT_CONFIG.paths.config.replace("./", ""),
+    "sidebar"
+);
+
+/**
+ * Get language codes from project configuration
+ */
+function getLanguageCodes() {
+    return PROJECT_CONFIG.languages.map((lang) => {
+        // Extract language code from link (e.g., /zh/ -> zh, /en/ -> en)
+        const match = lang.link?.match(/^\/([^\/]+)\//);
+        return match ? match[1] : lang.code.split("-")[0]; // fallback to first part of code
+    });
+}
 
 /**
  * Parse frontmatter from markdown content

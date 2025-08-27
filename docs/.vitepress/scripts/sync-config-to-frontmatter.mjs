@@ -94,17 +94,17 @@ function loadProjectConfig() {
                     code: "zh-CN",
                     displayName: "简体中文",
                     isDefault: true,
-                    link: "/zh/",
+                    link: "/zh-CN/",
                 },
                 {
                     code: "en-US",
                     displayName: "English",
                     isDefault: false,
-                    link: "/en/",
+                    link: "/en-US/",
                 },
             ],
             paths: {
-                docs: "./docs",
+                docs: "./src",
                 config: "./.vitepress/config",
             },
         };
