@@ -64,7 +64,6 @@ async function MagicMovePlugin(md: MarkdownIt, shiki: Highlighter) {
                 const token = state.push("magic-move_open", "div", 1);
                 token.meta = {
                     stepsLz: encodeURIComponent(JSON.stringify(steps)),
-                    stepRanges: JSON.stringify(ranges),
                 };
                 state.push("magic-move_close", "div", -1);
 
@@ -77,7 +76,7 @@ async function MagicMovePlugin(md: MarkdownIt, shiki: Highlighter) {
 
     function renderDefault(tokens: any[], idx: number) {
         if (tokens[idx].nesting === 1) {
-            const { stepsLz, stepRanges } = tokens[idx].meta;
+            const { stepsLz } = tokens[idx].meta;
             
             const steps = JSON.parse(decodeURIComponent(stepsLz));
             const filenameElements = steps
@@ -86,7 +85,7 @@ async function MagicMovePlugin(md: MarkdownIt, shiki: Highlighter) {
                 .map((filename: string) => `<span data-title="${filename}" style="display:none;"></span>`)
                 .join('');
             
-            return `${filenameElements}<MagicMoveContainer steps-lz="${stepsLz}" :step-ranges="${stepRanges}" />`;
+            return `${filenameElements}<MagicMoveContainer steps-lz="${stepsLz}" />`;
         }
         return "";
     }
