@@ -117,7 +117,7 @@ function parseLineBarData(lines: string[]): any {
  */
 function parsePieData(lines: string[]): any {
     const data: any[] = [];
-    
+
     for (const line of lines) {
         if (line.includes(':')) {
             const [name, value] = line.split(':').map(s => s.trim());
@@ -467,7 +467,7 @@ function generateChartOption(chartType: string, parsedData: any, config: ChartCo
     if (chartType === 'pie' || chartType === 'doughnut') {
         option.tooltip = {
             trigger: 'item',
-            formatter: '{a} <br/>{b}: {c} ({d}%)'
+            formatter: '{b}: {c} ({d}%)'
         };
     } else if (chartType === 'radar') {
         option.tooltip = {
@@ -493,7 +493,7 @@ function generateChartOption(chartType: string, parsedData: any, config: ChartCo
             left: '3%',
             right: '4%',
             bottom: '3%',
-            top: config.title ? '15%' : '8%',
+            top: config.title ? '22%' : '8%',
             containLabel: true
         };
     }
@@ -545,6 +545,7 @@ function generateChartOption(chartType: string, parsedData: any, config: ChartCo
         case 'pie':
         case 'doughnut':
             option.series = [{
+                name: config.title || '数据分布',
                 type: 'pie',
                 radius: chartType === 'doughnut' ? ['40%', '70%'] : '50%',
                 data: parsedData.data
@@ -572,7 +573,6 @@ function generateChartOption(chartType: string, parsedData: any, config: ChartCo
             
         case 'radar':
             if (parsedData.indicators && parsedData.series) {
-                // 计算最大值
                 const allValues = parsedData.series.flatMap((s: any) => s.value);
                 const maxValue = Math.max(...allValues) * 1.2;
                 
@@ -785,11 +785,27 @@ function generateChartOption(chartType: string, parsedData: any, config: ChartCo
     }
     
     // Add legend if multiple series or explicitly requested
-    if ((option.series && option.series.length > 1) || config.legend) {
+    // For radar charts, also show legend if there are multiple data items in a single series
+    const shouldShowLegend = (option.series && option.series.length > 1) || 
+                            config.legend ||
+                            (chartType === 'radar' && option.series && option.series[0] && 
+                             option.series[0].data && option.series[0].data.length > 1);
+    
+    if (shouldShowLegend) {
+        let legendData: string[] = [];
+        
+        if (chartType === 'radar' && option.series && option.series[0] && option.series[0].data) {
+            // For radar charts, use the names from the data items
+            legendData = option.series[0].data.map((item: any) => item.name).filter(Boolean);
+        } else {
+            // For other charts, use series names
+            legendData = option.series ? option.series.map((s: any) => s.name).filter(Boolean) : [];
+        }
+        
         option.legend = {
             top: config.title ? '15%' : '5%',
             left: 'center',
-            data: option.series ? option.series.map((s: any) => s.name).filter(Boolean) : []
+            data: legendData
         };
     }
     

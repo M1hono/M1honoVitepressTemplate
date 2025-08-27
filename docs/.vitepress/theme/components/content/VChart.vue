@@ -1,5 +1,5 @@
 <template>
-    <div class="echarts-container" :style="{ width, height }">
+    <div class="echarts-container" :style="{ width, height: computedHeight }">
         <ClientOnly>
             <VueEChart
                 :option="enhancedOptions"
@@ -137,6 +137,20 @@
         return props.theme;
     });
 
+    // Compute height based on chart type
+    const computedHeight = computed(() => {
+        // Check if it's a radar chart
+        const isRadarChart = props.options?.radar || 
+                           (props.options?.series && props.options?.series[0]?.type === 'radar');
+        
+        // If height is not explicitly set and it's a radar chart, use 500px
+        if (isRadarChart && props.height === "400px") {
+            return "500px";
+        }
+        
+        return props.height;
+    });
+
     const customThemes = {
         light: {
             colors: ['#4caf50', '#2196f3', '#ff9800', '#9c27b0', '#f44336', '#00bcd4', '#ffc107', '#e91e63', '#009688', '#795548', '#607d8b', '#673ab7', '#3f51b5', '#03a9f4', '#8bc34a', '#cddc39', '#ff5722', '#607d8b'],
@@ -227,6 +241,78 @@
                 ...baseOptions.grid,
                 borderColor: theme.axisColor
             };
+        }
+
+        // Fix title and legend overlap issues
+        if (baseOptions.title && baseOptions.legend) {
+            // Adjust title position
+            baseOptions.title = {
+                ...baseOptions.title,
+                top: '3%'
+            };
+            
+            // Adjust legend position to avoid overlap
+            baseOptions.legend = {
+                ...baseOptions.legend,
+                top: '15%'
+            };
+            
+            // For pie charts, adjust the center position to accommodate title and legend
+            if (baseOptions.series && baseOptions.series[0] && 
+                (baseOptions.series[0].type === 'pie')) {
+                baseOptions.series = baseOptions.series.map(series => ({
+                    ...series,
+                    center: ['50%', '62%']
+                }));
+            }
+            
+            // For radar charts, adjust the center and radius to accommodate title and legend
+            if (baseOptions.radar) {
+                baseOptions.radar = {
+                    ...baseOptions.radar,
+                    center: ['50%', '65%'],
+                    radius: '60%'
+                };
+            }
+        } else if (baseOptions.title) {
+            // Only title, position it at the top
+            baseOptions.title = {
+                ...baseOptions.title,
+                top: '3%'
+            };
+            
+            // For pie charts with title only, center slightly lower
+            if (baseOptions.series && baseOptions.series[0] && 
+                (baseOptions.series[0].type === 'pie')) {
+                baseOptions.series = baseOptions.series.map(series => ({
+                    ...series,
+                    center: ['50%', '55%']
+                }));
+            }
+            
+            // For radar charts with title only, adjust center and radius
+            if (baseOptions.radar) {
+                baseOptions.radar = {
+                    ...baseOptions.radar,
+                    center: ['50%', '55%'],
+                    radius: '70%'
+                };
+            }
+        } else if (baseOptions.legend) {
+            // Only legend, position it at the top
+            baseOptions.legend = {
+                ...baseOptions.legend,
+                top: '5%'
+            };
+            
+            // For radar charts with legend only, adjust center and radius
+            if (baseOptions.radar) {
+                baseOptions.radar = {
+                    ...baseOptions.radar,
+                    center: ['50%', '55%'],
+                    radius: '70%'
+                };
+            }
         }
         
         return baseOptions;

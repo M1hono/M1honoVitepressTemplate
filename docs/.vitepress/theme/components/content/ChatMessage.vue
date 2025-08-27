@@ -312,6 +312,10 @@
         gap: 0.8rem;
         align-items: flex-start;
         margin: 0.5rem 0 !important;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden; /* 强制隐藏所有溢出内容 */
         opacity: 0;
         transform: translateX(-20%);
         transition: transform 0.3s ease-out, opacity 0.3s ease;
@@ -344,6 +348,8 @@
 
             .message-content {
                 align-items: flex-end;
+                padding-right: 0; /* 右侧消息不需要右边距 */
+                padding-left: 0.5rem; /* 右侧消息需要左边距 */
             }
 
             .message-box {
@@ -419,8 +425,12 @@
             flex-direction: column;
             align-items: flex-start;
             gap: 0.25rem;
-            max-width: calc(100% - #{$msgbox-left});
+            max-width: calc(100% - #{$avatar-size} - 0.8rem);
             min-width: 0;
+            flex: 1;
+            overflow: hidden;
+            padding-right: 0.5rem; /* 一劳永逸的右边距，防止贴边 */
+            box-sizing: border-box;
         }
 
         .nickname {
@@ -434,9 +444,12 @@
             position: relative;
             width: fit-content;
             max-width: 100%;
+            min-width: 0;
             border-radius: 0.2rem 0.5rem 0.5rem 0.5rem;
             background-color: var(--vp-c-bg);
             word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
             border: 1px solid var(--vp-c-border);
             padding: 0.5rem 0.8rem;
             font-size: 14px;
@@ -480,8 +493,13 @@
             }
             
             .message-inner {
-                overflow: hidden;
+                overflow-wrap: break-word;
+                word-break: break-word;
                 width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                overflow: hidden; /* 强制隐藏内部溢出 */
+                box-sizing: border-box;
             }
             
             /* Fix all code block negative margins with highest specificity */
@@ -518,6 +536,100 @@
     @keyframes spin {
         to {
             transform: rotate(360deg);
+        }
+    }
+
+    /* Mobile-specific improvements */
+    @media (max-width: 768px) {
+        $mobile-avatar-size: 2.4rem;
+        $mobile-msgbox-left: $mobile-avatar-size + 0.6rem;
+
+        .chat-message {
+            gap: 0.6rem;
+            margin: 0.4rem 0 !important;
+            max-width: 100vw;
+            overflow-x: hidden;
+
+            .avatar {
+                width: $mobile-avatar-size;
+                height: $mobile-avatar-size;
+            }
+
+            .message-content {
+                max-width: calc(100% - #{$mobile-avatar-size} - 0.6rem);
+                min-width: 0;
+                flex: 1;
+                padding-right: 0.4rem; /* 移动端稍小的右边距 */
+            }
+
+            .message-box {
+                max-width: 100%;
+                font-size: 13px;
+                padding: 0.4rem 0.6rem;
+                
+                /* Better text wrapping on mobile */
+                overflow-wrap: anywhere;
+                word-break: break-word;
+                hyphens: auto;
+            }
+
+            .nickname {
+                font-size: 0.8rem;
+                margin-left: 0.4rem;
+            }
+
+            &.is-grouped {
+                margin-top: 0.2rem;
+            }
+
+            &.location-right .message-content {
+                padding-right: 0;
+                padding-left: 0.4rem; /* 移动端右侧消息的左边距 */
+            }
+        }
+    }
+
+    @media (max-width: 480px) {
+        $small-avatar-size: 2rem;
+        $small-msgbox-left: $small-avatar-size + 0.5rem;
+
+        .chat-message {
+            gap: 0.5rem;
+            max-width: 100vw;
+            overflow-x: hidden;
+
+            .avatar {
+                width: $small-avatar-size;
+                height: $small-avatar-size;
+                
+                .avatar-text,
+                .avatar-icon {
+                    font-size: 1.1rem;
+                }
+            }
+
+            .message-content {
+                max-width: calc(100% - #{$small-avatar-size} - 0.5rem);
+                flex: 1;
+                padding-right: 0.3rem; /* 小屏幕更小的右边距 */
+            }
+
+            .message-box {
+                max-width: 100%;
+                font-size: 12px;
+                padding: 0.35rem 0.5rem;
+                line-height: 1.5;
+            }
+
+            .nickname {
+                font-size: 0.75rem;
+                margin-left: 0.3rem;
+            }
+
+            &.location-right .message-content {
+                padding-right: 0;
+                padding-left: 0.3rem; /* 小屏幕右侧消息的左边距 */
+            }
         }
     }
 </style>
