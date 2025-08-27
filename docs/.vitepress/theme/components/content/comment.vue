@@ -3,7 +3,7 @@
         v-if="showComment"
         class="giscus-wrapper"
         ref="giscusContainer"
-        :data-loading-text="t.loading"
+        :data-loading-text="isLoading ? t.loading : undefined"
     ></div>
 </template>
 
@@ -11,7 +11,7 @@
 // @i18n
 import { ref, watch, onMounted, computed, nextTick } from "vue";
 import { useData, useRoute } from "vitepress";
-import { useSafeI18n } from "@utils/i18n/locale";
+import { useSafeI18n } from "../../../utils/i18n/locale";
 import { getLanguageByCode, getDefaultLanguage } from "../../../config/project-config";
 
 const { isDark, lang, frontmatter } = useData();
@@ -76,7 +76,17 @@ const extractTerm = (path: string) => {
             };
 
             script.onload = () => {
-                isLoading.value = false;
+                // Script loaded, but we need to wait for the iframe to be ready
+                // Check for iframe periodically
+                const checkIframe = () => {
+                    const iframe = giscusContainer.value?.querySelector('iframe.giscus-frame');
+                    if (iframe) {
+                        isLoading.value = false;
+                    } else {
+                        setTimeout(checkIframe, 100);
+                    }
+                };
+                setTimeout(checkIframe, 100);
             };
 
             giscusContainer.value.appendChild(script);
@@ -162,7 +172,7 @@ const extractTerm = (path: string) => {
         border: none;
     }
 
-    .giscus-wrapper[data-loading-text]::after {
+    .giscus-wrapper[data-loading-text]:not([data-loading-text=""])::after {
         content: attr(data-loading-text);
         display: block;
         text-align: center;
