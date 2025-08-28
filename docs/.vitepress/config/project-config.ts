@@ -576,7 +576,7 @@ export interface ProjectConfig {
         /** Enable Draw.io diagram support in markdown */
         drawio: boolean;
             /** Enable Markmap diagram support in markdown */
-    markmap: boolean;
+        markmap: boolean;
         /** Enable multi-language support and language switcher */
         multilingual: boolean;
         /** Enable automatic sidebar generation from file structure */

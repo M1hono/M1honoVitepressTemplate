@@ -12,10 +12,19 @@ hero:
   actions:
     - theme: brand
       text: 快速开始
-      link: /zh-CN/guide/getting-started
+      link: https://m1hono.github.io/TemplateDoc/zh-CN/getStarted
     - theme: alt
-      text: 特性介绍
-      link: /zh-CN/guide/features
+      text: 配置系统
+      link: https://m1hono.github.io/TemplateDoc/zh-CN/configsGuide
+    - theme: alt
+      text: 组件一览
+      link: https://m1hono.github.io/TemplateDoc/zh-CN/pluginsGuide
+    - theme: alt
+      text: 侧边栏系统
+      link: https://m1hono.github.io/TemplateDoc/zh-CN/sidebarSystem
+    - theme: alt
+      text: 插件与组件开发
+      link: https://m1hono.github.io/TemplateDoc/zh-CN/pluginsAndLocale
 
 features:
   - icon: 📝
