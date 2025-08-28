@@ -315,7 +315,7 @@
         max-width: 100%;
         width: 100%;
         box-sizing: border-box;
-        overflow: hidden; /* 强制隐藏所有溢出内容 */
+        overflow: hidden;
         opacity: 0;
         transform: translateX(-20%);
         transition: transform 0.3s ease-out, opacity 0.3s ease;
@@ -348,8 +348,8 @@
 
             .message-content {
                 align-items: flex-end;
-                padding-right: 0; /* 右侧消息不需要右边距 */
-                padding-left: 0.5rem; /* 右侧消息需要左边距 */
+                padding-right: 0;
+                padding-left: 0.5rem;
             }
 
             .message-box {
@@ -429,7 +429,7 @@
             min-width: 0;
             flex: 1;
             overflow: hidden;
-            padding-right: 0.5rem; /* 一劳永逸的右边距，防止贴边 */
+            padding-right: 0.5rem;
             box-sizing: border-box;
         }
 
@@ -491,18 +491,17 @@
             .vp-doc *:first-child {
                 margin-top: 0 !important;
             }
-            
+
             .message-inner {
                 overflow-wrap: break-word;
                 word-break: break-word;
                 width: 100%;
                 min-width: 0;
                 max-width: 100%;
-                overflow: hidden; /* 强制隐藏内部溢出 */
+                overflow: hidden;
                 box-sizing: border-box;
             }
-            
-            /* Fix all code block negative margins with highest specificity */
+
             :deep(.vp-doc div[class*="language-"]),
             :deep(div[class*="language-"]),
             :deep(.language),
@@ -514,8 +513,7 @@
                 position: relative;
                 z-index: 0;
             }
-            
-            /* Ensure code blocks don't overflow the message container */
+
             :deep(.vp-doc div[class*="language-"] pre),
             :deep(div[class*="language-"] pre) {
                 margin: 0 !important;
@@ -539,7 +537,6 @@
         }
     }
 
-    /* Mobile-specific improvements */
     @media (max-width: 768px) {
         $mobile-avatar-size: 2.4rem;
         $mobile-msgbox-left: $mobile-avatar-size + 0.6rem;
@@ -559,15 +556,14 @@
                 max-width: calc(100% - #{$mobile-avatar-size} - 0.6rem);
                 min-width: 0;
                 flex: 1;
-                padding-right: 0.4rem; /* 移动端稍小的右边距 */
+                padding-right: 0.4rem;
             }
 
             .message-box {
                 max-width: 100%;
                 font-size: 13px;
                 padding: 0.4rem 0.6rem;
-                
-                /* Better text wrapping on mobile */
+
                 overflow-wrap: anywhere;
                 word-break: break-word;
                 hyphens: auto;
@@ -584,7 +580,7 @@
 
             &.location-right .message-content {
                 padding-right: 0;
-                padding-left: 0.4rem; /* 移动端右侧消息的左边距 */
+                padding-left: 0.4rem;
             }
         }
     }
@@ -601,7 +597,7 @@
             .avatar {
                 width: $small-avatar-size;
                 height: $small-avatar-size;
-                
+
                 .avatar-text,
                 .avatar-icon {
                     font-size: 1.1rem;
@@ -611,7 +607,7 @@
             .message-content {
                 max-width: calc(100% - #{$small-avatar-size} - 0.5rem);
                 flex: 1;
-                padding-right: 0.3rem; /* 小屏幕更小的右边距 */
+                padding-right: 0.3rem;
             }
 
             .message-box {
@@ -628,7 +624,7 @@
 
             &.location-right .message-content {
                 padding-right: 0;
-                padding-left: 0.3rem; /* 小屏幕右侧消息的左边距 */
+                padding-left: 0.3rem;
             }
         }
     }
