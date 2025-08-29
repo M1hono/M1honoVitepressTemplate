@@ -683,7 +683,7 @@
                 </slot>
                 <slot name="home-hero-info-after" />
 
-                <!-- 按钮组（移动端滚动后显示） - 优化布局 -->
+                <!-- 按钮组（移动端滚动后显示） -->
                 <div
                     v-if="actions && actions.length > 0"
                     class="actions"
@@ -874,9 +874,11 @@
     .actions.mobile-visible {
         opacity: 1;
         transform: translateY(0);
-        max-height: 200px;
+        max-height: none;
         margin: 1.5rem 0;
     }
+
+
 
     .VPHero.has-image .container {
         text-align: center;

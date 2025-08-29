@@ -137,6 +137,15 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                     ),
                 },
                 {
+                    find: /^.*\/VPNavScreenTranslations\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/VPNavScreenTranslations.vue",
+                            import.meta.url
+                        )
+                    ),
+                },
+                {
                     find: "@utils",
                     replacement: resolve(projectPaths.vitepress, "utils"),
                 },
