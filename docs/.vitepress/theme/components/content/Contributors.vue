@@ -1,20 +1,20 @@
 <script setup lang="ts">
-    // @i18n
     import { ref, onMounted, computed } from "vue";
     import { useData } from "vitepress";
     import { Motion } from "motion-v";
     import { useSafeI18n } from "@utils/i18n/locale";
+    import { getProjectInfo } from "../../../config/project-config";
 
     const { t } = useSafeI18n("contributors", {
-        title: 'Contributors',
-        contributors: 'Contributors',
-        totalContributions: 'Total Contributions',
-        contributions: 'contributions',
-        loading: 'Loading contributors...',
-        viewProfile: 'View Profile',
-        retry: 'Retry',
-        noContributors: 'No contributors found',
-        githubError: 'GitHub API Error. Rate limit may have been exceeded.'
+        title: "Contributors",
+        contributors: "Contributors",
+        totalContributions: "Total Contributions",
+        contributions: "contributions",
+        loading: "Loading contributors...",
+        viewProfile: "View Profile",
+        retry: "Retry",
+        noContributors: "No contributors found",
+        githubError: "GitHub API Error. Rate limit may have been exceeded.",
     });
 
     interface Contributor {
@@ -33,17 +33,34 @@
         showContributions?: boolean;
         enableCache?: boolean;
         title?: string;
-        locale?: string;
     }
 
+    const projectInfo = getProjectInfo();
+
+    const getRepoInfo = () => {
+        const repoUrl = projectInfo.repository.url;
+        const match = repoUrl.match(
+            /github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?$/
+        );
+        if (match) {
+            return { owner: match[1], repo: match[2] };
+        }
+        return {
+            owner: projectInfo.author,
+            repo: projectInfo.name,
+        };
+    };
+
+    const { owner: defaultOwner, repo: defaultRepo } = getRepoInfo();
+
     const props = withDefaults(defineProps<Props>(), {
-        owner: "PickAID",
-        repo: "CrychicDoc",
         maxCount: 200,
         showContributions: true,
         enableCache: true,
-        locale: "zh-CN",
     });
+
+    const owner = computed(() => props.owner ?? defaultOwner);
+    const repo = computed(() => props.repo ?? defaultRepo);
 
     const { site } = useData();
 
@@ -58,18 +75,22 @@
             .slice(0, props.maxCount)
     );
 
-    const ownerContributor = computed(() => 
-        sortedContributors.value.find(c => c.login.toLowerCase() === props.owner.toLowerCase())
+    const ownerContributor = computed(() =>
+        sortedContributors.value.find(
+            (c) => c.login.toLowerCase() === owner.value.toLowerCase()
+        )
     );
 
-    const regularContributors = computed(() => 
-        sortedContributors.value.filter(c => c.login.toLowerCase() !== props.owner.toLowerCase())
+    const regularContributors = computed(() =>
+        sortedContributors.value.filter(
+            (c) => c.login.toLowerCase() !== owner.value.toLowerCase()
+        )
     );
 
     interface ContributorGroup {
         id: number;
         contributors: Contributor[];
-        sizeTier: 'large' | 'medium' | 'small';
+        sizeTier: "large" | "medium" | "small";
         groupSize: number;
         delay: number;
     }
@@ -79,38 +100,41 @@
         const contributors = regularContributors.value;
         let currentIndex = 0;
         let groupId = 0;
-        
+
         while (currentIndex < contributors.length) {
             let groupSize: number;
-            let sizeTier: 'large' | 'medium' | 'small';
-            
+            let sizeTier: "large" | "medium" | "small";
+
             if (groupId === 0) {
                 groupSize = 5;
-                sizeTier = 'large';
+                sizeTier = "large";
             } else if (groupId === 1) {
                 groupSize = 5;
-                sizeTier = 'medium';
+                sizeTier = "medium";
             } else {
                 groupSize = 10;
-                sizeTier = 'small';
+                sizeTier = "small";
             }
-            
-            const group = contributors.slice(currentIndex, currentIndex + groupSize);
-            
+
+            const group = contributors.slice(
+                currentIndex,
+                currentIndex + groupSize
+            );
+
             if (group.length > 0) {
                 groups.push({
                     id: groupId,
                     contributors: group,
                     sizeTier,
                     groupSize,
-                    delay: groupId * 0.1
+                    delay: groupId * 0.1,
                 });
             }
-            
+
             currentIndex += groupSize;
             groupId++;
         }
-        
+
         return groups;
     });
 
@@ -173,7 +197,7 @@
 
         try {
             const response = await fetch(
-                `https://api.github.com/repos/${props.owner}/${props.repo}/contributors?per_page=100`,
+                `https://api.github.com/repos/${owner.value}/${repo.value}/contributors?per_page=100`,
                 {
                     headers: {
                         Accept: "application/vnd.github.v3+json",
@@ -232,42 +256,44 @@
         <div class="contributors-content">
             <!-- Header -->
             <div class="contributors-header">
-            <h2 class="contributors-title">
-                {{ title || t.title }}
-            </h2>
-            <div v-if="!loading && !error" class="contributors-stats">
-                <span class="stat-item">
-                    <span class="stat-number">{{
-                        sortedContributors.length
-                    }}</span>
-                    <span class="stat-label">{{ t.contributors }}</span>
-                </span>
-                <span class="stat-divider">·</span>
-                <span class="stat-item">
-                    <span class="stat-number">{{
-                        totalContributions.toLocaleString()
-                    }}</span>
-                    <span class="stat-label">{{ t.totalContributions }}</span>
-                </span>
+                <h2 class="contributors-title">
+                    {{ title || t.title }}
+                </h2>
+                <div v-if="!loading && !error" class="contributors-stats">
+                    <span class="stat-item">
+                        <span class="stat-number">{{
+                            sortedContributors.length
+                        }}</span>
+                        <span class="stat-label">{{ t.contributors }}</span>
+                    </span>
+                    <span class="stat-divider">·</span>
+                    <span class="stat-item">
+                        <span class="stat-number">{{
+                            totalContributions.toLocaleString()
+                        }}</span>
+                        <span class="stat-label">{{
+                            t.totalContributions
+                        }}</span>
+                    </span>
+                </div>
             </div>
-        </div>
 
-        <!-- Loading state -->
-        <div v-if="loading" class="loading-container">
-            <div class="loading-spinner"></div>
-            <p class="loading-text">{{ t.loading }}</p>
-        </div>
+            <!-- Loading state -->
+            <div v-if="loading" class="loading-container">
+                <div class="loading-spinner"></div>
+                <p class="loading-text">{{ t.loading }}</p>
+            </div>
 
-        <!-- Error state -->
-        <div v-else-if="error" class="error-container">
-            <div class="error-icon">⚠️</div>
-            <p class="error-message">{{ error }}</p>
-            <button @click="fetchContributors" class="retry-button">
-                {{ t.retry }}
-            </button>
-        </div>
+            <!-- Error state -->
+            <div v-else-if="error" class="error-container">
+                <div class="error-icon">⚠️</div>
+                <p class="error-message">{{ error }}</p>
+                <button @click="fetchContributors" class="retry-button">
+                    {{ t.retry }}
+                </button>
+            </div>
 
-                    <!-- Owner Section (Special) -->
+            <!-- Owner Section (Special) -->
             <Motion
                 v-if="ownerContributor"
                 :initial="{ opacity: 0, y: -20 }"
@@ -304,10 +330,16 @@
                         </div>
                     </div>
                     <div class="contributor-info">
-                        <h3 class="contributor-name">{{ ownerContributor.login }}</h3>
+                        <h3 class="contributor-name">
+                            {{ ownerContributor.login }}
+                        </h3>
                         <p class="owner-badge">Project Owner</p>
-                        <p v-if="showContributions" class="contributor-contributions">
-                            {{ ownerContributor.contributions }} {{ t.contributions }}
+                        <p
+                            v-if="showContributions"
+                            class="contributor-contributions"
+                        >
+                            {{ ownerContributor.contributions }}
+                            {{ t.contributions }}
                         </p>
                     </div>
                     <div class="card-overlay">
@@ -317,16 +349,19 @@
             </Motion>
 
             <!-- Contributors Groups -->
-            <div v-else-if="sortedContributors.length > 0" class="contributors-layout">
+            <div
+                v-else-if="sortedContributors.length > 0"
+                class="contributors-layout"
+            >
                 <Motion
                     v-for="group in contributorGroups"
                     :key="group.id"
                     :initial="{ opacity: 0, y: 30 }"
                     :animate="{ opacity: 1, y: 0 }"
-                    :transition="{ 
-                        duration: 0.6, 
+                    :transition="{
+                        duration: 0.6,
                         ease: 'easeOut',
-                        delay: group.delay 
+                        delay: group.delay,
                     }"
                     :class="['contributor-group', `group-${group.sizeTier}`]"
                 >
@@ -336,10 +371,10 @@
                             :key="contributor.id"
                             :initial="{ opacity: 0, scale: 0.8 }"
                             :animate="{ opacity: 1, scale: 1 }"
-                            :transition="{ 
-                                duration: 0.4, 
+                            :transition="{
+                                duration: 0.4,
                                 ease: 'backOut',
-                                delay: group.delay + (index * 0.05)
+                                delay: group.delay + index * 0.05,
                             }"
                             :whileHover="{ scale: 1.05, y: -4 }"
                             :whileTap="{ scale: 0.95 }"
@@ -356,7 +391,9 @@
                                     :src="`${contributor.avatar_url}&s=100`"
                                     :alt="`${contributor.login}'s avatar`"
                                     class="contributor-avatar"
-                                    @error="handleAvatarError($event, contributor)"
+                                    @error="
+                                        handleAvatarError($event, contributor)
+                                    "
                                     loading="lazy"
                                 />
                                 <div
@@ -367,23 +404,28 @@
                                 </div>
                             </div>
                             <div class="contributor-info">
-                                <h3 class="contributor-name">{{ contributor.login }}</h3>
+                                <h3 class="contributor-name">
+                                    {{ contributor.login }}
+                                </h3>
                                 <p
                                     v-if="showContributions"
                                     class="contributor-contributions"
                                 >
-                                    {{ contributor.contributions }} {{ t.contributions }}
+                                    {{ contributor.contributions }}
+                                    {{ t.contributions }}
                                 </p>
                             </div>
                             <div class="card-overlay">
-                                <span class="overlay-text">{{ t.viewProfile }}</span>
+                                <span class="overlay-text">{{
+                                    t.viewProfile
+                                }}</span>
                             </div>
                         </Motion>
                     </div>
                 </Motion>
             </div>
 
-                    <!-- Empty state -->
+            <!-- Empty state -->
             <div v-else class="empty-container">
                 <div class="empty-icon">📭</div>
                 <p class="empty-message">{{ t.noContributors }}</p>
@@ -404,7 +446,7 @@
     }
 
     .dark .contributors-container {
-        background: #1B1B1F !important;
+        background: #1b1b1f !important;
     }
 
     .contributors-content {
@@ -568,8 +610,9 @@
         max-width: 280px;
         margin: 0 auto;
         padding: 32px 24px;
-        background: linear-gradient(135deg, 
-            rgba(var(--vp-c-brand-rgb), 0.1), 
+        background: linear-gradient(
+            135deg,
+            rgba(var(--vp-c-brand-rgb), 0.1),
             rgba(var(--vp-c-brand-2-rgb), 0.05)
         );
         border: 2px solid rgba(var(--vp-c-brand-rgb), 0.2);
@@ -788,8 +831,6 @@
         margin: 0;
     }
 
-
-
     .group-small .contributor-info {
         display: none;
     }
@@ -799,34 +840,34 @@
             --container-padding: 32px;
             --grid-gap: 20px;
         }
-        
+
         .group-large .group-grid {
             grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             max-width: 1000px;
         }
-        
+
         .group-large .contributor-card {
             padding: 24px 16px;
             min-height: 180px;
             max-width: 220px;
         }
-        
+
         .group-medium .group-grid {
             grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             max-width: 1000px;
         }
-        
+
         .group-medium .contributor-card {
             padding: 20px 12px;
             min-height: 140px;
             max-width: 180px;
         }
-        
+
         .group-small .group-grid {
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             max-width: 1200px;
         }
-        
+
         .group-small .contributor-card {
             padding: 16px 8px;
             min-height: 100px;
@@ -840,54 +881,54 @@
             --container-padding: 60px;
             --grid-gap: 24px;
         }
-        
+
         .group-large .group-grid {
             grid-template-columns: repeat(5, 1fr);
             max-width: 1200px;
         }
-        
+
         .group-large .contributor-card {
             padding: 32px 20px;
             min-height: 200px;
             max-width: 240px;
         }
-        
+
         .group-large .contributor-avatar {
             width: 88px;
             height: 88px;
         }
-        
+
         .group-large .contributor-name {
             font-size: 20px;
         }
-        
+
         .group-medium .group-grid {
             grid-template-columns: repeat(5, 1fr);
             max-width: 1200px;
         }
-        
+
         .group-medium .contributor-card {
             padding: 28px 16px;
             min-height: 180px;
             max-width: 240px;
         }
-        
+
         .group-medium .contributor-avatar {
             width: 64px;
             height: 64px;
         }
-        
+
         .group-small .group-grid {
             grid-template-columns: repeat(10, 1fr);
             max-width: 1400px;
         }
-        
+
         .group-small .contributor-card {
             padding: 20px 10px;
             min-height: 120px;
             max-width: 140px;
         }
-        
+
         .group-small .contributor-avatar {
             width: 48px;
             height: 48px;
@@ -899,45 +940,45 @@
             --container-max-width: 1600px;
             --container-padding: 80px;
         }
-        
+
         .group-large .contributor-card {
             padding: 36px 24px;
             min-height: 220px;
         }
-        
+
         .group-large .contributor-avatar {
             width: 96px;
             height: 96px;
         }
-        
+
         .group-large .contributor-name {
             font-size: 22px;
         }
-        
+
         .group-medium .contributor-card {
             padding: 32px 20px;
             min-height: 200px;
         }
-        
+
         .group-medium .contributor-avatar {
             width: 72px;
             height: 72px;
         }
-        
+
         .group-medium .contributor-name {
             font-size: 16px;
         }
-        
+
         .group-small .contributor-card {
             padding: 24px 12px;
             min-height: 140px;
         }
-        
+
         .group-small .contributor-avatar {
             width: 56px;
             height: 56px;
         }
-        
+
         .group-small .contributor-name {
             font-size: 13px;
         }
@@ -1101,18 +1142,15 @@
 
     /* Dark theme adjustments */
     .dark .contributor-card {
-        background: #1B1B1F;
+        background: #1b1b1f;
     }
 
     .dark .contributor-card:hover {
-        background: #1B1B1F;
+        background: #1b1b1f;
     }
 
     .dark .owner-card {
-        background: linear-gradient(135deg, 
-            #1B1B1F, 
-            rgba(27, 27, 31, 0.95)
-        );
+        background: linear-gradient(135deg, #1b1b1f, rgba(27, 27, 31, 0.95));
         border: 2px solid rgba(var(--vp-c-brand-rgb), 0.3);
     }
 
@@ -1138,42 +1176,39 @@
             --container-padding: 16px;
             --grid-gap: 12px;
         }
-        
+
         .group-large .group-grid {
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
             max-width: 100%;
         }
-        
+
         .group-large .contributor-card {
             padding: 16px 8px;
             min-height: 140px;
             max-width: 160px;
         }
-        
+
         .group-medium .group-grid {
             grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
             max-width: 100%;
         }
-        
+
         .group-medium .contributor-card {
             padding: 12px 6px;
             min-height: 120px;
             max-width: 140px;
         }
-        
+
         .group-small .group-grid {
             grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
             max-width: 100%;
         }
-        
+
         .group-small .contributor-card {
             padding: 10px 4px;
             min-height: 80px;
             max-width: 100px;
         }
-
-
-
 
         .owner-card {
             max-width: 240px;
@@ -1254,8 +1289,6 @@
             width: 20px;
             height: 20px;
         }
-
-
     }
 
     @media (max-width: 480px) {
@@ -1308,8 +1341,6 @@
             width: 18px;
             height: 18px;
         }
-
-
 
         .owner-card {
             max-width: 220px;

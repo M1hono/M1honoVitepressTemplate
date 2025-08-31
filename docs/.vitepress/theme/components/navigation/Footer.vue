@@ -1,6 +1,6 @@
 <script setup lang="ts">
     // @ts-nocheck
-    import { useData } from "vitepress";
+    import { withBase, useData } from "vitepress";
     import { computed, onMounted, ref, watch } from "vue";
     import {
         getProjectInfo,
@@ -8,8 +8,9 @@
         getDefaultLanguage,
     } from "../../../config/project-config";
     import type { FooterConfig } from "../../../utils/content/footer";
+    import { Icon } from "@iconify/vue";
 
-    const { frontmatter, lang } = useData();
+    const { frontmatter, lang, isDark } = useData();
     const projectInfo = getProjectInfo();
 
     const footerData = ref<FooterConfig | null>(null);
@@ -43,9 +44,13 @@
                 const fallbackModule = await import(
                     `../../../config/locale/${defaultLang.code}/footer.ts`
                 );
-                footerData.value = fallbackModule.footerConfig || fallbackModule.default;
+                footerData.value =
+                    fallbackModule.footerConfig || fallbackModule.default;
             } catch (fallbackError) {
-                console.error('Failed to load footer configuration:', fallbackError);
+                console.error(
+                    "Failed to load footer configuration:",
+                    fallbackError
+                );
                 footerData.value = null;
             }
         }
@@ -79,26 +84,21 @@
             return {
                 gridTemplateColumns: "1fr",
                 justifyItems: "center",
-                maxWidth: "300px",
             };
         } else if (groupCount === 2) {
             return {
                 gridTemplateColumns: "repeat(2, 1fr)",
                 justifyItems: "center",
-                maxWidth: "600px",
             };
         } else if (groupCount === 3) {
             return {
                 gridTemplateColumns: "repeat(3, 1fr)",
                 justifyItems: "center",
-                maxWidth: "800px",
             };
         } else {
-            // 4个或更多时使用自适应布局
             return {
                 gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-                justifyItems: "start",
-                maxWidth: "1000px",
+                justifyItems: "center",
             };
         }
     });
@@ -107,53 +107,32 @@
         return /^https?:\/\//.test(url);
     };
 
-    const getIconColor = (icon: any, isDark: boolean) => {
+    const getIconSrc = (icon: any): string => {
+        if (!icon) return "";
+        if (typeof icon === "string") return icon;
+        if (icon.light && icon.dark) {
+            return isDark.value ? icon.dark : icon.light;
+        }
+        return icon.icon || "";
+    };
+
+    const isSvgIcon = (src: string): boolean => {
+        return src.startsWith("/") || src.endsWith(".svg");
+    };
+
+    const getIconColor = (icon: any, isDark: boolean): string | undefined => {
         if (!icon?.color) return undefined;
         return isDark ? icon.color.dark : icon.color.light;
-    };
-
-    const getIconName = (icon: any, isDark: boolean) => {
-        if (typeof icon === "string") {
-            return convertToMdiIcon(icon);
-        }
-        if (icon?.light && icon?.dark) {
-            const iconName = isDark ? icon.dark : icon.light;
-            return convertToMdiIcon(iconName);
-        }
-        return convertToMdiIcon(icon?.icon || icon || "mdi-help");
-    };
-
-    const convertToMdiIcon = (iconName: string) => {
-        if (iconName.startsWith("mdi:")) {
-            return iconName.replace("mdi:", "mdi-");
-        }
-        if (iconName.startsWith("fluent:")) {
-            const fluentToMdi: Record<string, string> = {
-                "fluent:globe-shield-48-filled": "mdi-shield-check",
-                "fluent:shield-checkmark-48-filled": "mdi-security",
-            };
-            return fluentToMdi[iconName] || "mdi-shield-check";
-        }
-        if (iconName.startsWith("bx:")) {
-            return iconName.replace("bx:link", "mdi-link");
-        }
-        if (iconName.startsWith("solar:")) {
-            return iconName.replace("solar:book-bold", "mdi-book");
-        }
-        if (iconName.startsWith("ri:")) {
-            return iconName.replace("ri:", "mdi-");
-        }
-        if (iconName.startsWith("mdi-")) {
-            return iconName;
-        }
-        return `mdi-${iconName}`;
     };
 </script>
 
 <template>
     <footer
         class="smart-footer"
-        :class="{ 'no-groups': !filteredGroups.length }"
+        :class="{
+            'on-home-page': isHome,
+            'no-groups': !filteredGroups.length,
+        }"
     >
         <div
             v-if="filteredGroups.length"
@@ -166,13 +145,18 @@
                 class="footer-group"
             >
                 <h3 class="group-title">
-                    <v-icon
-                        v-if="group.icon"
-                        :icon="getIconName(group.icon, false)"
-                        :style="{ color: getIconColor(group.icon, false) }"
-                        size="small"
+                    <img
+                        v-if="group.icon && isSvgIcon(getIconSrc(group.icon))"
+                        :src="withBase(getIconSrc(group.icon))"
+                        class="title-icon svg-icon"
+                        alt="icon"
+                    />
+                    <Icon
+                        v-else-if="group.icon"
+                        :icon="getIconSrc(group.icon)"
+                        :style="{ color: getIconColor(group.icon, isDark) }"
                         class="title-icon"
-                    ></v-icon>
+                    />
                     {{ group.title }}
                 </h3>
                 <ul class="group-links">
@@ -181,13 +165,18 @@
                         :key="link.name + j"
                         class="link-item"
                     >
-                        <v-icon
-                            v-if="link.icon"
-                            :icon="getIconName(link.icon, false)"
-                            :style="{ color: getIconColor(link.icon, false) }"
-                            size="small"
+                        <img
+                            v-if="link.icon && isSvgIcon(getIconSrc(link.icon))"
+                            :src="withBase(getIconSrc(link.icon))"
+                            class="link-icon svg-icon"
+                            alt="icon"
+                        />
+                        <Icon
+                            v-else-if="link.icon"
+                            :icon="getIconSrc(link.icon)"
+                            :style="{ color: getIconColor(link.icon, isDark) }"
                             class="link-icon"
-                        ></v-icon>
+                        />
                         <a
                             :href="link.link"
                             :rel="link.rel"
@@ -200,12 +189,11 @@
                             class="footer-link"
                         >
                             {{ link.name }}
-                            <v-icon
+                            <Icon
                                 v-if="isExternalLink(link.link) && !link.noIcon"
-                                icon="mdi-open-in-new"
-                                size="x-small"
+                                icon="mdi:open-in-new"
                                 class="external-icon"
-                            ></v-icon>
+                            />
                         </a>
                     </li>
                 </ul>
@@ -221,20 +209,30 @@
                     "
                     class="info-item"
                 >
-                    <v-icon
+                    <img
                         v-if="
+                            footerData.beian?.showIcon &&
+                            footerData.beian.icp.icon &&
+                            isSvgIcon(getIconSrc(footerData.beian.icp.icon))
+                        "
+                        :src="withBase(getIconSrc(footerData.beian.icp.icon))"
+                        class="info-icon svg-icon"
+                        alt="icon"
+                    />
+                    <Icon
+                        v-else-if="
                             footerData.beian?.showIcon &&
                             footerData.beian.icp.icon
                         "
-                        :icon="getIconName(footerData.beian.icp.icon, false)"
+                        :icon="getIconSrc(footerData.beian.icp.icon)"
                         :style="{
                             color: getIconColor(
                                 footerData.beian.icp.icon,
-                                false
+                                isDark
                             ),
                         }"
-                        size="small"
-                    ></v-icon>
+                        class="info-icon"
+                    />
                     <a
                         :href="
                             footerData.beian.icp.link ||
@@ -255,20 +253,32 @@
                     "
                     class="info-item"
                 >
-                    <v-icon
+                    <img
                         v-if="
+                            footerData.beian?.showIcon &&
+                            footerData.beian.police.icon &&
+                            isSvgIcon(getIconSrc(footerData.beian.police.icon))
+                        "
+                        :src="
+                            withBase(getIconSrc(footerData.beian.police.icon))
+                        "
+                        class="info-icon svg-icon"
+                        alt="icon"
+                    />
+                    <Icon
+                        v-else-if="
                             footerData.beian?.showIcon &&
                             footerData.beian.police.icon
                         "
-                        :icon="getIconName(footerData.beian.police.icon, false)"
+                        :icon="getIconSrc(footerData.beian.police.icon)"
                         :style="{
                             color: getIconColor(
                                 footerData.beian.police.icon,
-                                false
+                                isDark
                             ),
                         }"
-                        size="small"
-                    ></v-icon>
+                        class="info-icon"
+                    />
                     <a
                         :href="
                             footerData.beian.police.link ||
@@ -286,7 +296,7 @@
                     v-if="projectInfo.footerOptions.showLicense"
                     class="info-item"
                 >
-                    <v-icon icon="mdi-license" size="small"></v-icon>
+                    <Icon icon="mdi:license" />
                     <a
                         :href="projectInfo.footerOptions.licenseLink"
                         rel="noopener noreferrer"
@@ -299,15 +309,11 @@
             </div>
 
             <div v-if="footerData?.author?.name" class="copyright-row">
-                <v-icon
+                <Icon
                     :icon="
-                        getIconName(
-                            footerData.author.icon || 'mdi:copyright',
-                            false
-                        )
+                        getIconSrc(footerData.author.icon || 'mdi:copyright')
                     "
-                    size="small"
-                ></v-icon>
+                />
                 {{
                     footerData.author.startYear
                         ? footerData.author.startYear + " - "
@@ -332,19 +338,19 @@
 
 <style scoped>
     :root {
-    --footer-bg-light: rgba(248, 248, 248, 0.75);
-    --footer-bg-dark: rgba(16, 16, 20, 0.75);
-    --footer-border-light: rgba(224, 224, 224, 0.5);
-    --footer-border-dark: rgba(82, 82, 89, 0.5);
-    --footer-highlight-light: rgba(255, 255, 255, 0.2);
-    --footer-highlight-dark: rgba(255, 255, 255, 0.12);
-    --footer-shadow-light: rgba(0, 0, 0, 0.03);
-    --footer-shadow-dark: rgba(0, 0, 0, 0.15);
-    --footer-text-primary-light: rgb(88, 88, 95);
-    --footer-text-primary-dark: rgb(245, 245, 250);
-    --footer-text-secondary-light: rgb(160, 160, 167);
-    --footer-text-secondary-dark: rgb(200, 200, 210);
-}
+        --footer-bg-light: rgba(248, 248, 248, 0.75);
+        --footer-bg-dark: rgba(16, 16, 20, 0.75);
+        --footer-border-light: rgba(224, 224, 224, 0.5);
+        --footer-border-dark: rgba(82, 82, 89, 0.5);
+        --footer-highlight-light: rgba(255, 255, 255, 0.2);
+        --footer-highlight-dark: rgba(255, 255, 255, 0.12);
+        --footer-shadow-light: rgba(0, 0, 0, 0.03);
+        --footer-shadow-dark: rgba(0, 0, 0, 0.15);
+        --footer-text-primary-light: rgb(88, 88, 95);
+        --footer-text-primary-dark: rgb(245, 245, 250);
+        --footer-text-secondary-light: rgb(160, 160, 167);
+        --footer-text-secondary-dark: rgb(200, 200, 210);
+    }
 
     .dark {
         --footer-bg: var(--footer-bg-dark);
@@ -365,16 +371,24 @@
     }
 
     .smart-footer {
-        background: var(--footer-bg);
-        backdrop-filter: blur(20px) saturate(1.2) brightness(1.02);
-        -webkit-backdrop-filter: blur(20px) saturate(1.2) brightness(1.02);
-        border-top: 1px solid var(--footer-border);
-        box-shadow: inset 0 1px 0 var(--footer-highlight),
-            inset 0 -1px 0 rgba(0, 0, 0, 0.05), 0 0 0 0.5px var(--footer-border),
-            0 8px 32px var(--footer-shadow);
         position: relative;
-        padding: 32px 24px 24px;
-        overflow: hidden;
+        box-sizing: border-box;
+        border-top: 1px solid var(--vp-c-gutter);
+        padding: 32px 24px;
+        background-color: var(--vp-c-bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .smart-footer.on-home-page {
+        background-color: transparent;
+        border-top: none;
+    }
+
+    .smart-footer.no-groups {
+        padding-top: 24px;
     }
 
     :root:not(.dark) .smart-footer::before {
@@ -494,23 +508,38 @@
         gap: 48px;
         margin: 0 auto 24px;
         transition: all 0.3s ease;
-        width: 100%;
+        width: auto; /* 允许根据内容和max-width自适应 */
+        max-width: 1000px;
+        justify-content: center; /* 居中网格项 */
     }
 
     .footer-groups[style*="justify-items: center"] .footer-group {
         text-align: center;
         display: flex;
         flex-direction: column;
-        align-items: center;
-        width: 100%;
+        align-items: flex-start;
+        width: fit-content;
+        margin: 0 auto;
     }
 
     .footer-groups[style*="justify-items: center"] .group-links {
-        align-items: center;
+        align-items: flex-start;
+        text-align: left;
+        width: 100%;
+        margin: 0;
     }
 
     .footer-groups[style*="justify-items: center"] .link-item {
-        justify-content: center;
+        justify-content: start;
+        text-align: left;
+        width: 100%;
+    }
+
+    .footer-groups[style*="justify-items: center"] .group-title {
+        justify-content: start;
+        text-align: left;
+        width: 100%;
+        margin-bottom: 16px;
     }
 
     .footer-group {
@@ -523,10 +552,12 @@
         font-size: 14px;
         font-weight: 600;
         color: var(--footer-text-primary);
-        margin-bottom: 12px;
-        display: flex;
+        margin-bottom: 16px;
+        display: grid;
+        grid-template-columns: 16px 1fr;
+        gap: 10px;
         align-items: center;
-        gap: 6px;
+        line-height: 1.2;
     }
 
     .group-links {
@@ -535,13 +566,15 @@
         margin: 0;
         display: flex;
         flex-direction: column;
-        gap: 6px;
+        gap: 10px;
     }
 
     .link-item {
-        display: flex;
+        display: grid;
+        grid-template-columns: 16px 1fr;
+        gap: 10px;
         align-items: center;
-        gap: 6px;
+        line-height: 1.2;
     }
 
     .footer-link {
@@ -560,14 +593,33 @@
         color: var(--vp-c-brand-1);
     }
 
+    .info-item,
+    .copyright-row {
+        gap: 8px;
+    }
+
     .title-icon,
     .link-icon {
-        margin-right: 6px !important;
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        display: block;
+    }
+
+    .info-icon,
+    .copyright-row .iconify,
+    .copyright-row .svg-icon {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
     }
 
     .external-icon {
-        margin-left: 4px !important;
+        width: 14px;
+        height: 14px;
+        margin-left: 4px;
         opacity: 0.7;
+        vertical-align: middle;
     }
 
     .footer-info {
@@ -687,5 +739,19 @@
         .footer-link {
             font-size: 11px;
         }
+    }
+
+    .smart-footer:not(.on-home-page) {
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border-top: none;
+        box-shadow: none;
+        padding-top: 0;
+    }
+
+    .smart-footer:not(.on-home-page)::before,
+    .smart-footer:not(.on-home-page)::after {
+        display: none;
     }
 </style>

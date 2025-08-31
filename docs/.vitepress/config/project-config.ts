@@ -9,7 +9,10 @@
  * Modify values below to customize your VitePress site
  */
 export const projectConfig: ProjectConfig = {
-    name: "vitepress-M1hono-template",
+    /**
+     * Project name， Must be your repo name.
+     */
+    name: "M1honoVitepressTemplate",
 
     /**
      * IMPORTANT: Change this to your repository name for GitHub Pages deployment

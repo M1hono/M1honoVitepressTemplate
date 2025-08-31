@@ -28,6 +28,7 @@
     import { defineAsyncComponent } from "vue";
     import utils from "@utils";
     import { useSafeI18n } from "@utils/i18n/locale";
+    import { getProjectInfo } from "../../../config/project-config";
 
     // Async import for vue-echarts to avoid SSR issues
     const VChart = defineAsyncComponent(async () => {
@@ -50,36 +51,44 @@
         commitsOnDate: "{count} commits on {date}"
     });
 
-    const props = defineProps({
-        username: {
-            type: String,
-            default: "PickAID",
-        },
-        repoName: {
-            type: String,
-            default: "CrychicDoc",
-        },
-        daysToFetch: {
-            type: Number,
-            default: 30,
-        },
-        height: {
-            type: Number,
-            default: 120,
-        },
-        lineWidth: {
-            type: Number,
-            default: 4,
-        },
-        fill: {
-            type: Boolean,
-            default: true,
-        },
-        smooth: {
-            type: Boolean,
-            default: true,
-        },
+    const projectInfo = getProjectInfo();
+    
+    const getRepoInfo = () => {
+        const repoUrl = projectInfo.repository.url;
+        const match = repoUrl.match(
+            /github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?$/
+        );
+        if (match) {
+            return { owner: match[1], repo: match[2] };
+        }
+        return {
+            owner: projectInfo.author,
+            repo: projectInfo.name,
+        };
+    };
+
+    interface Props {
+        username?: string;
+        repoName?: string;
+        daysToFetch?: number;
+        height?: number;
+        lineWidth?: number;
+        fill?: boolean;
+        smooth?: boolean;
+    }
+
+    const { owner: defaultUsername, repo: defaultRepoName } = getRepoInfo();
+
+    const props = withDefaults(defineProps<Props>(), {
+        daysToFetch: 30,
+        height: 120,
+        lineWidth: 4,
+        fill: true,
+        smooth: true,
     });
+
+    const username = computed(() => props.username ?? defaultUsername);
+    const repoName = computed(() => props.repoName ?? defaultRepoName);
 
     const { isDark, lang } = useData();
 
@@ -116,7 +125,7 @@
                                 60 *
                                 60 *
                                 1000
-                    ).toLocaleDateString("zh-CN", {
+                    ).toLocaleDateString(lang.value, {
                         month: "short",
                         day: "numeric",
                     })
@@ -277,8 +286,8 @@
     const fetchContributions = async () => {
         try {
             const commits = await utils.charts.github.githubApi.fetchAllCommits(
-                props.username,
-                props.repoName
+                username.value,
+                repoName.value
             );
 
             contributions.value =

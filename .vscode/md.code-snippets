@@ -920,7 +920,7 @@
     // ---------- Responsible Editor Component ----------
     "@Responsible Editor": {
         "prefix": "@responsible-editor",
-        "body": ["<ResponsibleEditor />"],
+        "body": ["editor: ${1:PickAID}"],
         "description": "Responsible editor component (uses frontmatter editor field)."
     },
 
@@ -1625,5 +1625,75 @@
             "::::"
         ],
         "description": "自定义图表网格布局，支持完整配置选项。"
+    },
+
+    // ===================================================================
+    // ===================== HTML ESCAPE CHARACTERS =====================
+    // ===================================================================
+
+    "@HTML Less Than": {
+        "prefix": "@<",
+        "body": ["&lt;"],
+        "description": "插入HTML转义的小于号 <"
+    },
+
+    "@HTML Greater Than": {
+        "prefix": "@>",
+        "body": ["&gt;"],
+        "description": "插入HTML转义的大于号 >"
+    },
+
+    "@HTML Ampersand": {
+        "prefix": "@&",
+        "body": ["&amp;"],
+        "description": "插入HTML转义的与符号 &"
+    },
+
+    "@HTML Quote": {
+        "prefix": "@\"",
+        "body": ["&quot;"],
+        "description": "插入HTML转义的双引号 \""
+    },
+
+    "@HTML Apostrophe": {
+        "prefix": "@'",
+        "body": ["&apos;"],
+        "description": "插入HTML转义的单引号 '"
+    },
+
+    "@HTML Non-breaking Space": {
+        "prefix": "@space",
+        "body": ["&nbsp;"],
+        "description": "插入HTML不间断空格"
+    },
+
+    "@HTML Tag Pair": {
+        "prefix": "@<>",
+        "body": ["&lt;${1:tag}&gt;$0&lt;/${1:tag}&gt;"],
+        "description": "插入HTML转义的标签对"
+    },
+
+    "@HTML Self-closing Tag": {
+        "prefix": "@</>",
+        "body": ["&lt;${1:tag} /&gt;"],
+        "description": "插入HTML转义的自闭合标签"
+    },
+
+    "@HTML Opening Tag": {
+        "prefix": "@<o",
+        "body": ["&lt;${1:tag}&gt;"],
+        "description": "插入HTML转义的开始标签"
+    },
+
+    "@HTML Closing Tag": {
+        "prefix": "@<c",
+        "body": ["&lt;/${1:tag}&gt;"],
+        "description": "插入HTML转义的结束标签"
+    },
+
+    "@HTML Angle Brackets": {
+        "prefix": "@<><>",
+        "body": ["&lt;${1:content}&gt;"],
+        "description": "插入HTML转义的尖括号包围内容"
     }
 }
