@@ -62,6 +62,7 @@
     "dependencies": {
         "@dhlx/vitepress-plugin-drawio": "^0.0.9",
         "@fancyapps/ui": "^5.0.36",
+        "@iconify/vue": "^5.0.0",
         "@lite-tree/vue": "^1.1.6",
         "@mdit-vue/shared": "^2.1.4",
         "@mdit/plugin-alert": "^0.20.0",
