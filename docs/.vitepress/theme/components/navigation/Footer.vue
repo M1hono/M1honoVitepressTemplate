@@ -86,7 +86,7 @@
 
     const getScreenSize = () => {
         const width = screenWidth.value;
-        if (width <= 480) return 'xs';
+        if (width <= 360) return 'xs';
         if (width <= 768) return 'sm';
         if (width <= 1024) return 'md';
         return 'lg';
@@ -94,9 +94,10 @@
 
     const calculateOptimalColumns = (groupCount: number, screenSize: string) => {
         if (groupCount === 0) return 0;
+        if (groupCount === 1) return 1;
         
         const maxColumns = {
-            xs: 1,
+            xs: 2,
             sm: 2,
             md: 3,
             lg: 4
@@ -116,25 +117,29 @@
             return {
                 gridTemplateColumns: "1fr",
                 justifyItems: "center",
-                maxWidth: "300px"
+                maxWidth: "280px",
+                gap: "24px"
             };
         } else if (columns === 2) {
             return {
                 gridTemplateColumns: "repeat(2, 1fr)",
                 justifyItems: "center",
-                maxWidth: screenSize === 'sm' ? "400px" : "500px"
+                maxWidth: "100%",
+                gap: screenSize === 'xs' ? "12px" : screenSize === 'sm' ? "16px" : "24px"
             };
         } else if (columns === 3) {
             return {
                 gridTemplateColumns: "repeat(3, 1fr)",
                 justifyItems: "center",
-                maxWidth: screenSize === 'md' ? "600px" : "750px"
+                maxWidth: screenSize === 'md' ? "600px" : "750px",
+                gap: "40px"
             };
         } else {
             return {
                 gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
                 justifyItems: "center",
-                maxWidth: "1000px"
+                maxWidth: "1000px",
+                gap: "48px"
             };
         }
     });
@@ -541,12 +546,10 @@
 
     .footer-groups {
         display: grid;
-        gap: 48px;
         margin: 0 auto 24px;
         transition: all 0.3s ease;
         width: auto;
         justify-content: center;
-
     }
 
     .footer-groups[style*="justify-items: center"] .footer-group {
@@ -561,27 +564,24 @@
     .footer-groups[style*="justify-items: center"] .group-links {
         align-items: flex-start;
         text-align: left;
-        width: 100%;
         margin: 0;
     }
 
     .footer-groups[style*="justify-items: center"] .link-item {
         justify-content: start;
         text-align: left;
-        width: 100%;
     }
 
     .footer-groups[style*="justify-items: center"] .group-title {
         justify-content: start;
         text-align: left;
-        width: 100%;
         margin-bottom: 16px;
     }
 
     .footer-group {
         text-align: left;
-        width: 100%;
         min-width: 0;
+        max-width: 100%;
     }
 
     .group-title {
@@ -725,7 +725,6 @@
         }
 
         .footer-groups {
-            gap: 32px 24px;
             margin-bottom: 20px;
         }
 
@@ -748,10 +747,6 @@
     }
 
     @media (max-width: 480px) {
-        .footer-groups {
-            gap: 20px;
-        }
-
         .group-title {
             font-size: 13px;
         }
