@@ -23,6 +23,7 @@
 </template>
 
 <script lang="ts" setup>
+    //@ts-nocheck
     import { ref, computed, onMounted } from "vue";
     import { useData } from "vitepress";
     import { defineAsyncComponent } from "vue";
