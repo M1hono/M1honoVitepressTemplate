@@ -10,7 +10,7 @@
         title: "Contributors",
         contributors: "Contributors",
         totalContributions: "Total Contributions",
-        contributions: "contributions",
+        contributions: "times",
         loading: "Loading contributors...",
         viewProfile: "View Profile",
         retry: "Retry",

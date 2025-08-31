@@ -56,10 +56,20 @@
         }
     };
 
+    const updateScreenWidth = () => {
+        screenWidth.value = window.innerWidth;
+    };
+
     watch(() => lang.value, loadFooterData, { immediate: true });
 
     onMounted(() => {
         currentYear.value = new Date().getFullYear().toString();
+        updateScreenWidth();
+        window.addEventListener('resize', updateScreenWidth);
+        
+        return () => {
+            window.removeEventListener('resize', updateScreenWidth);
+        };
     });
 
     const filteredGroups = computed(() => {
@@ -72,33 +82,59 @@
         }
     });
 
-    /**
-     * 计算footer分组的动态布局样式
-     */
+    const screenWidth = ref(0);
+
+    const getScreenSize = () => {
+        const width = screenWidth.value;
+        if (width <= 480) return 'xs';
+        if (width <= 768) return 'sm';
+        if (width <= 1024) return 'md';
+        return 'lg';
+    };
+
+    const calculateOptimalColumns = (groupCount: number, screenSize: string) => {
+        if (groupCount === 0) return 0;
+        
+        const maxColumns = {
+            xs: 1,
+            sm: 2,
+            md: 3,
+            lg: 4
+        };
+
+        return Math.min(groupCount, maxColumns[screenSize]);
+    };
+
     const footerLayoutStyle = computed(() => {
         const groupCount = filteredGroups.value.length;
-
         if (groupCount === 0) return {};
 
-        if (groupCount === 1) {
+        const screenSize = getScreenSize();
+        const columns = calculateOptimalColumns(groupCount, screenSize);
+
+        if (columns === 1) {
             return {
                 gridTemplateColumns: "1fr",
                 justifyItems: "center",
+                maxWidth: "300px"
             };
-        } else if (groupCount === 2) {
+        } else if (columns === 2) {
             return {
                 gridTemplateColumns: "repeat(2, 1fr)",
                 justifyItems: "center",
+                maxWidth: screenSize === 'sm' ? "400px" : "500px"
             };
-        } else if (groupCount === 3) {
+        } else if (columns === 3) {
             return {
                 gridTemplateColumns: "repeat(3, 1fr)",
                 justifyItems: "center",
+                maxWidth: screenSize === 'md' ? "600px" : "750px"
             };
         } else {
             return {
                 gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
                 justifyItems: "center",
+                maxWidth: "1000px"
             };
         }
     });
@@ -508,9 +544,9 @@
         gap: 48px;
         margin: 0 auto 24px;
         transition: all 0.3s ease;
-        width: auto; /* 允许根据内容和max-width自适应 */
-        max-width: 1000px;
-        justify-content: center; /* 居中网格项 */
+        width: auto;
+        justify-content: center;
+
     }
 
     .footer-groups[style*="justify-items: center"] .footer-group {
@@ -693,21 +729,6 @@
             margin-bottom: 20px;
         }
 
-        .footer-groups[style*="grid-template-columns: 1fr"] {
-            max-width: 250px !important;
-        }
-
-        .footer-groups[style*="grid-template-columns: repeat(2, 1fr)"] {
-            grid-template-columns: repeat(2, 1fr) !important;
-            max-width: 400px !important;
-        }
-
-        .footer-groups[style*="grid-template-columns: repeat(3, 1fr)"] {
-            grid-template-columns: repeat(2, 1fr) !important;
-            justify-items: center !important;
-            max-width: 400px !important;
-        }
-
         .footer-info {
             padding-top: 16px;
         }
@@ -728,7 +749,6 @@
 
     @media (max-width: 480px) {
         .footer-groups {
-            grid-template-columns: 1fr;
             gap: 20px;
         }
 
