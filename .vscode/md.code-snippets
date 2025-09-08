@@ -935,7 +935,7 @@
     "@Commits Counter": {
         "prefix": "@commits-counter",
         "body": [
-            "<CommitsCounter",
+            "<commitsCounter",
             "  username=\"${1:PickAID}\"",
             "  repo-name=\"${2:CrychicDoc}\"",
             "  :days-to-fetch=\"${3:30}\"",

@@ -11,6 +11,7 @@
         "md-multipage-dialog": "content/MdMultiPageDialog",
         "responsible-editor": "content/ResponsibleEditor",
         "tags-page": "content/TagsPage",
+        "footer": "navigation/Footer",
         "buttons-component": "ui/Buttons",
         "magic-move-container": "ui/MagicMoveContainer",
         "not-found": "ui/NotFound",

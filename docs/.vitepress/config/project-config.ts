@@ -209,6 +209,8 @@ export const projectConfig: ProjectConfig = {
         showLicense: true,
         licenseText: "CC BY-SA 4.0",
         licenseLink: "https://creativecommons.org/licenses/by-sa/4.0/",
+        showSiteStats: false,
+        siteStatsProvider: "busuanzi",
     },
 
     /**
@@ -383,6 +385,10 @@ export interface FooterOptionsConfig {
     licenseText: string;
     /** License link URL */
     licenseLink: string;
+    /** Whether to show site statistics (visits, page views) */
+    showSiteStats: boolean;
+    /** Site statistics provider ('busuanzi' | 'vercount' | 'custom') */
+    siteStatsProvider: 'busuanzi' | 'vercount' | 'custom';
 }
 
 /**

@@ -9,12 +9,25 @@
     } from "../../../config/project-config";
     import type { FooterConfig } from "../../../utils/content/footer";
     import { Icon } from "@iconify/vue";
+    import utils from "../../../utils";
+    import { useSafeI18n } from "../../../utils/i18n/locale";
 
     const { frontmatter, lang, isDark } = useData();
     const projectInfo = getProjectInfo();
+    
+    const { t } = useSafeI18n("footer", {
+        visits: "visits",
+        siteVisitors: "visitors",
+    });
 
     const footerData = ref<FooterConfig | null>(null);
     const currentYear = ref("");
+    const siteStats = ref({
+        sitePv: 0,
+        siteUv: 0,
+        pagePv: 0,
+        isLoading: true,
+    });
 
     const isHome = computed(() => {
         return !!(
@@ -60,12 +73,35 @@
         screenWidth.value = window.innerWidth;
     };
 
+    const initSiteStats = async () => {
+        if (!projectInfo.footerOptions.showSiteStats) return;
+        
+        try {
+            if (projectInfo.footerOptions.siteStatsProvider === 'busuanzi') {
+                const data = await utils.vitepress.callBusuanzi();
+                if (data) {
+                    siteStats.value = {
+                        sitePv: data.site_pv || 0,
+                        siteUv: data.site_uv || 0,
+                        pagePv: data.page_pv || 0,
+                        isLoading: false,
+                    };
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to load site statistics:', error);
+            siteStats.value.isLoading = false;
+        }
+    };
+
     watch(() => lang.value, loadFooterData, { immediate: true });
 
     onMounted(() => {
         currentYear.value = new Date().getFullYear().toString();
         updateScreenWidth();
         window.addEventListener('resize', updateScreenWidth);
+        
+        setTimeout(initSiteStats, 1500);
         
         return () => {
             window.removeEventListener('resize', updateScreenWidth);
@@ -346,6 +382,26 @@
                     >
                         {{ projectInfo.footerOptions.licenseText }}
                     </a>
+                </div>
+
+                <div
+                    v-if="projectInfo.footerOptions.showSiteStats && !siteStats.isLoading"
+                    class="info-item"
+                >
+                    <Icon icon="mdi:eye-outline" />
+                    <span class="stats-text">
+                        {{ siteStats.sitePv }} {{ t.visits }}
+                    </span>
+                </div>
+
+                <div
+                    v-if="projectInfo.footerOptions.showSiteStats && !siteStats.isLoading"
+                    class="info-item"
+                >
+                    <Icon icon="mdi:account-outline" />
+                    <span class="stats-text">
+                        {{ siteStats.siteUv }} {{ t.siteVisitors }}
+                    </span>
                 </div>
             </div>
 
@@ -717,6 +773,12 @@
 
     .author-link:hover {
         opacity: 0.8;
+    }
+
+    .stats-text {
+        font-size: 12px;
+        font-weight: 400;
+        color: inherit;
     }
 
     @media (max-width: 768px) {
