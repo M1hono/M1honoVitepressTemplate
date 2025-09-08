@@ -27,6 +27,8 @@
         siteUv: 0,
         pagePv: 0,
         isLoading: true,
+        hasError: false,
+        lastUpdated: 0,
     });
 
     const isHome = computed(() => {
@@ -74,23 +76,113 @@
     };
 
     const initSiteStats = async () => {
-        if (!projectInfo.footerOptions.showSiteStats) return;
+        if (!projectInfo.footerOptions.showSiteStats) {
+            siteStats.value.isLoading = false;
+            return;
+        }
+        
+        // Try to load cached data first
+        loadCachedStats();
         
         try {
             if (projectInfo.footerOptions.siteStatsProvider === 'busuanzi') {
                 const data = await utils.vitepress.callBusuanzi();
                 if (data) {
-                    siteStats.value = {
+                    const newStats = {
                         sitePv: data.site_pv || 0,
                         siteUv: data.site_uv || 0,
                         pagePv: data.page_pv || 0,
                         isLoading: false,
+                        hasError: false,
+                        lastUpdated: Date.now(),
                     };
+                    siteStats.value = newStats;
+                    
+                    // Cache the successful data
+                    cacheStats(newStats);
+                } else {
+                    throw new Error('No data received from busuanzi');
                 }
             }
         } catch (error) {
             console.warn('Failed to load site statistics:', error);
-            siteStats.value.isLoading = false;
+            siteStats.value = {
+                ...siteStats.value,
+                isLoading: false,
+                hasError: true,
+            };
+            
+            // If no cached data is available, show fallback
+            if (siteStats.value.lastUpdated === 0) {
+                initFallbackStats();
+            }
+        }
+    };
+    
+    /**
+     * Load cached statistics data
+     */
+    const loadCachedStats = () => {
+        if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+            return;
+        }
+        
+        try {
+            const cached = localStorage.getItem('footer_stats_cache');
+            if (cached) {
+                const parsedCache = JSON.parse(cached);
+                const now = Date.now();
+                
+                // Use cached data if it's less than 10 minutes old
+                if (now - parsedCache.lastUpdated < 10 * 60 * 1000) {
+                    siteStats.value = {
+                        ...parsedCache,
+                        isLoading: true, // Still loading fresh data
+                    };
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to load cached stats:', error);
+        }
+    };
+    
+    /**
+     * Cache statistics data
+     */
+    const cacheStats = (stats: typeof siteStats.value) => {
+        if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+            return;
+        }
+        
+        try {
+            localStorage.setItem('footer_stats_cache', JSON.stringify(stats));
+        } catch (error) {
+            console.warn('Failed to cache stats:', error);
+        }
+    };
+    
+    /**
+     * Initialize fallback statistics when busuanzi fails
+     */
+    const initFallbackStats = () => {
+        // Try to get data from DOM elements (traditional busuanzi method)
+        const sitePvElement = document.querySelector('#busuanzi_value_site_pv');
+        const siteUvElement = document.querySelector('#busuanzi_value_site_uv');
+        const pagePvElement = document.querySelector('#busuanzi_value_page_pv');
+        
+        const sitePv = parseInt(sitePvElement?.textContent || '0') || 0;
+        const siteUv = parseInt(siteUvElement?.textContent || '0') || 0;
+        const pagePv = parseInt(pagePvElement?.textContent || '0') || 0;
+        
+        if (sitePv > 0 || siteUv > 0 || pagePv > 0) {
+            siteStats.value = {
+                sitePv,
+                siteUv,
+                pagePv,
+                isLoading: false,
+                hasError: false,
+                lastUpdated: Date.now(),
+            };
         }
     };
 
@@ -101,7 +193,23 @@
         updateScreenWidth();
         window.addEventListener('resize', updateScreenWidth);
         
-        setTimeout(initSiteStats, 1500);
+        // Load stats immediately and set up retry mechanism
+        initSiteStats();
+        
+        // Retry after 3 seconds if initial load failed
+        setTimeout(() => {
+            if (siteStats.value.hasError || (siteStats.value.isLoading && siteStats.value.lastUpdated === 0)) {
+                console.log('Retrying site statistics load...');
+                initSiteStats();
+            }
+        }, 3000);
+        
+        // Final fallback check after 10 seconds
+        setTimeout(() => {
+            if (siteStats.value.hasError || siteStats.value.isLoading) {
+                initFallbackStats();
+            }
+        }, 10000);
         
         return () => {
             window.removeEventListener('resize', updateScreenWidth);
@@ -385,7 +493,7 @@
                 </div>
 
                 <div
-                    v-if="projectInfo.footerOptions.showSiteStats && !siteStats.isLoading"
+                    v-if="projectInfo.footerOptions.showSiteStats && !siteStats.isLoading && siteStats.sitePv > 0"
                     class="info-item"
                 >
                     <Icon icon="mdi:eye-outline" />
@@ -395,7 +503,7 @@
                 </div>
 
                 <div
-                    v-if="projectInfo.footerOptions.showSiteStats && !siteStats.isLoading"
+                    v-if="projectInfo.footerOptions.showSiteStats && !siteStats.isLoading && siteStats.siteUv > 0"
                     class="info-item"
                 >
                     <Icon icon="mdi:account-outline" />
@@ -403,6 +511,17 @@
                         {{ siteStats.siteUv }} {{ t.siteVisitors }}
                     </span>
                 </div>
+                
+                <!-- Hidden busuanzi elements for fallback -->
+                <span id="busuanzi_container_site_pv" style="display: none;">
+                    <span id="busuanzi_value_site_pv"></span>
+                </span>
+                <span id="busuanzi_container_site_uv" style="display: none;">
+                    <span id="busuanzi_value_site_uv"></span>
+                </span>
+                <span id="busuanzi_container_page_pv" style="display: none;">
+                    <span id="busuanzi_value_page_pv"></span>
+                </span>
             </div>
 
             <div v-if="footerData?.author?.name" class="copyright-row">

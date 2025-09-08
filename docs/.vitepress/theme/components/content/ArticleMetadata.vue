@@ -64,6 +64,8 @@
     const wordCount = ref(0);
     const imageCount = ref(0);
     const pageViews = ref(0);
+    const pageViewsLoading = ref(false);
+    const pageViewsError = ref(false);
 
     const readTime = computed(() => {
         const time = utils.vitepress.readingTime.calculateTotalTime(
@@ -120,13 +122,28 @@
 
         // Initialize busuanzi page view tracking
         const initPageViews = async () => {
+            pageViewsLoading.value = true;
+            pageViewsError.value = false;
+            
+            // Try to load cached page views first
+            loadCachedPageViews();
+            
             try {
                 const data = await utils.vitepress.callBusuanzi();
                 if (data && data.page_pv) {
                     pageViews.value = data.page_pv;
+                    pageViewsLoading.value = false;
+                    pageViewsError.value = false;
+                    
+                    // Cache the page views
+                    cachePageViews(data.page_pv);
+                } else {
+                    throw new Error('No page view data received');
                 }
             } catch (error) {
                 console.warn("Failed to get page views from busuanzi:", error);
+                pageViewsError.value = true;
+                
                 // Fallback to DOM element checking for compatibility
                 const checkPageViews = () => {
                     const pvElement = document.querySelector(
@@ -136,17 +153,83 @@
                     const parsed = parseInt(text || "0");
                     if (!isNaN(parsed) && parsed > 0) {
                         pageViews.value = parsed;
+                        pageViewsError.value = false;
+                        cachePageViews(parsed);
                     }
                 };
 
+                // More aggressive fallback checking
                 const interval = setInterval(checkPageViews, 1000);
-                setTimeout(() => clearInterval(interval), 10000);
+                setTimeout(() => {
+                    clearInterval(interval);
+                    pageViewsLoading.value = false;
+                }, 15000);
+                
+                // Initial check
                 setTimeout(checkPageViews, 2000);
+                
+                // Set loading to false after timeout
+                setTimeout(() => {
+                    pageViewsLoading.value = false;
+                }, 10000);
+            }
+        };
+        
+        /**
+         * Load cached page views
+         */
+        const loadCachedPageViews = () => {
+            if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+                return;
+            }
+            
+            try {
+                const cacheKey = `page_views_${window.location.pathname}`;
+                const cached = localStorage.getItem(cacheKey);
+                if (cached) {
+                    const parsedCache = JSON.parse(cached);
+                    const now = Date.now();
+                    
+                    // Use cached data if it's less than 5 minutes old
+                    if (now - parsedCache.timestamp < 5 * 60 * 1000) {
+                        pageViews.value = parsedCache.views;
+                    }
+                }
+            } catch (error) {
+                console.warn('Failed to load cached page views:', error);
+            }
+        };
+        
+        /**
+         * Cache page views
+         */
+        const cachePageViews = (views: number) => {
+            if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
+                return;
+            }
+            
+            try {
+                const cacheKey = `page_views_${window.location.pathname}`;
+                const cacheData = {
+                    views,
+                    timestamp: Date.now()
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+            } catch (error) {
+                console.warn('Failed to cache page views:', error);
             }
         };
 
-        // Delay initialization to allow page to fully load
-        setTimeout(initPageViews, 1000);
+        // Initialize page views immediately
+        initPageViews();
+        
+        // Retry mechanism
+        setTimeout(() => {
+            if (pageViewsError.value || (pageViewsLoading.value && pageViews.value === 0)) {
+                console.log('Retrying page views load...');
+                initPageViews();
+            }
+        }, 5000);
     });
 
     const isMetadata = computed(() => {
@@ -164,7 +247,11 @@
         update: t.lastUpdated.replace("{date}", update.value || ""),
         wordCount: t.wordCount.replace("{count}", String(wordCount.value || 0)),
         readTime: t.readingTime.replace("{time}", String(readTime.value || 0)),
-        pageViews: t.pageViews.replace("{count}", String(pageViews.value || 0)),
+        pageViews: pageViewsLoading.value 
+            ? "Loading..." 
+            : pageViewsError.value && pageViews.value === 0
+                ? "--"
+                : t.pageViews.replace("{count}", String(pageViews.value || 0)),
     }));
 
     const metadataKeys = [
@@ -199,7 +286,7 @@
     <!-- 不蒜子统计元素 - 必须可见才能正确统计 -->
     <span
         id="busuanzi_container_page_pv"
-        style="position: absolute; left: -9999px"
+        style="position: absolute; left: -9999px; visibility: hidden;"
     >
         <span id="busuanzi_value_page_pv"></span>
     </span>
