@@ -62,6 +62,11 @@ export default {
     
     async enhanceApp(ctx) {
         if (!import.meta.env.SSR) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css';
+            document.head.appendChild(link);
+
             ctx.app.use(vuetify);
             ctx.app.use(NolebaseInlineLinkPreviewPlugin);
             ctx.app.use(NolebaseGitChangelogPlugin);
@@ -113,6 +118,9 @@ export default {
                 
                 watch(() => route.path, () => {
                     setupLanguageControl();
+                    if (window.busuanzi) {
+                        window.busuanzi.fetch();
+                    }
                 });
             }
         });

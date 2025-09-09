@@ -118,103 +118,6 @@
                 );
             }
         }
-
-        const initPageViews = async () => {
-            pageViewsLoading.value = true;
-            pageViewsError.value = false;
-            
-            loadCachedPageViews();
-            
-            try {
-                const data = await utils.vitepress.callBusuanzi();
-                if (data && typeof data.page_pv === 'number') {
-                    pageViews.value = data.page_pv;
-                    pageViewsLoading.value = false;
-                    pageViewsError.value = false;
-                    
-                    cachePageViews(data.page_pv);
-                    console.log(`Page views for ${window.location.pathname}:`, data.page_pv);
-                } else {
-                    throw new Error('No page view data received');
-                }
-            } catch (error) {
-                console.warn("Failed to get page views from busuanzi:", error);
-                pageViewsError.value = true;
-                
-                const checkPageViews = () => {
-                    const pvElement = document.querySelector(
-                        "#busuanzi_value_page_pv"
-                    );
-                    const text = pvElement?.textContent || pvElement?.innerHTML;
-                    const parsed = parseInt(text || "0");
-                    if (!isNaN(parsed) && parsed > 0) {
-                        pageViews.value = parsed;
-                        pageViewsError.value = false;
-                        cachePageViews(parsed);
-                        console.log(`Page views from DOM for ${window.location.pathname}:`, parsed);
-                    }
-                };
-
-                const interval = setInterval(checkPageViews, 1000);
-                setTimeout(() => {
-                    clearInterval(interval);
-                    pageViewsLoading.value = false;
-                }, 15000);
-                
-                setTimeout(checkPageViews, 2000);
-                
-                setTimeout(() => {
-                    pageViewsLoading.value = false;
-                }, 10000);
-            }
-        };
-        
-        const loadCachedPageViews = () => {
-            if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-                return;
-            }
-            
-            try {
-                const cacheKey = `page_views_${window.location.pathname}`;
-                const cached = localStorage.getItem(cacheKey);
-                if (cached) {
-                    const parsedCache = JSON.parse(cached);
-                    const now = Date.now();
-                    
-                    if (now - parsedCache.timestamp < 5 * 60 * 1000) {
-                        pageViews.value = parsedCache.views;
-                    }
-                }
-            } catch (error) {
-                console.warn('Failed to load cached page views:', error);
-            }
-        };
-        
-        const cachePageViews = (views: number) => {
-            if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-                return;
-            }
-            
-            try {
-                const cacheKey = `page_views_${window.location.pathname}`;
-                const cacheData = {
-                    views,
-                    timestamp: Date.now()
-                };
-                localStorage.setItem(cacheKey, JSON.stringify(cacheData));
-            } catch (error) {
-                console.warn('Failed to cache page views:', error);
-            }
-        };
-
-        initPageViews();
-        
-        setTimeout(() => {
-            if (pageViewsError.value || (pageViewsLoading.value && pageViews.value === 0)) {
-                console.log('Retrying page views load...');
-                initPageViews();
-            }
-        }, 5000);
     });
 
     const isMetadata = computed(() => {
@@ -229,19 +132,9 @@
         update: t.lastUpdated.replace("{date}", update.value || ""),
         wordCount: t.wordCount.replace("{count}", String(wordCount.value || 0)),
         readTime: t.readingTime.replace("{time}", String(readTime.value || 0)),
-        pageViews: pageViewsLoading.value 
-            ? "Loading..." 
-            : pageViewsError.value && pageViews.value === 0
-                ? "--"
-                : t.pageViews.replace("{count}", String(pageViews.value || 0)),
     }));
 
-    const metadataKeys = [
-        "update",
-        "wordCount",
-        "readTime",
-        "pageViews",
-    ] as const;
+    const metadataKeys = ["update", "wordCount", "readTime", "pageViews"] as const;
 </script>
 
 <template>
@@ -256,7 +149,18 @@
                         density="comfortable"
                         :prepend-icon="icon(key)"
                     >
-                        {{ metadataContent[key] }}
+                        <span v-if="key !== 'pageViews'">
+                            {{ metadataContent[key] }}
+                        </span>
+                        <span
+                            v-if="key === 'pageViews'"
+                            id="busuanzi_container_page_pv"
+                        >
+                            {{ t.pageViews.replace("{count}", "")
+                            }}<span id="busuanzi_value_page_pv"
+                                ><i class="fa fa-spinner fa-spin"></i
+                            ></span>
+                        </span>
                     </v-btn>
                 </v-col>
             </v-row>
@@ -264,15 +168,6 @@
         </div>
     </div>
     <State />
-
-    <div style="display: none;">
-        <span id="busuanzi_container_page_pv">
-            <span id="busuanzi_value_page_pv"></span>
-        </span>
-        <span id="busuanzi_container_page_uv">
-            <span id="busuanzi_value_page_uv"></span>
-        </span>
-    </div>
 </template>
 
 <style>

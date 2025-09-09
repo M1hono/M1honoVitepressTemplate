@@ -16,19 +16,12 @@
     const projectInfo = getProjectInfo();
     
     const { t } = useSafeI18n("footer", {
-        visits: "visits",
-        siteVisitors: "visitors",
+        visits: "次访问",
+        siteVisitors: "位访客",
     });
 
     const footerData = ref<FooterConfig | null>(null);
     const currentYear = ref("");
-    const siteStats = ref({
-        sitePv: 0,
-        siteUv: 0,
-        isLoading: true,
-        hasError: false,
-        lastUpdated: 0,
-    });
 
     const isHome = computed(() => {
         return !!(
@@ -74,123 +67,12 @@
         screenWidth.value = window.innerWidth;
     };
 
-    const initSiteStats = async () => {
-        if (!projectInfo.footerOptions.showSiteStats) {
-            siteStats.value.isLoading = false;
-            return;
-        }
-        
-        // Try to load cached data first
-        loadCachedStats();
-        
-        try {
-            if (projectInfo.footerOptions.siteStatsProvider === 'busuanzi') {
-                const data = await utils.vitepress.callBusuanzi();
-                if (data) {
-                    const newStats = {
-                        sitePv: data.site_pv || 0,
-                        siteUv: data.site_uv || 0,
-                        isLoading: false,
-                        hasError: false,
-                        lastUpdated: Date.now(),
-                    };
-                    siteStats.value = newStats;
-                    
-                    // Cache the successful data
-                    cacheStats(newStats);
-                } else {
-                    throw new Error('No data received from busuanzi');
-                }
-            }
-        } catch (error) {
-            console.warn('Failed to load site statistics:', error);
-            siteStats.value = {
-                ...siteStats.value,
-                isLoading: false,
-                hasError: true,
-            };
-            
-            // If no cached data is available, show fallback
-            if (siteStats.value.lastUpdated === 0) {
-                initFallbackStats();
-            }
-        }
-    };
-    
-    const loadCachedStats = () => {
-        if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-            return;
-        }
-        
-        try {
-            const cached = localStorage.getItem('footer_stats_cache');
-            if (cached) {
-                const parsedCache = JSON.parse(cached);
-                const now = Date.now();
-                
-                if (now - parsedCache.lastUpdated < 10 * 60 * 1000) {
-                    siteStats.value = {
-                        ...parsedCache,
-                        isLoading: true, // Still loading fresh data
-                    };
-                }
-            }
-        } catch (error) {
-            console.warn('Failed to load cached stats:', error);
-        }
-    };
-    
-    const cacheStats = (stats: typeof siteStats.value) => {
-        if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
-            return;
-        }
-        
-        try {
-            localStorage.setItem('footer_stats_cache', JSON.stringify(stats));
-        } catch (error) {
-            console.warn('Failed to cache stats:', error);
-        }
-    };
-    
-    const initFallbackStats = () => {
-        const sitePvElement = document.querySelector('#busuanzi_value_site_pv');
-        const siteUvElement = document.querySelector('#busuanzi_value_site_uv');
-        
-        const sitePv = parseInt(sitePvElement?.textContent || '0') || 0;
-        const siteUv = parseInt(siteUvElement?.textContent || '0') || 0;
-        
-        if (sitePv > 0 || siteUv > 0) {
-            siteStats.value = {
-                sitePv,
-                siteUv,
-                isLoading: false,
-                hasError: false,
-                lastUpdated: Date.now(),
-            };
-        }
-    };
-
     watch(() => lang.value, loadFooterData, { immediate: true });
 
     onMounted(() => {
         currentYear.value = new Date().getFullYear().toString();
         updateScreenWidth();
         window.addEventListener('resize', updateScreenWidth);
-        
-        initSiteStats();
-        
-        setTimeout(() => {
-            if (siteStats.value.hasError || (siteStats.value.isLoading && siteStats.value.lastUpdated === 0)) {
-                console.log('Retrying site statistics load...');
-                initSiteStats();
-            }
-        }, 3000);
-        
-        setTimeout(() => {
-            if (siteStats.value.hasError || siteStats.value.isLoading) {
-                initFallbackStats();
-            }
-        }, 10000);
         
         return () => {
             window.removeEventListener('resize', updateScreenWidth);
@@ -474,31 +356,24 @@
                 </div>
 
                 <div
-                    v-if="projectInfo.footerOptions.showSiteStats && !siteStats.isLoading && siteStats.sitePv > 0"
+                    v-if="projectInfo.footerOptions.showSiteStats"
                     class="info-item"
                 >
                     <Icon icon="mdi:eye-outline" />
-                    <span class="stats-text">
-                        {{ siteStats.sitePv }} {{ t.visits }}
+                    <span id="busuanzi_container_site_pv" class="stats-text">
+                        <span id="busuanzi_value_site_pv"><i class="fa fa-spinner fa-spin"></i></span>
+                        {{ t.visits }}
                     </span>
                 </div>
 
                 <div
-                    v-if="projectInfo.footerOptions.showSiteStats && !siteStats.isLoading && siteStats.siteUv > 0"
+                    v-if="projectInfo.footerOptions.showSiteStats"
                     class="info-item"
                 >
                     <Icon icon="mdi:account-outline" />
-                    <span class="stats-text">
-                        {{ siteStats.siteUv }} {{ t.siteVisitors }}
-                    </span>
-                </div>
-                
-                <div style="display: none;">
-                    <span id="busuanzi_container_site_pv">
-                        <span id="busuanzi_value_site_pv"></span>
-                    </span>
-                    <span id="busuanzi_container_site_uv">
-                        <span id="busuanzi_value_site_uv"></span>
+                    <span id="busuanzi_container_site_uv" class="stats-text">
+                        <span id="busuanzi_value_site_uv"><i class="fa fa-spinner fa-spin"></i></span>
+                        {{ t.siteVisitors }}
                     </span>
                 </div>
             </div>
