@@ -265,16 +265,14 @@
     </div>
     <State />
 
-    <span
-        id="busuanzi_container_page_pv"
-        style="display: none !important;"
-    >
-        <span id="busuanuanzi_value_page_pv"></span>
-    </span>
-    
-    <span id="busuanzi_container_page_uv" style="display: none !important;">
-        <span id="busuanzi_value_page_uv"></span>
-    </span>
+    <div style="display: none;">
+        <span id="busuanzi_container_page_pv">
+            <span id="busuanzi_value_page_pv"></span>
+        </span>
+        <span id="busuanzi_container_page_uv">
+            <span id="busuanzi_value_page_uv"></span>
+        </span>
+    </div>
 </template>
 
 <style>

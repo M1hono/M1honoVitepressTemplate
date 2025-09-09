@@ -25,7 +25,6 @@
     const siteStats = ref({
         sitePv: 0,
         siteUv: 0,
-        pagePv: 0,
         isLoading: true,
         hasError: false,
         lastUpdated: 0,
@@ -91,7 +90,6 @@
                     const newStats = {
                         sitePv: data.site_pv || 0,
                         siteUv: data.site_uv || 0,
-                        pagePv: data.page_pv || 0,
                         isLoading: false,
                         hasError: false,
                         lastUpdated: Date.now(),
@@ -157,17 +155,14 @@
     const initFallbackStats = () => {
         const sitePvElement = document.querySelector('#busuanzi_value_site_pv');
         const siteUvElement = document.querySelector('#busuanzi_value_site_uv');
-        const pagePvElement = document.querySelector('#busuanzi_value_page_pv');
         
         const sitePv = parseInt(sitePvElement?.textContent || '0') || 0;
         const siteUv = parseInt(siteUvElement?.textContent || '0') || 0;
-        const pagePv = parseInt(pagePvElement?.textContent || '0') || 0;
         
-        if (sitePv > 0 || siteUv > 0 || pagePv > 0) {
+        if (sitePv > 0 || siteUv > 0) {
             siteStats.value = {
                 sitePv,
                 siteUv,
-                pagePv,
                 isLoading: false,
                 hasError: false,
                 lastUpdated: Date.now(),
@@ -498,15 +493,14 @@
                     </span>
                 </div>
                 
-                <span id="busuanzi_container_site_pv" style="display: none !important;">
-                    <span id="busuanzi_value_site_pv"></span>
-                </span>
-                <span id="busuanzi_container_site_uv" style="display: none !important;">
-                    <span id="busuanzi_value_site_uv"></span>
-                </span>
-                <span id="busuanzi_container_page_pv" style="display: none !important;">
-                    <span id="busuanzi_value_page_pv"></span>
-                </span>
+                <div style="display: none;">
+                    <span id="busuanzi_container_site_pv">
+                        <span id="busuanzi_value_site_pv"></span>
+                    </span>
+                    <span id="busuanzi_container_site_uv">
+                        <span id="busuanzi_value_site_uv"></span>
+                    </span>
+                </div>
             </div>
 
             <div v-if="footerData?.author?.name" class="copyright-row">
