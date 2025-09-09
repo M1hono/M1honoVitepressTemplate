@@ -119,9 +119,6 @@
         }
     };
     
-    /**
-     * Load cached statistics data
-     */
     const loadCachedStats = () => {
         if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
             return;
@@ -133,7 +130,6 @@
                 const parsedCache = JSON.parse(cached);
                 const now = Date.now();
                 
-                // Use cached data if it's less than 10 minutes old
                 if (now - parsedCache.lastUpdated < 10 * 60 * 1000) {
                     siteStats.value = {
                         ...parsedCache,
@@ -146,9 +142,6 @@
         }
     };
     
-    /**
-     * Cache statistics data
-     */
     const cacheStats = (stats: typeof siteStats.value) => {
         if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
             return;
@@ -161,11 +154,7 @@
         }
     };
     
-    /**
-     * Initialize fallback statistics when busuanzi fails
-     */
     const initFallbackStats = () => {
-        // Try to get data from DOM elements (traditional busuanzi method)
         const sitePvElement = document.querySelector('#busuanzi_value_site_pv');
         const siteUvElement = document.querySelector('#busuanzi_value_site_uv');
         const pagePvElement = document.querySelector('#busuanzi_value_page_pv');
@@ -193,10 +182,8 @@
         updateScreenWidth();
         window.addEventListener('resize', updateScreenWidth);
         
-        // Load stats immediately and set up retry mechanism
         initSiteStats();
         
-        // Retry after 3 seconds if initial load failed
         setTimeout(() => {
             if (siteStats.value.hasError || (siteStats.value.isLoading && siteStats.value.lastUpdated === 0)) {
                 console.log('Retrying site statistics load...');
@@ -204,7 +191,6 @@
             }
         }, 3000);
         
-        // Final fallback check after 10 seconds
         setTimeout(() => {
             if (siteStats.value.hasError || siteStats.value.isLoading) {
                 initFallbackStats();
@@ -512,14 +498,13 @@
                     </span>
                 </div>
                 
-                <!-- Hidden busuanzi elements for fallback -->
-                <span id="busuanzi_container_site_pv" style="display: none;">
+                <span id="busuanzi_container_site_pv" style="display: none !important;">
                     <span id="busuanzi_value_site_pv"></span>
                 </span>
-                <span id="busuanzi_container_site_uv" style="display: none;">
+                <span id="busuanzi_container_site_uv" style="display: none !important;">
                     <span id="busuanzi_value_site_uv"></span>
                 </span>
-                <span id="busuanzi_container_page_pv" style="display: none;">
+                <span id="busuanzi_container_page_pv" style="display: none !important;">
                     <span id="busuanzi_value_page_pv"></span>
                 </span>
             </div>

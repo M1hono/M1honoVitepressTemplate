@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-    // @i18n
     import { useData } from "vitepress";
     import { computed, ref, onMounted } from "vue";
     import utils from "../../../utils";
@@ -120,23 +119,21 @@
             }
         }
 
-        // Initialize busuanzi page view tracking
         const initPageViews = async () => {
             pageViewsLoading.value = true;
             pageViewsError.value = false;
             
-            // Try to load cached page views first
             loadCachedPageViews();
             
             try {
                 const data = await utils.vitepress.callBusuanzi();
-                if (data && data.page_pv) {
+                if (data && typeof data.page_pv === 'number') {
                     pageViews.value = data.page_pv;
                     pageViewsLoading.value = false;
                     pageViewsError.value = false;
                     
-                    // Cache the page views
                     cachePageViews(data.page_pv);
+                    console.log(`Page views for ${window.location.pathname}:`, data.page_pv);
                 } else {
                     throw new Error('No page view data received');
                 }
@@ -144,40 +141,34 @@
                 console.warn("Failed to get page views from busuanzi:", error);
                 pageViewsError.value = true;
                 
-                // Fallback to DOM element checking for compatibility
                 const checkPageViews = () => {
                     const pvElement = document.querySelector(
                         "#busuanzi_value_page_pv"
                     );
-                    const text = pvElement?.innerHTML;
+                    const text = pvElement?.textContent || pvElement?.innerHTML;
                     const parsed = parseInt(text || "0");
                     if (!isNaN(parsed) && parsed > 0) {
                         pageViews.value = parsed;
                         pageViewsError.value = false;
                         cachePageViews(parsed);
+                        console.log(`Page views from DOM for ${window.location.pathname}:`, parsed);
                     }
                 };
 
-                // More aggressive fallback checking
                 const interval = setInterval(checkPageViews, 1000);
                 setTimeout(() => {
                     clearInterval(interval);
                     pageViewsLoading.value = false;
                 }, 15000);
                 
-                // Initial check
                 setTimeout(checkPageViews, 2000);
                 
-                // Set loading to false after timeout
                 setTimeout(() => {
                     pageViewsLoading.value = false;
                 }, 10000);
             }
         };
         
-        /**
-         * Load cached page views
-         */
         const loadCachedPageViews = () => {
             if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
                 return;
@@ -190,7 +181,6 @@
                     const parsedCache = JSON.parse(cached);
                     const now = Date.now();
                     
-                    // Use cached data if it's less than 5 minutes old
                     if (now - parsedCache.timestamp < 5 * 60 * 1000) {
                         pageViews.value = parsedCache.views;
                     }
@@ -200,9 +190,6 @@
             }
         };
         
-        /**
-         * Cache page views
-         */
         const cachePageViews = (views: number) => {
             if (typeof window === 'undefined' || typeof localStorage === 'undefined') {
                 return;
@@ -220,10 +207,8 @@
             }
         };
 
-        // Initialize page views immediately
         initPageViews();
         
-        // Retry mechanism
         setTimeout(() => {
             if (pageViewsError.value || (pageViewsLoading.value && pageViews.value === 0)) {
                 console.log('Retrying page views load...');
@@ -236,9 +221,6 @@
         return frontmatter.value?.metadata ?? true;
     });
 
-    /**
-     * Get icon name by metadata key
-     */
     const icon = (key: string) => {
         return utils.vitepress.getMetadataIcon(key);
     };
@@ -283,12 +265,15 @@
     </div>
     <State />
 
-    <!-- 不蒜子统计元素 - 必须可见才能正确统计 -->
     <span
         id="busuanzi_container_page_pv"
-        style="position: absolute; left: -9999px; visibility: hidden;"
+        style="display: none !important;"
     >
-        <span id="busuanzi_value_page_pv"></span>
+        <span id="busuanuanzi_value_page_pv"></span>
+    </span>
+    
+    <span id="busuanzi_container_page_uv" style="display: none !important;">
+        <span id="busuanzi_value_page_uv"></span>
     </span>
 </template>
 
