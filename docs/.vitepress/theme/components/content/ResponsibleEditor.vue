@@ -1,26 +1,28 @@
 <script setup lang="ts">
-// @i18n
-import { useData } from "vitepress";
-import { computed } from "vue";
-import { useSafeI18n } from "@utils/i18n/locale";
+    //@ts-nocheck
+    import { useData } from "vitepress";
+    import { computed } from "vue";
+    import { useSafeI18n } from "@utils/i18n/locale";
+    import { getProjectInfo } from "../../../config/project-config";
 
-const { t } = useSafeI18n("responsible-editor", {
-    editorLabel: "Responsible Editor:",
-});
+    const { t } = useSafeI18n("responsible-editor", {
+        editorLabel: "Responsible Editor:",
+    });
 
-const { isDark, lang, frontmatter } = useData();
+    const { isDark, lang, frontmatter } = useData();
+    const projectInfo = getProjectInfo();
 
-const editor = computed(() => {
-    return frontmatter.value?.editor ?? "PickAID";
-});
+    const editor = computed(() => {
+        return frontmatter.value?.editor ?? projectInfo.author;
+    });
 
-function getAvatarUrl(name: string) {
-    return `https://github.com/${name}.png`;
-}
+    function getAvatarUrl(name: string) {
+        return `https://github.com/${name}.png`;
+    }
 
-function getGitHubLink(name: string) {
-    return `https://github.com/${name}`;
-}
+    function getGitHubLink(name: string) {
+        return `https://github.com/${name}`;
+    }
 </script>
 
 <template>

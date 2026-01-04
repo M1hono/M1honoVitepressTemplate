@@ -10,7 +10,8 @@ import {
     ChatPanel,
     ChatMessage,
     Bills,
-    MarkMapView
+    MarkMapView,
+    VChart
 } from "../../theme/components/content";
 import { YoutubeVideo, BilibiliVideo, PdfViewer } from "../../theme/components/media";
 import { MNavLinks } from "../../theme/components/navigation";
@@ -28,13 +29,11 @@ import { TagsPage } from "../../theme/components/content";
 
 const CommitsCounter = defineAsyncComponent(() => import("../../theme/components/content/CommitsCounter.vue"));
 const Contributors = defineAsyncComponent(() => import("../../theme/components/content/Contributors.vue"));
-const MinecraftAdvancedDamageChart = defineAsyncComponent(() => import("../../theme/components/content/minecraft-advanced-damage-chart.vue"));
 
 const components = {
     MdCarousel: Carousels,
     YoutubeVideo,
     BilibiliVideo,
-    DamageChart: MinecraftAdvancedDamageChart,
     ArticleMetadata,
     Linkcard,
     commitsCounter: CommitsCounter,
@@ -56,7 +55,8 @@ const components = {
     ChatPanel,
     ChatMessage,
     Bills,
-    MarkMapView
+    MarkMapView,
+    VChart
 };
 
 export const registerComponents = (app: App) => {

@@ -1,5 +1,5 @@
 <template>
-    <div class="commits-counter-container">
+    <div class="commits-counter-container" :class="{ 'is-home': isHomePage }">
         <div class="commits-counter">
             <div class="chart-container">
                 <div
@@ -23,11 +23,13 @@
 </template>
 
 <script lang="ts" setup>
+    //@ts-nocheck
     import { ref, computed, onMounted } from "vue";
     import { useData } from "vitepress";
     import { defineAsyncComponent } from "vue";
     import utils from "@utils";
     import { useSafeI18n } from "@utils/i18n/locale";
+    import { getProjectInfo } from "../../../config/project-config";
 
     // Async import for vue-echarts to avoid SSR issues
     const VChart = defineAsyncComponent(async () => {
@@ -50,38 +52,50 @@
         commitsOnDate: "{count} commits on {date}"
     });
 
-    const props = defineProps({
-        username: {
-            type: String,
-            default: "PickAID",
-        },
-        repoName: {
-            type: String,
-            default: "CrychicDoc",
-        },
-        daysToFetch: {
-            type: Number,
-            default: 30,
-        },
-        height: {
-            type: Number,
-            default: 120,
-        },
-        lineWidth: {
-            type: Number,
-            default: 4,
-        },
-        fill: {
-            type: Boolean,
-            default: true,
-        },
-        smooth: {
-            type: Boolean,
-            default: true,
-        },
+    const projectInfo = getProjectInfo();
+    
+    const getRepoInfo = () => {
+        const repoUrl = projectInfo.repository.url;
+        const match = repoUrl.match(
+            /github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?$/
+        );
+        if (match) {
+            return { owner: match[1], repo: match[2] };
+        }
+        return {
+            owner: projectInfo.author,
+            repo: projectInfo.name,
+        };
+    };
+
+    interface Props {
+        username?: string;
+        repoName?: string;
+        daysToFetch?: number;
+        height?: number;
+        lineWidth?: number;
+        fill?: boolean;
+        smooth?: boolean;
+    }
+
+    const { owner: defaultUsername, repo: defaultRepoName } = getRepoInfo();
+
+    const props = withDefaults(defineProps<Props>(), {
+        daysToFetch: 30,
+        height: 120,
+        lineWidth: 4,
+        fill: true,
+        smooth: true,
     });
 
-    const { isDark, lang } = useData();
+    const username = computed(() => props.username ?? defaultUsername);
+    const repoName = computed(() => props.repoName ?? defaultRepoName);
+
+    const { isDark, lang, frontmatter } = useData();
+    
+    const isHomePage = computed(() => {
+        return !!(frontmatter.value.isHome ?? frontmatter.value.layout === "home");
+    });
 
     const contributions = ref<number[]>([]);
 
@@ -116,7 +130,7 @@
                                 60 *
                                 60 *
                                 1000
-                    ).toLocaleDateString("zh-CN", {
+                    ).toLocaleDateString(lang.value, {
                         month: "short",
                         day: "numeric",
                     })
@@ -277,8 +291,8 @@
     const fetchContributions = async () => {
         try {
             const commits = await utils.charts.github.githubApi.fetchAllCommits(
-                props.username,
-                props.repoName
+                username.value,
+                repoName.value
             );
 
             contributions.value =
@@ -299,73 +313,124 @@
 
 <style scoped>
     .commits-counter-container {
-        width: 100vw;
-        margin-left: 50%;
-        transform: translateX(-50%);
+        /* Default normal layout */
+        width: 100%;
+        margin: 0;
         padding: 0;
-        /* Fixed background colors */
-        background: #ffffff;
+        background: transparent;
         position: relative;
         overflow: hidden;
     }
 
-    .dark .commits-counter-container {
+    /* Full-width styling only for home pages */
+    .commits-counter-container.is-home {
+        width: 100vw;
+        margin-left: 50%;
+        transform: translateX(-50%);
+        background: #ffffff;
+    }
+
+    .dark .commits-counter-container.is-home {
         background: #1b1b1f;
     }
 
     .commits-counter {
-        max-width: 1800px; /* Made even wider */
-        margin: 0 auto;
-        padding: 60px 24px;
+        /* Default normal layout - fit container */
+        max-width: 100%;
+        margin: 0;
+        padding: 20px 0;
         background: transparent;
         border: none;
         border-radius: 0;
         position: relative;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Wider layout for home pages */
+    .commits-counter-container.is-home .commits-counter {
+        max-width: 1800px;
+        margin: 0 auto;
+        padding: 60px 24px;
     }
 
     @media (min-width: 640px) {
         .commits-counter {
+            padding: 30px 0;
+        }
+        
+        .commits-counter-container.is-home .commits-counter {
             padding: 80px 48px;
         }
     }
 
     @media (min-width: 960px) {
         .commits-counter {
+            padding: 40px 0;
+        }
+        
+        .commits-counter-container.is-home .commits-counter {
             padding: 100px 64px;
         }
     }
 
     .chart-container {
-        background: var(--vp-c-bg-soft);
-        border: 1px solid var(--vp-c-divider);
+        /* Transparent background for non-home pages */
+        background: transparent;
+        border: none;
         border-radius: 16px;
-        padding: 40px 32px;
+        padding: 20px 16px;
         position: relative;
         overflow: hidden;
-        height: 400px; /* Reduced from 500px */
-        width: 100%; /* Full width */
+        height: 300px;
+        width: 100%;
+        max-width: 100%;
         display: flex;
         align-items: center;
         justify-content: center;
+        box-sizing: border-box;
+    }
+
+    /* Styled background for home pages only */
+    .commits-counter-container.is-home .chart-container {
+        background: var(--vp-c-bg-soft);
+        border: 1px solid var(--vp-c-divider);
+        padding: 40px 32px;
+        height: 400px;
     }
 
     @media (min-width: 640px) {
         .chart-container {
+            padding: 24px 20px;
+            height: 350px;
+        }
+        
+        .commits-counter-container.is-home .chart-container {
             padding: 50px 40px;
-            height: 480px; /* Reduced from 600px */
+            height: 480px;
         }
     }
 
     @media (min-width: 960px) {
         .chart-container {
+            padding: 32px 24px;
+            height: 400px;
+        }
+        
+        .commits-counter-container.is-home .chart-container {
             padding: 60px 50px;
-            height: 550px; /* Reduced from 700px */
+            height: 550px;
         }
     }
 
     @media (min-width: 1200px) {
         .chart-container {
-            height: 600px; /* Reduced from 800px */
+            height: 450px;
+            padding: 40px 32px;
+        }
+        
+        .commits-counter-container.is-home .chart-container {
+            height: 600px;
             padding: 70px 60px;
         }
     }
@@ -498,11 +563,20 @@
     /* Mobile responsive adjustments */
     @media (max-width: 768px) {
         .commits-counter {
-            padding: 40px 16px;
+            padding: 20px 0;
             max-width: 100%;
+        }
+        
+        .commits-counter-container.is-home .commits-counter {
+            padding: 40px 16px;
         }
 
         .chart-container {
+            height: 280px;
+            padding: 16px 12px;
+        }
+        
+        .commits-counter-container.is-home .chart-container {
             height: 350px;
             padding: 30px 20px;
         }

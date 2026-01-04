@@ -46,7 +46,6 @@
 
     const props = defineProps<{
         stepsLz: string;
-        stepRanges: string[][];
     }>();
 
     /**

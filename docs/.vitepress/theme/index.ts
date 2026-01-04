@@ -17,6 +17,8 @@ import {
 } from "@nolebase/vitepress-plugin-enhanced-readabilities/client";
 import { NolebaseInlineLinkPreviewPlugin } from "@nolebase/vitepress-plugin-inline-link-preview/client";
 import { NolebaseGitChangelogPlugin } from "@nolebase/vitepress-plugin-git-changelog/client";
+import { NolebaseHighlightTargetedHeading } from "@nolebase/vitepress-plugin-highlight-targeted-heading/client";
+import "@nolebase/vitepress-plugin-highlight-targeted-heading/client/style.css";
 import mdVar from "vitepress-md-var";
 
 import Layout from "./Layout.vue";
@@ -32,6 +34,7 @@ import { initMermaidConfig } from "@utils/charts/mermaid";
 import { registerComponents } from "@utils/vitepress/components";
 import { getProjectInfo, isFeatureEnabled } from "../config/project-config";
 import { setupMultipleChoice } from "markdown-it-multiple-choice";
+import utils from "../utils";
 
 export default {
     extends: DefaultTheme,
@@ -59,6 +62,11 @@ export default {
     
     async enhanceApp(ctx) {
         if (!import.meta.env.SSR) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = '//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css';
+            document.head.appendChild(link);
+
             ctx.app.use(vuetify);
             ctx.app.use(NolebaseInlineLinkPreviewPlugin);
             ctx.app.use(NolebaseGitChangelogPlugin);
@@ -104,7 +112,16 @@ export default {
                 
                 mdVar(route, mdVarConfig);
                 
-                watch(() => route.path, setupLanguageControl);
+                if (projectInfo.footerOptions.showSiteStats && projectInfo.footerOptions.siteStatsProvider === 'busuanzi') {
+                    utils.vitepress.initBusuanzi();
+                }
+                
+                watch(() => route.path, () => {
+                    setupLanguageControl();
+                    if (window.busuanzi) {
+                        window.busuanzi.fetch();
+                    }
+                });
             }
         });
         

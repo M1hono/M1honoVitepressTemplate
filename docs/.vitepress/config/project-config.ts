@@ -9,7 +9,10 @@
  * Modify values below to customize your VitePress site
  */
 export const projectConfig: ProjectConfig = {
-    name: "vitepress-M1hono-template",
+    /**
+     * Project name， Must be your repo name.
+     */
+    name: "M1honoVitepressTemplate",
 
     /**
      * IMPORTANT: Change this to your repository name for GitHub Pages deployment
@@ -206,6 +209,8 @@ export const projectConfig: ProjectConfig = {
         showLicense: true,
         licenseText: "CC BY-SA 4.0",
         licenseLink: "https://creativecommons.org/licenses/by-sa/4.0/",
+        showSiteStats: false,
+        siteStatsProvider: "busuanzi",
     },
 
     /**
@@ -229,7 +234,7 @@ export const projectConfig: ProjectConfig = {
      * Markdown Variables plugin configuration
      */
     mdVar: {
-        prefix: "%",
+        prefix: "-%",
         noVarPrefix: "\\%",
         persistence: true,
         styling: "default",
@@ -380,6 +385,13 @@ export interface FooterOptionsConfig {
     licenseText: string;
     /** License link URL */
     licenseLink: string;
+    /** Whether to show site statistics (visits, page views) */
+    showSiteStats: boolean;
+    /**
+     * Site statistics provider ('busuanzi' | 'vercount' | 'custom') 
+     * Currently, only 'busuanzi' is supported.
+    */
+    siteStatsProvider: 'busuanzi' | 'vercount' | 'custom';
 }
 
 /**
@@ -576,7 +588,7 @@ export interface ProjectConfig {
         /** Enable Draw.io diagram support in markdown */
         drawio: boolean;
             /** Enable Markmap diagram support in markdown */
-    markmap: boolean;
+        markmap: boolean;
         /** Enable multi-language support and language switcher */
         multilingual: boolean;
         /** Enable automatic sidebar generation from file structure */

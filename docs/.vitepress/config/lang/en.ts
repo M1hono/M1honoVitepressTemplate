@@ -1,5 +1,5 @@
 import type { DefaultTheme } from 'vitepress';
-import { getProjectInfo, getLanguageByCode, getLangCodeFromLink, getSearchLocaleKey } from '../project-config';
+import { getProjectInfo, getLanguageByCode, getLangCodeFromLink, getSearchLocaleKey, isFeatureEnabled } from '../project-config';
 import { getSidebarSync } from '../../utils/sidebar';
 
 const projectInfo = getProjectInfo();
@@ -34,9 +34,10 @@ export const en_US = <DefaultTheme.Config>{
                 timeStyle: "medium",
             },
         },
-        editLink: {
-            text: "Edit this page on GitHub",
-        },
+        editLink: isFeatureEnabled('editLink') && projectInfo.editLink ? {
+            pattern: projectInfo.editLink.pattern,
+            text: projectInfo.editLink.text || "Edit this page on GitHub"
+        } : undefined,
         langMenuLabel: "Change Language",
         darkModeSwitchLabel: "Switch Theme",
         lightModeSwitchTitle: "Switch to light mode",

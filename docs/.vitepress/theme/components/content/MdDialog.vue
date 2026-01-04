@@ -58,7 +58,7 @@ const props = defineProps({
     },
     maxWidth: {
         type: [String, Number],
-        default: 800,
+        default: "90vw",
     },
     maxHeight: {
         type: [String, Number],
@@ -205,6 +205,8 @@ const close = () => {
         min-height: 200px;
         max-height: 70vh;
         overflow-y: auto;
+        box-sizing: border-box;
+        width: 100%;
     }
 
     .md-content--fullscreen {
@@ -308,6 +310,136 @@ const close = () => {
     .vp-doc :deep(td) {
         border: 1px solid var(--vp-c-divider);
         padding: 8px 16px;
+    }
+
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+        .md-dialog-card {
+            margin: 1rem !important;
+            max-width: calc(100vw - 2rem) !important;
+            max-height: calc(100vh - 2rem) !important;
+            border-radius: 8px !important;
+        }
+
+        .md-card-title {
+            padding: 16px 20px !important;
+            font-size: 1.1rem !important;
+        }
+
+        .md-card-content {
+            padding: 16px 20px !important;
+            max-height: calc(100vh - 200px) !important;
+        }
+
+        .md-card-actions {
+            padding: 12px 20px !important;
+        }
+
+        .md-content--scrollable {
+            max-height: calc(100vh - 200px) !important;
+        }
+
+        .vp-doc {
+            font-size: 15px;
+        }
+
+        .vp-doc :deep(h1) {
+            font-size: 24px;
+        }
+
+        .vp-doc :deep(h2) {
+            font-size: 20px;
+        }
+
+        .vp-doc :deep(h3) {
+            font-size: 18px;
+        }
+
+        .vp-doc :deep(h4) {
+            font-size: 16px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .md-dialog-card {
+            margin: 0.5rem !important;
+            max-width: calc(100vw - 1rem) !important;
+            max-height: calc(100vh - 1rem) !important;
+            border-radius: 6px !important;
+        }
+
+        .md-card-title {
+            padding: 12px 16px !important;
+            font-size: 1rem !important;
+        }
+
+        .md-card-content {
+            padding: 12px 16px !important;
+            max-height: calc(100vh - 150px) !important;
+            min-height: 150px;
+        }
+
+        .md-card-actions {
+            padding: 10px 16px !important;
+        }
+
+        .md-content--scrollable {
+            max-height: calc(100vh - 150px) !important;
+        }
+
+        .vp-doc {
+            font-size: 14px;
+        }
+
+        .vp-doc :deep(h1) {
+            font-size: 22px;
+        }
+
+        .vp-doc :deep(h2) {
+            font-size: 18px;
+        }
+
+        .vp-doc :deep(h3) {
+            font-size: 16px;
+        }
+
+        .vp-doc :deep(h4) {
+            font-size: 15px;
+        }
+
+        .vp-doc :deep(pre code) {
+            padding: 16px 20px;
+        }
+
+        .vp-doc :deep(th),
+        .vp-doc :deep(td) {
+            padding: 6px 12px;
+        }
+    }
+
+    /* Very small screens - auto fullscreen */
+    @media (max-width: 360px) {
+        .md-dialog-card:not(.md-dialog-card--fullscreen) {
+            margin: 0 !important;
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            border-radius: 0 !important;
+            height: 100vh !important;
+        }
+
+        .md-card-content {
+            max-height: calc(100vh - 120px) !important;
+            padding: 10px 12px !important;
+        }
+
+        .md-card-title {
+            padding: 10px 12px !important;
+            font-size: 0.9rem !important;
+        }
+
+        .md-card-actions {
+            padding: 8px 12px !important;
+        }
     }
 </style>
  

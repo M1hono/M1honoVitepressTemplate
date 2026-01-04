@@ -55,7 +55,9 @@
         <div class="message-content">
             <div class="nickname" v-if="nickname">{{ nickname }}</div>
             <div class="message-box" :style="messageBubbleStyle">
-                <slot>&nbsp;</slot>
+                <div class="message-inner">
+                    <slot>&nbsp;</slot>
+                </div>
             </div>
         </div>
     </div>
@@ -310,6 +312,10 @@
         gap: 0.8rem;
         align-items: flex-start;
         margin: 0.5rem 0 !important;
+        max-width: 100%;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
         opacity: 0;
         transform: translateX(-20%);
         transition: transform 0.3s ease-out, opacity 0.3s ease;
@@ -342,6 +348,8 @@
 
             .message-content {
                 align-items: flex-end;
+                padding-right: 0;
+                padding-left: 0.5rem;
             }
 
             .message-box {
@@ -417,8 +425,12 @@
             flex-direction: column;
             align-items: flex-start;
             gap: 0.25rem;
-            max-width: calc(100% - #{$msgbox-left});
+            max-width: calc(100% - #{$avatar-size} - 0.8rem);
             min-width: 0;
+            flex: 1;
+            overflow: hidden;
+            padding-right: 0.5rem;
+            box-sizing: border-box;
         }
 
         .nickname {
@@ -432,13 +444,17 @@
             position: relative;
             width: fit-content;
             max-width: 100%;
+            min-width: 0;
             border-radius: 0.2rem 0.5rem 0.5rem 0.5rem;
             background-color: var(--vp-c-bg);
             word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
             border: 1px solid var(--vp-c-border);
             padding: 0.5rem 0.8rem;
             font-size: 14px;
             line-height: 1.6;
+            z-index: 1;
 
             :deep(p),
             :deep(summary) {
@@ -475,6 +491,34 @@
             .vp-doc *:first-child {
                 margin-top: 0 !important;
             }
+
+            .message-inner {
+                overflow-wrap: break-word;
+                word-break: break-word;
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                overflow: hidden;
+                box-sizing: border-box;
+            }
+
+            :deep(.vp-doc div[class*="language-"]),
+            :deep(div[class*="language-"]),
+            :deep(.language),
+            :deep(.vp-block) {
+                margin: 1em 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                overflow-x: auto;
+                position: relative;
+                z-index: 0;
+            }
+
+            :deep(.vp-doc div[class*="language-"] pre),
+            :deep(div[class*="language-"] pre) {
+                margin: 0 !important;
+                overflow-x: auto;
+            }
         }
     }
 
@@ -490,6 +534,98 @@
     @keyframes spin {
         to {
             transform: rotate(360deg);
+        }
+    }
+
+    @media (max-width: 768px) {
+        $mobile-avatar-size: 2.4rem;
+        $mobile-msgbox-left: $mobile-avatar-size + 0.6rem;
+
+        .chat-message {
+            gap: 0.6rem;
+            margin: 0.4rem 0 !important;
+            max-width: 100vw;
+            overflow-x: hidden;
+
+            .avatar {
+                width: $mobile-avatar-size;
+                height: $mobile-avatar-size;
+            }
+
+            .message-content {
+                max-width: calc(100% - #{$mobile-avatar-size} - 0.6rem);
+                min-width: 0;
+                flex: 1;
+                padding-right: 0.4rem;
+            }
+
+            .message-box {
+                max-width: 100%;
+                font-size: 13px;
+                padding: 0.4rem 0.6rem;
+
+                overflow-wrap: anywhere;
+                word-break: break-word;
+                hyphens: auto;
+            }
+
+            .nickname {
+                font-size: 0.8rem;
+                margin-left: 0.4rem;
+            }
+
+            &.is-grouped {
+                margin-top: 0.2rem;
+            }
+
+            &.location-right .message-content {
+                padding-right: 0;
+                padding-left: 0.4rem;
+            }
+        }
+    }
+
+    @media (max-width: 480px) {
+        $small-avatar-size: 2rem;
+        $small-msgbox-left: $small-avatar-size + 0.5rem;
+
+        .chat-message {
+            gap: 0.5rem;
+            max-width: 100vw;
+            overflow-x: hidden;
+
+            .avatar {
+                width: $small-avatar-size;
+                height: $small-avatar-size;
+
+                .avatar-text,
+                .avatar-icon {
+                    font-size: 1.1rem;
+                }
+            }
+
+            .message-content {
+                max-width: calc(100% - #{$small-avatar-size} - 0.5rem);
+                flex: 1;
+                padding-right: 0.3rem;
+            }
+
+            .message-box {
+                max-width: 100%;
+                font-size: 12px;
+                padding: 0.35rem 0.5rem;
+                line-height: 1.5;
+            }
+
+            .nickname {
+                font-size: 0.75rem;
+                margin-left: 0.3rem;
+            }
+
+            &.location-right .message-content {
+                padding-right: 0;
+                padding-left: 0.3rem;
+            }
         }
     }
 </style>

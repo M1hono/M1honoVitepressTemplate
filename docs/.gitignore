@@ -12,3 +12,4 @@ output.html
 .cache
 .vitepress/config.mts.timestamp*
 src/.vitepress/*
+*test*.md*

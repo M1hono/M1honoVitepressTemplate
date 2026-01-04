@@ -4,5 +4,7 @@
     "license": "Licensed under",
     "privacyPolicy": "Privacy Policy",
     "totalViews": "Total Views",
-    "visitors": "Visitors"
+    "visitors": "Visitors",
+    "visits": "visits",
+    "siteVisitors": "visitors"
 }

@@ -70,12 +70,6 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
 
     markdown: { ...markdown },
 
-    mermaid: isFeatureEnabled('mermaid') ? {
-        startOnLoad: true,
-        securityLevel: "loose",
-        theme: "default",
-    } : undefined,
-
     vue: {
         template: {
             compilerOptions: {
@@ -132,6 +126,15 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                     replacement: fileURLToPath(
                         new URL(
                             "../theme/components/VPNavBarTranslations.vue",
+                            import.meta.url
+                        )
+                    ),
+                },
+                {
+                    find: /^.*\/VPNavScreenTranslations\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/VPNavScreenTranslations.vue",
                             import.meta.url
                         )
                     ),
