@@ -239,6 +239,30 @@ export const projectConfig: ProjectConfig = {
         persistence: true,
         styling: "default",
     },
+
+    /**
+     * Giscus comment system configuration
+     */
+    giscus: {
+        repo: "M1hono/M1honoVitepressTemplate",
+        repoId: "R_kgDOPEMJTw",
+        category: "General",
+        categoryId: "DIC_kwDOPEMJT84CsYv-",
+        mapping: "specific",
+        strict: true,
+        reactionsEnabled: true,
+        emitMetadata: false,
+        inputPosition: "top",
+        theme: {
+            light: "noborder_light",
+            dark: "noborder_dark",
+        },
+        /**
+         * Share comments across all language versions
+         * Set to false if you want each language to have separate comment sections
+         */
+        sharedComments: true,
+    },
 };
 
 /**
@@ -388,10 +412,10 @@ export interface FooterOptionsConfig {
     /** Whether to show site statistics (visits, page views) */
     showSiteStats: boolean;
     /**
-     * Site statistics provider ('busuanzi' | 'vercount' | 'custom') 
+     * Site statistics provider ('busuanzi' | 'vercount' | 'custom')
      * Currently, only 'busuanzi' is supported.
-    */
-    siteStatsProvider: 'busuanzi' | 'vercount' | 'custom';
+     */
+    siteStatsProvider: "busuanzi" | "vercount" | "custom";
 }
 
 /**
@@ -434,6 +458,42 @@ export interface MdVarConfig {
     persistence: boolean;
     /** Styling theme: "default", "thr" (The Hacker Recipes), or custom CSS */
     styling: "default" | "thr" | string;
+}
+
+/**
+ * Giscus comment system configuration interface
+ */
+export interface GiscusConfig {
+    /** GitHub repository in format 'owner/repo' */
+    repo: string;
+    /** GitHub repository ID */
+    repoId: string;
+    /** Discussion category name */
+    category: string;
+    /** Discussion category ID */
+    categoryId: string;
+    /** Mapping between pages and discussions */
+    mapping: "url" | "title" | "og:title" | "specific" | "number" | "pathname";
+    /** Use strict title matching */
+    strict: boolean;
+    /** Enable reactions */
+    reactionsEnabled: boolean;
+    /** Emit discussion metadata */
+    emitMetadata: boolean;
+    /** Input position */
+    inputPosition: "top" | "bottom";
+    /** Theme configuration */
+    theme: {
+        light: string;
+        dark: string;
+    };
+    /**
+     * Whether different language versions should share the same comment area
+     * - true: All languages share comments (e.g., '/test' for both /en-US/test and /zh-CN/test)
+     * - false: Each language has separate comments (e.g., 'en-US/test' and 'zh-CN/test')
+     * @default true
+     */
+    sharedComments: boolean;
 }
 
 /**
@@ -587,7 +647,7 @@ export interface ProjectConfig {
         mermaid: boolean;
         /** Enable Draw.io diagram support in markdown */
         drawio: boolean;
-            /** Enable Markmap diagram support in markdown */
+        /** Enable Markmap diagram support in markdown */
         markmap: boolean;
         /** Enable multi-language support and language switcher */
         multilingual: boolean;
@@ -643,6 +703,9 @@ export interface ProjectConfig {
 
     /** Markdown Variables plugin configuration */
     mdVar: MdVarConfig;
+
+    /** Giscus comment system configuration */
+    giscus: GiscusConfig;
 }
 
 /**
@@ -709,19 +772,51 @@ export function getLanguageLinks(): string[] {
 
 /**
  * Find language configuration by language code
- * @param code - Language code to search for (e.g., 'en-US', 'zh-CN')
+ * Handles VitePress's various language key formats:
+ * - "root" for default language (in some VitePress versions)
+ * - Full code like "en-US", "zh-CN"
+ * - Short code like "en", "zh" (based on fileName without .ts)
+ * @param code - Language code to search for (e.g., 'en-US', 'zh-CN', 'root', 'en', 'zh')
  * @returns Language configuration or undefined if not found
  *
  * @example
  * ```ts
- * const chinese = getLanguageByCode('zh-CN');
- * if (chinese) {
- *   console.log(chinese.displayName); // "简体中文"
- * }
+ * const chinese = getLanguageByCode('zh-CN'); // Finds zh-CN
+ * const english = getLanguageByCode('en');     // Finds en-US if fileName is 'en.ts'
+ * const root = getLanguageByCode('root');      // Returns default language
  * ```
  */
 export function getLanguageByCode(code: string): LanguageConfig | undefined {
-    return projectConfig.languages.find((lang) => lang.code === code);
+    // VitePress uses 'root' for the default language in some cases
+    if (code === "root") {
+        return getDefaultLanguage();
+    }
+
+    // Try exact match first
+    let lang = projectConfig.languages.find((lang) => lang.code === code);
+    if (lang) {
+        return lang;
+    }
+
+    // If no exact match, try matching against fileName (without .ts extension)
+    // VitePress might use "en" when fileName is "en.ts" even if code is "en-US"
+    lang = projectConfig.languages.find((lang) => {
+        if (!lang.fileName) return false;
+        const fileNameWithoutExt = lang.fileName.replace(".ts", "");
+        return fileNameWithoutExt === code;
+    });
+
+    if (lang) {
+        return lang;
+    }
+
+    // Try matching the first part before hyphen (e.g., "en" from "en-US")
+    lang = projectConfig.languages.find((lang) => {
+        const shortCode = lang.code.split("-")[0];
+        return shortCode === code;
+    });
+
+    return lang;
 }
 
 /**
@@ -1080,6 +1175,265 @@ export function getSpecialBackPaths(): SpecialBackPath[] {
 }
 
 /**
+ * Get the Giscus comment system configuration
+ * @returns Giscus configuration object
+ */
+export function getGiscusConfig(): GiscusConfig {
+    return projectConfig.giscus;
+}
+
+/**
+ * Get the base path from project configuration
+ * @returns The base path (e.g., '/M1honoVitepressTemplate/', '/')
+ */
+export function getBasePath(): string {
+    return projectConfig.base || "/";
+}
+
+/**
+ * Remove base path from a given path
+ * @param path - The full path including base
+ * @returns Path without base prefix
+ *
+ * @example
+ * ```ts
+ * // If base is '/M1honoVitepressTemplate/'
+ * removeBaseFromPath('/M1honoVitepressTemplate/zh-CN/guide/'); // returns '/zh-CN/guide/'
+ * removeBaseFromPath('/zh-CN/guide/');                          // returns '/zh-CN/guide/'
+ * ```
+ */
+export function removeBaseFromPath(path: string): string {
+    const base = projectConfig.base;
+
+    // If base is '/', no need to remove anything
+    if (base === "/" || !base) {
+        return path;
+    }
+
+    // Remove trailing slash from base for comparison
+    const baseWithoutTrailingSlash = base.endsWith("/")
+        ? base.slice(0, -1)
+        : base;
+
+    if (path.startsWith(baseWithoutTrailingSlash)) {
+        return path.substring(baseWithoutTrailingSlash.length) || "/";
+    }
+
+    return path;
+}
+
+/**
+ * Remove language prefix from path to get language-agnostic path
+ * Handles both default language (root) and non-default languages
+ * Also accounts for the base path configured in the project
+ * The link format in language config (e.g., '/zh/') may differ from the code (e.g., 'zh-CN')
+ * @param path - The full path (e.g., '/M1honoVitepressTemplate/zh-CN/guide/', '/guide/')
+ * @returns Language-agnostic path without base (e.g., '/guide/')
+ *
+ * @example
+ * ```ts
+ * // If base is '/M1honoVitepressTemplate/' and en-US is default (root)
+ * removeLangFromPath('/M1honoVitepressTemplate/zh-CN/guide/intro'); // returns '/guide/intro'
+ * removeLangFromPath('/M1honoVitepressTemplate/guide/intro');        // returns '/guide/intro'
+ *
+ * // Works with all configured languages, using their link property
+ * removeLangFromPath('/en-US/api/');        // returns '/api/'
+ * removeLangFromPath('/zh/docs/');          // returns '/docs/' (even if code is 'zh-CN')
+ * ```
+ */
+export function removeLangFromPath(path: string): string {
+    // First, remove the base path
+    let cleanPath = removeBaseFromPath(path);
+
+    // Ensure path starts with /
+    if (!cleanPath.startsWith("/")) {
+        cleanPath = "/" + cleanPath;
+    }
+
+    // Try to match against ALL configured language links (including default)
+    // Because VitePress might still use the link path even for default language in some cases
+    for (const lang of projectConfig.languages) {
+        // Use the link property which may be different from code (e.g., '/zh/' vs 'zh-CN')
+        const langLink = lang.link || `/${lang.code}/`;
+
+        // Skip if this is the default language and the link is for explicit path (like /en-US/)
+        // because VitePress uses root `/` for default language URLs
+        if (lang.isDefault && cleanPath.startsWith(langLink)) {
+            return "/" + cleanPath.substring(langLink.length);
+        }
+
+        if (!lang.isDefault && cleanPath.startsWith(langLink)) {
+            return "/" + cleanPath.substring(langLink.length);
+        }
+    }
+
+    // If no language prefix found, it's the root/default language path
+    return cleanPath;
+}
+
+/**
+ * Convert VitePress lang value to actual language code
+ * VitePress may use different formats: 'root', short codes like 'en', or full codes like 'en-US'
+ * This function normalizes all formats to the full language code
+ * @param vitepressLang - Language value from VitePress useData() (e.g., 'root', 'en', 'zh', 'en-US', 'zh-CN')
+ * @returns Actual language code (e.g., 'en-US', 'zh-CN')
+ *
+ * @example
+ * ```ts
+ * // If en-US is the default language with fileName 'en.ts'
+ * getLangCodeFromVitepressLang('root');    // returns 'en-US'
+ * getLangCodeFromVitepressLang('en');      // returns 'en-US'
+ * getLangCodeFromVitepressLang('en-US');   // returns 'en-US'
+ * getLangCodeFromVitepressLang('zh');      // returns 'zh-CN' (if configured)
+ * ```
+ */
+export function getLangCodeFromVitepressLang(vitepressLang: string): string {
+    if (vitepressLang === "root") {
+        return getDefaultLanguage().code;
+    }
+
+    // Try to find the language config using the flexible getLanguageByCode
+    const langConfig = getLanguageByCode(vitepressLang);
+    if (langConfig) {
+        return langConfig.code;
+    }
+
+    // If not found, return as-is (fallback)
+    return vitepressLang;
+}
+
+/**
+ * Get the language code from a given path
+ * @param path - The full path (e.g., '/M1honoVitepressTemplate/zh-CN/guide/', '/guide/')
+ * @returns Language code (e.g., 'zh-CN', 'en-US') or default language code
+ *
+ * @example
+ * ```ts
+ * getLanguageFromPath('/M1honoVitepressTemplate/zh-CN/guide/'); // returns 'zh-CN'
+ * getLanguageFromPath('/zh-CN/guide/');                          // returns 'zh-CN'
+ * getLanguageFromPath('/guide/');                                // returns default language code
+ * ```
+ */
+export function getLanguageFromPath(path: string): string {
+    // First, remove the base path to normalize
+    let cleanPath = removeBaseFromPath(path);
+
+    // Ensure path starts with /
+    if (!cleanPath.startsWith("/")) {
+        cleanPath = "/" + cleanPath;
+    }
+
+    // Try to match against all configured language links
+    for (const lang of projectConfig.languages) {
+        const langLink = lang.link || `/${lang.code}/`;
+        if (cleanPath.startsWith(langLink)) {
+            return lang.code;
+        }
+    }
+
+    // If no match, return default language
+    return getDefaultLanguage().code;
+}
+
+/**
+ * Check if a path contains a language prefix
+ * @param path - The path to check (can include base path)
+ * @returns True if path has a language prefix, false otherwise
+ *
+ * @example
+ * ```ts
+ * hasLangInPath('/M1honoVitepressTemplate/zh-CN/guide/'); // returns true
+ * hasLangInPath('/zh-CN/guide/');                          // returns true
+ * hasLangInPath('/guide/');                                // returns false (default/root language)
+ * ```
+ */
+export function hasLangInPath(path: string): boolean {
+    // First, remove the base path to normalize
+    let cleanPath = removeBaseFromPath(path);
+
+    // Ensure path starts with /
+    if (!cleanPath.startsWith("/")) {
+        cleanPath = "/" + cleanPath;
+    }
+
+    for (const lang of projectConfig.languages) {
+        if (lang.isDefault) continue; // Skip default language
+
+        const langLink = lang.link || `/${lang.code}/`;
+        if (cleanPath.startsWith(langLink)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Generate Giscus discussion term from a path
+ * Respects the sharedComments configuration to determine if languages share comments
+ * @param path - The full path from router (e.g., '/M1honoVitepressTemplate/zh-CN/test')
+ * @param localeIndex - VitePress locale index (e.g., 'root', 'zh-CN')
+ * @returns Term for Giscus discussion
+ *
+ * @example
+ * ```ts
+ * // With sharedComments: true (default)
+ * generateGiscusTerm('/M1honoVitepressTemplate/zh-CN/test', 'zh-CN'); // returns 'test'
+ * generateGiscusTerm('/M1honoVitepressTemplate/en-US/test', 'root');  // returns 'test'
+ *
+ * // With sharedComments: false
+ * generateGiscusTerm('/M1honoVitepressTemplate/zh-CN/test', 'zh-CN'); // returns 'zh-CN/test'
+ * generateGiscusTerm('/M1honoVitepressTemplate/en-US/test', 'root');  // returns 'en-US/test'
+ *
+ * // Home pages
+ * generateGiscusTerm('/M1honoVitepressTemplate/', 'root'); // returns 'index' or 'en-US/index'
+ * ```
+ */
+export function generateGiscusTerm(path: string, localeIndex: string): string {
+    const config = getGiscusConfig();
+
+    if (config.sharedComments) {
+        // Remove both base and language prefix for shared comments
+        const cleanedPath = removeLangFromPath(path);
+        const term = cleanedPath.startsWith("/")
+            ? cleanedPath.substring(1)
+            : cleanedPath;
+        return !term || term === "" || term === "/" ? "index" : term;
+    } else {
+        // Keep language in the term for separate comments per language
+        // First remove base, but keep language prefix
+        let cleanedPath = removeBaseFromPath(path);
+
+        // Ensure path starts with /
+        if (!cleanedPath.startsWith("/")) {
+            cleanedPath = "/" + cleanedPath;
+        }
+
+        // Convert localeIndex to actual language code
+        const langCode = getLangCodeFromVitepressLang(localeIndex);
+        const langConfig = getLanguageByCode(langCode);
+
+        // If path doesn't start with language link, prepend it
+        // This handles the root/default language case
+        if (langConfig) {
+            const langLink = langConfig.link || `/${langConfig.code}/`;
+            if (!cleanedPath.startsWith(langLink)) {
+                // Root language - prepend the language code
+                cleanedPath = langLink + cleanedPath.substring(1);
+            }
+        }
+
+        // Remove leading slash
+        const term = cleanedPath.startsWith("/")
+            ? cleanedPath.substring(1)
+            : cleanedPath;
+        return !term || term === "" || term === "/"
+            ? `${langCode}/index`
+            : term;
+    }
+}
+
+/**
  * Extracts the language code from a given URL path.
  * It matches the path against the `link` property of the configured languages.
  * @param path - The URL path (e.g., '/zh-CN/guide/').
@@ -1087,13 +1441,13 @@ export function getSpecialBackPaths(): SpecialBackPath[] {
  */
 export function getLangCodeFromLink(path: string): string {
     const defaultLang = getDefaultLanguage();
-    
+
     // Extract language code from path like /zh/, /en/, /zh-CN/
     const match = path.match(/^\/([a-z]{2}(?:-[A-Z]{2})?)\//);
     if (match) {
         return match[1];
     }
-    
+
     // If no language code found in path, return default
     return defaultLang.code;
 }

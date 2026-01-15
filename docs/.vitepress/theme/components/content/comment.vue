@@ -8,29 +8,40 @@
 </template>
 
 <script lang="ts" setup>
-// @i18n
-import { ref, watch, onMounted, computed, nextTick } from "vue";
-import { useData, useRoute } from "vitepress";
-import { useSafeI18n } from "../../../utils/i18n/locale";
-import { getLanguageByCode, getDefaultLanguage } from "../../../config/project-config";
+    // @i18n
+    import { ref, watch, onMounted, computed, nextTick } from "vue";
+    import { useData, useRoute } from "vitepress";
+    import { useSafeI18n } from "../../../utils/i18n/locale";
+    import {
+        getLanguageByCode,
+        getDefaultLanguage,
+        getGiscusConfig,
+        getLangCodeFromVitepressLang,
+        generateGiscusTerm,
+    } from "../../../config/project-config";
 
-const { isDark, lang, frontmatter } = useData();
-const route = useRoute();
+    const { isDark, lang, localeIndex, frontmatter } = useData();
+    const route = useRoute();
 
-const { t } = useSafeI18n("comment-component", {
-    loading: "Loading comments...",
-});
+    const { t } = useSafeI18n("comment-component", {
+        loading: "Loading comments...",
+    });
 
-const showComment = computed(() => frontmatter.value.showComment !== false);
+    const showComment = computed(() => frontmatter.value.showComment !== false);
 
-const currentLanguage = computed(() => {
-    return getLanguageByCode(lang.value) || getDefaultLanguage();
-});
+    /**
+     * Get current language configuration
+     * VitePress uses 'localeIndex' to identify the locale (e.g., 'root', 'zh-CN', 'en-US')
+     * VitePress uses 'lang' for HTML lang attribute (e.g., 'en', 'zh')
+     */
+    const currentLanguage = computed(() => {
+        // Use localeIndex (not lang) to find the correct language configuration
+        // localeIndex corresponds to the keys in VitePress locales config
+        const actualLangCode = getLangCodeFromVitepressLang(localeIndex.value);
+        return getLanguageByCode(actualLangCode) || getDefaultLanguage();
+    });
 
-const extractTerm = (path: string) => {
-        const cleanedPath = path.replace(/^\/[a-z]{2}\//, "");
-        return cleanedPath.length > 0 ? cleanedPath : "none";
-    };
+    const giscusConfig = getGiscusConfig();
 
     const giscusContainer = ref<HTMLElement | null>(null);
     const isLoading = ref(false);
@@ -55,20 +66,25 @@ const extractTerm = (path: string) => {
             script.async = true;
             script.crossOrigin = "anonymous";
 
-            script.dataset.repo = "PickAID/CrychicDoc";
-            script.dataset.repoId = "R_kgDOMnN0IQ";
-            script.dataset.category = "Announcements";
-            script.dataset.categoryId = "DIC_kwDOMnN0Ic4Ch3qm";
-            script.dataset.mapping = "specific";
-            script.dataset.term = extractTerm(route.path);
-            script.dataset.strict = "1";
-            script.dataset.reactionsEnabled = "1";
-            script.dataset.emitMetadata = "0";
-            script.dataset.inputPosition = "top";
+            script.dataset.repo = giscusConfig.repo;
+            script.dataset.repoId = giscusConfig.repoId;
+            script.dataset.category = giscusConfig.category;
+            script.dataset.categoryId = giscusConfig.categoryId;
+            script.dataset.mapping = giscusConfig.mapping;
+            script.dataset.term = generateGiscusTerm(
+                route.path,
+                localeIndex.value
+            );
+            script.dataset.strict = giscusConfig.strict ? "1" : "0";
+            script.dataset.reactionsEnabled = giscusConfig.reactionsEnabled
+                ? "1"
+                : "0";
+            script.dataset.emitMetadata = giscusConfig.emitMetadata ? "1" : "0";
+            script.dataset.inputPosition = giscusConfig.inputPosition;
             script.dataset.lang = currentLanguage.value.giscusLang;
             script.dataset.theme = isDark.value
-                ? "noborder_dark"
-                : "noborder_light";
+                ? giscusConfig.theme.dark
+                : giscusConfig.theme.light;
 
             script.onerror = () => {
                 console.error("Failed to load Giscus script");
@@ -79,7 +95,9 @@ const extractTerm = (path: string) => {
                 // Script loaded, but we need to wait for the iframe to be ready
                 // Check for iframe periodically
                 const checkIframe = () => {
-                    const iframe = giscusContainer.value?.querySelector('iframe.giscus-frame');
+                    const iframe = giscusContainer.value?.querySelector(
+                        "iframe.giscus-frame"
+                    );
                     if (iframe) {
                         isLoading.value = false;
                     } else {
@@ -136,18 +154,23 @@ const extractTerm = (path: string) => {
     watch(isDark, (newValue) => {
         if (showComment.value) {
             updateGiscusConfig({
-                theme: newValue ? "noborder_dark" : "noborder_light",
+                theme: newValue
+                    ? giscusConfig.theme.dark
+                    : giscusConfig.theme.light,
             });
         }
     });
 
-    watch(() => currentLanguage.value.giscusLang, (newLang) => {
-        if (showComment.value) {
-            updateGiscusConfig({
-                lang: newLang,
-            });
+    watch(
+        () => currentLanguage.value.giscusLang,
+        (newLang) => {
+            if (showComment.value) {
+                updateGiscusConfig({
+                    lang: newLang,
+                });
+            }
         }
-    });
+    );
 
     watch(showComment, (newValue) => {
         if (newValue) {
