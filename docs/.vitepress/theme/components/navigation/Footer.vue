@@ -14,7 +14,7 @@
 
     const { frontmatter, lang, isDark } = useData();
     const projectInfo = getProjectInfo();
-    
+
     const { t } = useSafeI18n("footer", {
         visits: "次访问",
         siteVisitors: "位访客",
@@ -72,10 +72,10 @@
     onMounted(() => {
         currentYear.value = new Date().getFullYear().toString();
         updateScreenWidth();
-        window.addEventListener('resize', updateScreenWidth);
-        
+        window.addEventListener("resize", updateScreenWidth);
+
         return () => {
-            window.removeEventListener('resize', updateScreenWidth);
+            window.removeEventListener("resize", updateScreenWidth);
         };
     });
 
@@ -93,21 +93,24 @@
 
     const getScreenSize = () => {
         const width = screenWidth.value;
-        if (width <= 360) return 'xs';
-        if (width <= 768) return 'sm';
-        if (width <= 1024) return 'md';
-        return 'lg';
+        if (width <= 360) return "xs";
+        if (width <= 768) return "sm";
+        if (width <= 1024) return "md";
+        return "lg";
     };
 
-    const calculateOptimalColumns = (groupCount: number, screenSize: string) => {
+    const calculateOptimalColumns = (
+        groupCount: number,
+        screenSize: string
+    ) => {
         if (groupCount === 0) return 0;
         if (groupCount === 1) return 1;
-        
+
         const maxColumns = {
             xs: 2,
             sm: 2,
             md: 3,
-            lg: 4
+            lg: 4,
         };
 
         return Math.min(groupCount, maxColumns[screenSize]);
@@ -125,28 +128,33 @@
                 gridTemplateColumns: "1fr",
                 justifyItems: "center",
                 maxWidth: "280px",
-                gap: "24px"
+                gap: "24px",
             };
         } else if (columns === 2) {
             return {
                 gridTemplateColumns: "repeat(2, 1fr)",
                 justifyItems: "center",
                 maxWidth: "100%",
-                gap: screenSize === 'xs' ? "12px" : screenSize === 'sm' ? "16px" : "24px"
+                gap:
+                    screenSize === "xs"
+                        ? "12px"
+                        : screenSize === "sm"
+                        ? "16px"
+                        : "24px",
             };
         } else if (columns === 3) {
             return {
                 gridTemplateColumns: "repeat(3, 1fr)",
                 justifyItems: "center",
-                maxWidth: screenSize === 'md' ? "600px" : "750px",
-                gap: "40px"
+                maxWidth: screenSize === "md" ? "600px" : "750px",
+                gap: "40px",
             };
         } else {
             return {
                 gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
                 justifyItems: "center",
                 maxWidth: "1000px",
-                gap: "48px"
+                gap: "48px",
             };
         }
     });
@@ -164,8 +172,21 @@
         return icon.icon || "";
     };
 
-    const isSvgIcon = (src: string): boolean => {
-        return src.startsWith("/") || src.endsWith(".svg");
+    const isInlineSvg = (src: string): boolean => {
+        return src.trim().startsWith("<svg");
+    };
+
+    const isIconifyIcon = (src: string): boolean => {
+        return (
+            src.includes(":") && !src.startsWith("http") && !src.startsWith("/")
+        );
+    };
+
+    const isImageUrl = (src: string): boolean => {
+        return (
+            /\.(svg|png|jpg|jpeg|gif|webp)$/i.test(src) ||
+            src.startsWith("http")
+        );
     };
 
     const getIconColor = (icon: any, isDark: boolean): string | undefined => {
@@ -193,17 +214,30 @@
                 class="footer-group"
             >
                 <h3 class="group-title">
-                    <img
-                        v-if="group.icon && isSvgIcon(getIconSrc(group.icon))"
-                        :src="withBase(getIconSrc(group.icon))"
-                        class="title-icon svg-icon"
-                        alt="icon"
+                    <span
+                        v-if="group.icon && isInlineSvg(getIconSrc(group.icon))"
+                        class="title-icon inline-svg"
+                        v-html="getIconSrc(group.icon)"
                     />
                     <Icon
-                        v-else-if="group.icon"
+                        v-else-if="
+                            group.icon && isIconifyIcon(getIconSrc(group.icon))
+                        "
                         :icon="getIconSrc(group.icon)"
                         :style="{ color: getIconColor(group.icon, isDark) }"
                         class="title-icon"
+                    />
+                    <img
+                        v-else-if="
+                            group.icon && isImageUrl(getIconSrc(group.icon))
+                        "
+                        :src="
+                            getIconSrc(group.icon).startsWith('http')
+                                ? getIconSrc(group.icon)
+                                : withBase(getIconSrc(group.icon))
+                        "
+                        class="title-icon"
+                        alt="icon"
                     />
                     {{ group.title }}
                 </h3>
@@ -213,17 +247,33 @@
                         :key="link.name + j"
                         class="link-item"
                     >
-                        <img
-                            v-if="link.icon && isSvgIcon(getIconSrc(link.icon))"
-                            :src="withBase(getIconSrc(link.icon))"
-                            class="link-icon svg-icon"
-                            alt="icon"
+                        <span
+                            v-if="
+                                link.icon && isInlineSvg(getIconSrc(link.icon))
+                            "
+                            class="link-icon inline-svg"
+                            v-html="getIconSrc(link.icon)"
                         />
                         <Icon
-                            v-else-if="link.icon"
+                            v-else-if="
+                                link.icon &&
+                                isIconifyIcon(getIconSrc(link.icon))
+                            "
                             :icon="getIconSrc(link.icon)"
                             :style="{ color: getIconColor(link.icon, isDark) }"
                             class="link-icon"
+                        />
+                        <img
+                            v-else-if="
+                                link.icon && isImageUrl(getIconSrc(link.icon))
+                            "
+                            :src="
+                                getIconSrc(link.icon).startsWith('http')
+                                    ? getIconSrc(link.icon)
+                                    : withBase(getIconSrc(link.icon))
+                            "
+                            class="link-icon"
+                            alt="icon"
                         />
                         <a
                             :href="link.link"
@@ -257,20 +307,20 @@
                     "
                     class="info-item"
                 >
-                    <img
+                    <span
                         v-if="
                             footerData.beian?.showIcon &&
                             footerData.beian.icp.icon &&
-                            isSvgIcon(getIconSrc(footerData.beian.icp.icon))
+                            isInlineSvg(getIconSrc(footerData.beian.icp.icon))
                         "
-                        :src="withBase(getIconSrc(footerData.beian.icp.icon))"
-                        class="info-icon svg-icon"
-                        alt="icon"
+                        class="info-icon inline-svg"
+                        v-html="getIconSrc(footerData.beian.icp.icon)"
                     />
                     <Icon
                         v-else-if="
                             footerData.beian?.showIcon &&
-                            footerData.beian.icp.icon
+                            footerData.beian.icp.icon &&
+                            isIconifyIcon(getIconSrc(footerData.beian.icp.icon))
                         "
                         :icon="getIconSrc(footerData.beian.icp.icon)"
                         :style="{
@@ -280,6 +330,23 @@
                             ),
                         }"
                         class="info-icon"
+                    />
+                    <img
+                        v-else-if="
+                            footerData.beian?.showIcon &&
+                            footerData.beian.icp.icon
+                        "
+                        :src="
+                            getIconSrc(footerData.beian.icp.icon).startsWith(
+                                'http'
+                            )
+                                ? getIconSrc(footerData.beian.icp.icon)
+                                : withBase(
+                                      getIconSrc(footerData.beian.icp.icon)
+                                  )
+                        "
+                        class="info-icon"
+                        alt="icon"
                     />
                     <a
                         :href="
@@ -301,22 +368,24 @@
                     "
                     class="info-item"
                 >
-                    <img
+                    <span
                         v-if="
                             footerData.beian?.showIcon &&
                             footerData.beian.police.icon &&
-                            isSvgIcon(getIconSrc(footerData.beian.police.icon))
+                            isInlineSvg(
+                                getIconSrc(footerData.beian.police.icon)
+                            )
                         "
-                        :src="
-                            withBase(getIconSrc(footerData.beian.police.icon))
-                        "
-                        class="info-icon svg-icon"
-                        alt="icon"
+                        class="info-icon inline-svg"
+                        v-html="getIconSrc(footerData.beian.police.icon)"
                     />
                     <Icon
                         v-else-if="
                             footerData.beian?.showIcon &&
-                            footerData.beian.police.icon
+                            footerData.beian.police.icon &&
+                            isIconifyIcon(
+                                getIconSrc(footerData.beian.police.icon)
+                            )
                         "
                         :icon="getIconSrc(footerData.beian.police.icon)"
                         :style="{
@@ -326,6 +395,23 @@
                             ),
                         }"
                         class="info-icon"
+                    />
+                    <img
+                        v-else-if="
+                            footerData.beian?.showIcon &&
+                            footerData.beian.police.icon
+                        "
+                        :src="
+                            getIconSrc(footerData.beian.police.icon).startsWith(
+                                'http'
+                            )
+                                ? getIconSrc(footerData.beian.police.icon)
+                                : withBase(
+                                      getIconSrc(footerData.beian.police.icon)
+                                  )
+                        "
+                        class="info-icon"
+                        alt="icon"
                     />
                     <a
                         :href="
@@ -361,7 +447,9 @@
                 >
                     <Icon icon="mdi:eye-outline" />
                     <span id="busuanzi_container_site_pv" class="stats-text">
-                        <span id="busuanzi_value_site_pv"><i class="fa fa-spinner fa-spin"></i></span>
+                        <span id="busuanzi_value_site_pv"
+                            ><i class="fa fa-spinner fa-spin"></i
+                        ></span>
                         {{ t.visits }}
                     </span>
                 </div>
@@ -372,7 +460,9 @@
                 >
                     <Icon icon="mdi:account-outline" />
                     <span id="busuanzi_container_site_uv" class="stats-text">
-                        <span id="busuanzi_value_site_uv"><i class="fa fa-spinner fa-spin"></i></span>
+                        <span id="busuanzi_value_site_uv"
+                            ><i class="fa fa-spinner fa-spin"></i
+                        ></span>
                         {{ t.siteVisitors }}
                     </span>
                 </div>
@@ -677,6 +767,18 @@
         width: 16px;
         height: 16px;
         flex-shrink: 0;
+    }
+
+    .inline-svg :deep(svg) {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+
+    .inline-svg {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .external-icon {
