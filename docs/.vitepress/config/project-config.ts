@@ -651,7 +651,11 @@ export interface ProjectConfig {
         markmap: boolean;
         /** Enable multi-language support and language switcher */
         multilingual: boolean;
-        /** Enable automatic sidebar generation from file structure */
+        /**
+         * Enable automatic sidebar generation from file structure
+         * When enabled, sidebars are automatically generated from markdown files
+         * When disabled, you need to manually configure sidebars in language config files
+         */
         autoSidebar: boolean;
         /** Enable edit link in page footer */
         editLink: boolean;

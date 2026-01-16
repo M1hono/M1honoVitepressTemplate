@@ -18,7 +18,9 @@ export const zh_CN = <DefaultTheme.Config>{
                 link: "/",
             }
         ],
-        sidebar: getSidebarSync(getLangCodeFromLink(langConfig.link!)),
+        sidebar: isFeatureEnabled('autoSidebar') 
+            ? getSidebarSync(getLangCodeFromLink(langConfig.link!)) 
+            : [],
         outline: {
             level: "deep",
             label: "页面导航",

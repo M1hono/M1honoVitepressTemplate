@@ -218,13 +218,16 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
             }),
             // @ts-ignore
             GitChangelogMarkdownSection(),
-            // @ts-ignore
-            sidebarPlugin({
-                languages: getLanguageLinks().map(link => link.replace(/^\/|\/$/g, '')),
-                debug: process.env.NODE_ENV === 'development',
-                docsDir: projectPaths.docs,
-                cacheDir: projectPaths.cache
-            }),
+            // Conditionally load sidebar plugin based on autoSidebar feature flag
+            ...(isFeatureEnabled('autoSidebar') ? [
+                // @ts-ignore
+                sidebarPlugin({
+                    languages: getLanguageLinks().map(link => link.replace(/^\/|\/$/g, '')),
+                    debug: process.env.NODE_ENV === 'development',
+                    docsDir: projectPaths.docs,
+                    cacheDir: projectPaths.cache
+                })
+            ] : []),
             // @ts-ignore
             groupIconVitePlugin({
                 customIcon: {
