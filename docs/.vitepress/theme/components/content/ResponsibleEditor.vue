@@ -12,6 +12,10 @@
     const { isDark, lang, frontmatter } = useData();
     const projectInfo = getProjectInfo();
 
+    const showEditor = computed(() => {
+        return frontmatter.value?.showEditor ?? true;
+    });
+
     const editor = computed(() => {
         return frontmatter.value?.editor ?? projectInfo.author;
     });
@@ -26,7 +30,7 @@
 </script>
 
 <template>
-    <v-card v-if="editor" variant="plain">
+    <v-card v-if="showEditor" variant="plain">
         <v-row align="center" class="align-center gap-4 con" no-gutters>
             <v-col cols="auto">
                 <p class="vp-main-color">{{ t.editorLabel }}</p>

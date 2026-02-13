@@ -8,6 +8,7 @@ import "./styles/index.css";
 import 'virtual:group-icons.css'
 import 'markdown-it-multiple-choice/style.css'
 import { enhanceAppWithTabs } from "vitepress-plugin-tabs/client";
+import TresPlugin from "@tresjs/core";
 import vuetify from "./vuetify";
 import { onMounted, onUnmounted, watch } from "vue";
 import mermaid from "mermaid";
@@ -72,6 +73,7 @@ export default {
             ctx.app.use(NolebaseGitChangelogPlugin);
         }
         
+        ctx.app.use(TresPlugin);
         DefaultTheme.enhanceApp(ctx);
         vitepressNprogress(ctx);
         enhanceAppWithTabs(ctx.app);

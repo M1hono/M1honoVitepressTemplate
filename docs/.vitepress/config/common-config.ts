@@ -8,6 +8,7 @@ import {
     getLanguageLinks,
     autoDiscoverLanguageModules,
 } from "./project-config";
+import { templateCompilerOptions } from '@tresjs/core'
 
 import { sidebarPlugin } from "../utils/sidebar/";
 import { markdown } from "./markdown-plugins";
@@ -73,7 +74,9 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
     vue: {
         template: {
             compilerOptions: {
-                whitespace: "preserve"
+                whitespace: "preserve",
+                // TresJS template compiler options will be added via vite config
+                ...templateCompilerOptions.template.compilerOptions
             },
         },
     },

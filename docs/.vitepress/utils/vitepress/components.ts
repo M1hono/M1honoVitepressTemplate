@@ -11,7 +11,8 @@ import {
     ChatMessage,
     Bills,
     MarkMapView,
-    VChart
+    VChart,
+    ShaderEffectBlock
 } from "../../theme/components/content";
 import { YoutubeVideo, BilibiliVideo, PdfViewer } from "../../theme/components/media";
 import { MNavLinks } from "../../theme/components/navigation";
@@ -56,9 +57,15 @@ const components = {
     ChatMessage,
     Bills,
     MarkMapView,
-    VChart
+    VChart,
+    ShaderEffectBlock
 };
 
+console.log('Registered components:', Object.keys(components));
+
+/**
+ * Registers global components and aliases for VitePress.
+ */
 export const registerComponents = (app: App) => {
     Object.entries(components).forEach(([name, component]) => {
         if (component) {

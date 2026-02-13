@@ -37,6 +37,7 @@ import { dialogPlugin } from "../plugins/dialog";
 import { chatPlugin } from "../plugins/chat-message";
 import { withMarkmap } from "../plugins/markmap";
 import { vueCharts } from "../plugins/vue-charts";
+import { shaderEffect } from "../plugins/shader-effect";
 import { isFeatureEnabled } from "./project-config";
 import ts from "typescript";
 
@@ -105,6 +106,7 @@ export const markdown: MarkdownOptions = {
         md.use(card);
         md.use(vueCharts);
         md.use(vuetifyTimeline);
+        md.use(shaderEffect);
         
         if (isFeatureEnabled('markmap')) {
             withMarkmap(md);
