@@ -4,8 +4,14 @@
 
     const { frontmatter } = useData();
 
+    /**
+     * Page description from frontmatter.
+     */
     const description = computed(() => frontmatter.value?.description ?? "");
 
+    /**
+     * Whether description should be displayed.
+     */
     const isDescription = computed(() => {
         return frontmatter.value?.description ?? false;
     });

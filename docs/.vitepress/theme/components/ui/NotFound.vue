@@ -49,16 +49,21 @@
 </template>
 
 <script setup>
-    // @i18n
     import { onMounted } from "vue";
     import { useSafeI18n } from "@utils/i18n/locale";
 
+    /**
+     * Component ID for i18n translations.
+     */
     const { t } = useSafeI18n("not-found", {
         notFound: "Oops! Page not found",
         tip: "Click to refresh the page.",
         advice: "If you still see this page, the page does not exist.",
     });
 
+    /**
+     * Refreshes the current page.
+     */
     const handleRefresh = () => {
         if (typeof window !== 'undefined') {
             window.location.reload();
@@ -116,7 +121,7 @@
         margin: 60px 0;
         align-items: center;
         justify-content: center;
-        position: static; /* 移除任何绝对定位 */
+        position: static;
     }
 
     .floating-button.refresh-button:hover {

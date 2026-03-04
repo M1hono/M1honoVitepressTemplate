@@ -10,8 +10,9 @@
 </template>
 
 <script setup lang="ts">
-    // defineProps is a compiler macro and doesn't need to be imported
-
+    /**
+     * YouTube video ID.
+     */
     const props = defineProps({
         videoId: {
             type: String,

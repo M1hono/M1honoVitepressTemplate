@@ -1,0 +1,62 @@
+{
+  "_self_": {
+    "valueHash": "0365a320075fa7637e3aa81ef08c889b",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "imageFrame/": {
+    "valueHash": "4cff88464da138b280f0c6858287e9c4",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "gifFrame/": {
+    "valueHash": "a51ea64ebf494c03b5e1d9272ed808c8",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "videoFrame/": {
+    "valueHash": "abc1a9f3b6b5b386c131c30a676cf2e5",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "model3dCentered/": {
+    "valueHash": "c0f9fa0809fd35d1fa735a1c8a01482c",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "frameLayoutFit/": {
+    "valueHash": "70addb0da9d5101f42aa800ba8b3ba4f",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "imageFrame.md": {
+    "valueHash": "4cff88464da138b280f0c6858287e9c4",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "gifFrame.md": {
+    "valueHash": "a51ea64ebf494c03b5e1d9272ed808c8",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "videoFrame.md": {
+    "valueHash": "abc1a9f3b6b5b386c131c30a676cf2e5",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "model3dCentered.md": {
+    "valueHash": "c0f9fa0809fd35d1fa735a1c8a01482c",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "frameLayoutFit.md": {
+    "valueHash": "70addb0da9d5101f42aa800ba8b3ba4f",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "lottieFrame.md": {
+    "valueHash": "eb673cf4f9c19435d71eda1fc2820ec1",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

@@ -1,9 +1,9 @@
 import glob from "fast-glob";
 import matter from "gray-matter";
-import { readFileSync, writeFileSync, existsSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync } from "fs";
 import { resolve, dirname } from "path";
 import { mkdirSync } from "fs";
-import { getLanguages, getDefaultLanguage, getPaths } from "../../config/project-config";
+import { getLanguages, getDefaultLanguage, getPaths } from "@config/project-config";
 import { getSrcPath } from "../config/path-resolver";
 
 export interface TagInfo {
@@ -147,6 +147,11 @@ function compareTagData(newData: any, existingData: any): boolean {
 }
 
 function writeFileIfChanged(filePath: string, newData: any): boolean {
+    const directory = dirname(filePath);
+    if (!existsSync(directory)) {
+        mkdirSync(directory, { recursive: true });
+    }
+
     let existingData = null;
     
     if (existsSync(filePath)) {
@@ -166,6 +171,21 @@ function writeFileIfChanged(filePath: string, newData: any): boolean {
     return false;
 }
 
+function cleanupLegacyTagDataFiles(outputDir: string): boolean {
+    if (!existsSync(outputDir)) return false;
+
+    const legacyFiles = readdirSync(outputDir).filter((fileName) => /^tag-data-.*\.json$/.test(fileName));
+    if (legacyFiles.length === 0) return false;
+
+    for (const legacyFile of legacyFiles) {
+        const legacyPath = resolve(outputDir, legacyFile);
+        unlinkSync(legacyPath);
+        console.log(`   🧹 Removed legacy file: ${legacyFile}`);
+    }
+
+    return true;
+}
+
 export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outputDir: string = getPaths().public) {
     const results: Record<string, any> = {};
     const languages = getLanguages();
@@ -177,6 +197,10 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
         mkdirSync(outputDir, { recursive: true });
     }
 
+    if (cleanupLegacyTagDataFiles(outputDir)) {
+        hasChanges = true;
+    }
+
     for (const langConfig of languages) {
         try {
             console.log(`   📋 Processing ${langConfig.displayName} (${langConfig.code})...`);
@@ -184,7 +208,7 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
             const data = generateTagData(docsDir, langConfig.code);
             results[langConfig.code] = data;
 
-            const outputPath = resolve(outputDir, `tag-data-${langConfig.code}.json`);
+            const outputPath = resolve(outputDir, "data", langConfig.code, "tags.json");
             const fileChanged = writeFileIfChanged(outputPath, data);
             
             if (fileChanged) {
@@ -198,9 +222,12 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
         }
     }
 
-    const indexPath = resolve(outputDir, 'tag-data-index.json');
+    const indexPath = resolve(outputDir, "data", "global", "tags-index.json");
     const indexData = {
-        languages: languages,
+        languages: languages.map((lang) => ({
+            ...lang,
+            dataPath: `/data/${lang.code}/tags.json`,
+        })),
         generatedAt: new Date().toISOString(),
         summary: Object.fromEntries(
             Object.entries(results).map(([lang, data]) => [
@@ -208,10 +235,12 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
                 { 
                     totalTags: data.totalTags, 
                     totalPages: data.totalPages,
-                    language: data.language 
+                    language: data.language,
+                    dataPath: `/data/${lang}/tags.json`,
                 }
             ])
-        )
+        ),
+        version: 2,
     };
     
     const indexChanged = writeFileIfChanged(indexPath, indexData);
@@ -244,4 +273,3 @@ export function getAllTags(docsDir: string = getSrcPath(), language?: string): s
     const tagData = collectTags(docsDir, language);
     return Object.keys(tagData).sort();
 }
-

@@ -1,7 +1,12 @@
 <template>
-    <div class="carousel" ref="carouselContainer">
+    <div
+        class="carousel"
+        ref="carouselContainer"
+        @wheel.prevent="handleWheel"
+    >
         <v-carousel
             v-if="isReady"
+            v-model="currentIndex"
             :height="carouselHeight"
             :show-arrows="showArrows"
             :cycle="cycle"
@@ -14,9 +19,9 @@
 </template>
 
 <script setup>
-    import { ref, onMounted, onUnmounted, nextTick, watch } from "vue";
+    import { ref, onMounted, onUnmounted } from "vue";
 
-    const props = defineProps({
+    defineProps({
         showArrows: {
             type: [Boolean, String],
             default: true,
@@ -38,29 +43,41 @@
     const carouselContainer = ref(null);
     const carouselHeight = ref("auto");
     const isReady = ref(false);
+    const currentIndex = ref(0);
 
+    // ===== Height measurement =====
     const updateCarouselHeight = () => {
-        if (carouselContainer.value) {
-            const items =
-                carouselContainer.value.querySelectorAll(".v-carousel__item");
-            let maxHeight = 0;
-
-            items.forEach((item) => {
-                item.style.display = "block";
-                const itemHeight = item.scrollHeight;
-                item.style.display = "";
-                if (itemHeight > maxHeight) maxHeight = itemHeight;
-            });
-
-            carouselHeight.value = maxHeight > 0 ? `${maxHeight}px` : "auto";
-            isReady.value = true;
-        }
+        if (!carouselContainer.value) return;
+        const items = carouselContainer.value.querySelectorAll(".v-carousel__item");
+        let maxHeight = 0;
+        items.forEach((item) => {
+            item.style.display = "block";
+            const h = item.scrollHeight;
+            item.style.display = "";
+            if (h > maxHeight) maxHeight = h;
+        });
+        carouselHeight.value = maxHeight > 0 ? `${maxHeight}px` : "auto";
+        isReady.value = true;
     };
 
     const debouncedUpdateHeight = debounce(updateCarouselHeight, 100);
 
+    // ===== Mouse wheel navigation =====
+    const handleWheel = (e) => {
+        if (!carouselContainer.value) return;
+        const items = carouselContainer.value.querySelectorAll(".v-carousel__item");
+        const total = items.length;
+        if (total === 0) return;
+        if (e.deltaY > 0) {
+            currentIndex.value = Math.min(currentIndex.value + 1, total - 1);
+        } else {
+            currentIndex.value = Math.max(currentIndex.value - 1, 0);
+        }
+    };
+
+    // ===== Lifecycle =====
     let resizeObserver = null;
-    if (typeof ResizeObserver !== "undefined" && typeof window !== 'undefined') {
+    if (typeof ResizeObserver !== "undefined" && typeof window !== "undefined") {
         resizeObserver = new ResizeObserver(debouncedUpdateHeight);
     }
 
@@ -69,37 +86,23 @@
         if (resizeObserver && carouselContainer.value) {
             resizeObserver.observe(carouselContainer.value);
         }
-        if (typeof window !== 'undefined') {
+        if (typeof window !== "undefined") {
             window.addEventListener("resize", debouncedUpdateHeight);
         }
     });
 
     onUnmounted(() => {
-        if (resizeObserver) {
-            resizeObserver.disconnect();
-        }
-        if (typeof window !== 'undefined') {
+        if (resizeObserver) resizeObserver.disconnect();
+        if (typeof window !== "undefined") {
             window.removeEventListener("resize", debouncedUpdateHeight);
         }
     });
 
-    watch(
-        () => props,
-        () => {
-            nextTick(updateCarouselHeight());
-        },
-        { deep: true, immediate: true }
-    );
-
     function debounce(func, wait) {
         let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
+        return function (...args) {
             clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
+            timeout = setTimeout(() => func(...args), wait);
         };
     }
 </script>
@@ -124,5 +127,24 @@
         max-width: 100%;
         max-height: 100%;
         object-fit: contain;
+    }
+
+    /* ===== Symmetric prev/next arrow buttons ===== */
+    :deep(.v-window__prev),
+    :deep(.v-window__next) {
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        margin: 0 !important;
+    }
+
+    /* ===== Centered delimiter dots ===== */
+    :deep(.v-carousel__controls) {
+        display: flex !important;
+        justify-content: center !important;
+        align-items: center !important;
+        width: 100% !important;
+        padding: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
     }
 </style>

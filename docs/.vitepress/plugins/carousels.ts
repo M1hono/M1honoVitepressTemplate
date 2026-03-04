@@ -19,10 +19,7 @@ export const carousels = createTabPlugin({
     },
     
     containerRenderer: (info, config, parsedConfig) => {
-        return `<MdCarousel
-            v-model="currentIndex"${parsedConfig}
-            @update:model-value="handleSlideChange"
-            @before-change="onBeforeChange"
-        >`;
+        // State is managed internally by MdCarousel — no page-scope bindings needed
+        return `<MdCarousel${parsedConfig}>`;
     },
 });

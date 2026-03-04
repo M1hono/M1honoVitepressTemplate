@@ -11,7 +11,7 @@ import {
 import { BillManager } from "./billManager";
 import type { Bill } from "./bill";
 import { useSafeI18n } from "../../../utils/i18n/locale";
-import { getDefaultCurrency } from "../../../config/project-config";
+import { getDefaultCurrency } from "@config/project-config";
 
 const props = defineProps<{
     bills: Bill[] | (() => Promise<Bill[]>);

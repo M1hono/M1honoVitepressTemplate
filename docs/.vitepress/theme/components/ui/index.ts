@@ -8,3 +8,4 @@ export { default as Animation } from "./Animation.vue";
 export { default as NotFound } from "./NotFound.vue";
 export { default as Preview } from "./Preview.vue";
 export { default as Carousels } from "./carousels.vue";
+export { default as Steps } from "./Steps.vue";

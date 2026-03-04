@@ -1,0 +1,82 @@
+{
+  "_self_": {
+    "valueHash": "d8c1f6162c76e1ed5fbb55295d7d3f8a",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "deprecated-background-type/": {
+    "valueHash": "088a56bc0c9395ab7ee70dc4459260ba",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-1-default/": {
+    "valueHash": "b01a6767e704e3385554c47c3940fa49",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-2-shape-opacity/": {
+    "valueHash": "91fe64c3f4d808f2def65133c57ea31d",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-3-mobile-tuning/": {
+    "valueHash": "40611133a21385cf88d275fe6dc08ce5",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-4-outline-color/": {
+    "valueHash": "312c326369b1c0f5a364f0ab209c6a5c",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level1Default/": {
+    "valueHash": "5b6f5f05c9928d8996ff2df2ab25a291",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level2ShapeOpacity/": {
+    "valueHash": "c8b92a94a58ea2b4b4091d320aad4cca",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level3MobileTuning/": {
+    "valueHash": "484c1c4f1052968c7192929e7f8d47df",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level4OutlineColor/": {
+    "valueHash": "a7298206198c1d736e3f91782d78edcd",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "deprecatedBackgroundType/": {
+    "valueHash": "3e1d9ef09fa8bfc41032faf21897f70e",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level1Default.md": {
+    "valueHash": "5b6f5f05c9928d8996ff2df2ab25a291",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level2ShapeOpacity.md": {
+    "valueHash": "c8b92a94a58ea2b4b4091d320aad4cca",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level3MobileTuning.md": {
+    "valueHash": "484c1c4f1052968c7192929e7f8d47df",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level4OutlineColor.md": {
+    "valueHash": "a7298206198c1d736e3f91782d78edcd",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "deprecatedBackgroundType.md": {
+    "valueHash": "3e1d9ef09fa8bfc41032faf21897f70e",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

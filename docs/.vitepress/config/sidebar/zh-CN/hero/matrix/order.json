@@ -1,0 +1,10 @@
+{
+  "basic/": 10,
+  "layers/": 30,
+  "waves/": 40,
+  "floating/": 60,
+  "backgroundSingle/": 20,
+  "imageTypes/": 50,
+  "buttonsFeatures/": 70,
+  "configCoverage/": 80
+}

@@ -6,6 +6,9 @@
     import State from "../ui/State.vue";
     import { useSafeI18n } from "../../../utils/i18n/locale";
 
+    /**
+     * Component ID for i18n translations.
+     */
     const { t } = useSafeI18n("article-metadata", {
         lastUpdated: "Last updated on: {date}",
         wordCount: "Word count: {count} words",
@@ -18,6 +21,11 @@
     const gitTimestamp = ref<number>(0);
     const timestampCache = new Map<string, number>();
 
+    /**
+     * Fetches the last git commit timestamp for a given file path.
+     * @param filePath - The path to the file
+     * @returns Unix timestamp in milliseconds
+     */
     async function getGitTimestamp(filePath: string): Promise<number> {
         if (typeof window === "undefined") return 0;
 
@@ -40,6 +48,9 @@
         return Date.now();
     }
 
+    /**
+     * Computed property for formatted last update date.
+     */
     const update = computed(() => {
         let timestamp = 0;
 
@@ -66,6 +77,9 @@
     const pageViewsLoading = ref(false);
     const pageViewsError = ref(false);
 
+    /**
+     * Calculates estimated reading time based on word and image count.
+     */
     const readTime = computed(() => {
         const time = utils.vitepress.readingTime.calculateTotalTime(
             wordCount.value,
@@ -74,6 +88,9 @@
         return typeof time === "number" ? time : 0;
     });
 
+    /**
+     * Analyzes the page content to extract word count and image count.
+     */
     function analyze() {
         if (typeof window !== "undefined" && typeof document !== "undefined") {
             utils.vitepress.contentAnalysis.cleanupMetadata();
@@ -83,10 +100,8 @@
             );
             if (!mainContainer) return;
 
-            // Clone the container to avoid modifying the live DOM
             const clone = mainContainer.cloneNode(true) as HTMLElement;
 
-            // Remove all dialog cards from the cloned container before analysis
             clone
                 .querySelectorAll(".md-dialog-card")
                 .forEach((el) => el.remove());
@@ -120,20 +135,34 @@
         }
     });
 
+    /**
+     * Determines whether to display metadata based on frontmatter.
+     */
     const isMetadata = computed(() => {
         return frontmatter.value?.metadata ?? true;
     });
 
+    /**
+     * Gets the icon name for a given metadata key.
+     * @param key - The metadata key
+     * @returns Icon name string
+     */
     const icon = (key: string) => {
         return utils.vitepress.getMetadataIcon(key);
     };
 
+    /**
+     * Computed object containing formatted metadata content.
+     */
     const metadataContent = computed(() => ({
         update: t.lastUpdated.replace("{date}", update.value || ""),
         wordCount: t.wordCount.replace("{count}", String(wordCount.value || 0)),
         readTime: t.readingTime.replace("{time}", String(readTime.value || 0)),
     }));
 
+    /**
+     * List of metadata keys to display.
+     */
     const metadataKeys = ["update", "wordCount", "readTime", "pageViews"] as const;
 </script>
 

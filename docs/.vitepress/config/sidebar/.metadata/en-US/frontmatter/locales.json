@@ -1,0 +1,67 @@
+{
+  "_self_": {
+    "valueHash": "8b2b40b56c9ea2ba42ed6e227913a0af",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "content-and-ui.md": {
+    "valueHash": "7e983691b0ec26b671cfc3257225f720",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "features-and-home.md": {
+    "valueHash": "85c69263d897fdc16a5d38b621d4ed35",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "examples/": {
+    "valueHash": "d3508a49f48c14467d1d913d6f003018",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "key-inventory.md": {
+    "valueHash": "3047d02d6dd2fe61f429c0e14c144af2",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "global-page.md": {
+    "valueHash": "5738e17203fd1639f47c88c502fa02b6",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "hero-runtime.md": {
+    "valueHash": "541cc7dfb2d317c99a9d71858497c7da",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "vscode-extension/": {
+    "valueHash": "ac366a1374db4809f656148a99a9c689",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "sidebar-auto-system.md": {
+    "valueHash": "b8fde8f8496e8840e4d73f605c681b64",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "content/": {
+    "valueHash": "9a0364b9e99bb480dd25e1f0284c8555",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "hero/": {
+    "valueHash": "f04af61b3f332afa0ceec786a42cd365",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "page/": {
+    "valueHash": "71860c77c6745379b0d44304d66b6a13",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "reference/": {
+    "valueHash": "b8af13ea9c8fe890c9979a1fa8dbde22",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

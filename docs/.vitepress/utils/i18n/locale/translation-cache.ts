@@ -2,7 +2,7 @@
 
 import { ref, reactive } from 'vue';
 import { useData } from 'vitepress';
-import { getLanguages, getDefaultLanguage } from '../../../config/project-config';
+import { getLanguages, getDefaultLanguage } from "@config/project-config";
 import componentIdMappingData from '../../../config/locale/component-id-mapping.json';
 
 interface ComponentIdMapping {

@@ -1,0 +1,57 @@
+{
+  "_self_": {
+    "valueHash": "19a47bbacc30392fc7399a7387ace8e9",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "image-frame/": {
+    "valueHash": "0066bd18c80b409cb79edfe89f0d8021",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "gif-frame/": {
+    "valueHash": "b23f780970cc57521c4770c054ed5c32",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "video-frame/": {
+    "valueHash": "26a88a5d8504f7a79bbbf7f0b08db303",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "model3d-centered/": {
+    "valueHash": "a592031bda8a26fcdadb8e9282e55ba6",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "imageFrame.md": {
+    "valueHash": "0066bd18c80b409cb79edfe89f0d8021",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "gifFrame.md": {
+    "valueHash": "b23f780970cc57521c4770c054ed5c32",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "videoFrame.md": {
+    "valueHash": "26a88a5d8504f7a79bbbf7f0b08db303",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "lottieFrame.md": {
+    "valueHash": "263379192f8b57c2aed7e4e29b5854a5",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "model3dCentered.md": {
+    "valueHash": "a592031bda8a26fcdadb8e9282e55ba6",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "frameLayoutFit.md": {
+    "valueHash": "8b5e011678987e03969ec92fbb4c684d",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

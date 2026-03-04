@@ -22,23 +22,23 @@
     const props = defineProps<Props>();
     const router = useRouter();
     const { frontmatter, lang } = useData();
-    
+
     // Language mapping from full locale to short form
     const langMapping: Record<string, string> = {
-        'zh-CN': 'zh',
-        'zh': 'zh',
-        'en-US': 'en', 
-        'en': 'en',
-        'jp': 'jp',
-        'ja': 'jp'
+        "zh-CN": "zh",
+        zh: "zh",
+        "en-US": "en",
+        en: "en",
+        jp: "jp",
+        ja: "jp",
     };
-    
+
     // Use tags from props or frontmatter
     const tags = computed(() => props.tags || frontmatter.value.tags || []);
 
     function navigateToTag(tag: string) {
         // Map full locale to short form for routing
-        const shortLang = langMapping[lang.value] || 'zh';
+        const shortLang = langMapping[lang.value] || "zh";
         router.go(`/${shortLang}/tags?tags=${encodeURIComponent(tag)}`);
     }
 </script>
@@ -59,4 +59,3 @@
         }
     }
 </style>
- 

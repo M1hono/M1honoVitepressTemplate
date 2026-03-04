@@ -7,9 +7,13 @@
                     :name="elementId"
                     :checked="index === 0"
                     type="radio"
-                    @click="toggle(index)"
+                    @click="toggle(Number(index))"
                 />
-                <label :for="elementId + index" :data-title="item.fileName" class="flex items-center">
+                <label
+                    :for="elementId + index"
+                    :data-title="item.fileName"
+                    class="flex items-center"
+                >
                     {{ item.fileName }}
                 </label>
             </template>
@@ -35,11 +39,11 @@
     import { ShikiMagicMove } from "shiki-magic-move/vue";
     import { useData } from "vitepress";
     import { createHighlighter } from "shiki";
-    import type { HighlighterCore } from 'shiki';
-    import { useSafeI18n } from '@utils/i18n/locale';
+    import type { HighlighterCore } from "shiki";
+    import { useSafeI18n } from "@utils/i18n/locale";
 
     const { t } = useSafeI18n("magic-move-container", {
-        loading: 'Loading...'
+        loading: "Loading...",
     });
 
     const { isDark } = useData();
@@ -71,22 +75,48 @@
     onMounted(async () => {
         try {
             highlighter.value = await createHighlighter({
-                themes: ['github-dark', 'github-light'],
+                themes: ["github-dark", "github-light"],
                 langs: [
                     // Core web languages
-                    'javascript', 'typescript', 'jsx', 'tsx', 'html', 'css', 'scss', 'sass', 'vue',
-                    // Backend languages  
-                    'java', 'python', 'cpp', 'c', 'csharp', 'php', 'ruby', 'go', 'rust', 'swift', 'kotlin', 'scala', 'r',
+                    "javascript",
+                    "typescript",
+                    "jsx",
+                    "tsx",
+                    "html",
+                    "css",
+                    "scss",
+                    "sass",
+                    "vue",
+                    // Backend languages
+                    "java",
+                    "python",
+                    "cpp",
+                    "c",
+                    "csharp",
+                    "php",
+                    "ruby",
+                    "go",
+                    "rust",
+                    "swift",
+                    "kotlin",
+                    "scala",
+                    "r",
                     // Data & Config
-                    'json', 'yaml', 'xml', 'sql',
+                    "json",
+                    "yaml",
+                    "xml",
+                    "sql",
                     // Documentation & Scripts
-                    'markdown', 'bash', 'powershell', 'dockerfile',
+                    "markdown",
+                    "bash",
+                    "powershell",
+                    "dockerfile",
                     // Fallback
-                    'text'
+                    "text",
                 ],
             });
         } catch (error) {
-            console.error('Failed to create highlighter:', error);
+            console.error("Failed to create highlighter:", error);
         }
     });
 
@@ -96,16 +126,18 @@
     const currentStep = computed(() => {
         const stepData = content[step.value];
         if (!stepData) return null;
-        
+
         // Extract code from precompiled tokens
         if (stepData.tokens && Array.isArray(stepData.tokens)) {
             return {
-                code: stepData.tokens.map((token: any) => token.content || token).join(''),
-                lang: stepData.lang || 'text',
-                fileName: stepData.fileName
+                code: stepData.tokens
+                    .map((token: any) => token.content || token)
+                    .join(""),
+                lang: stepData.lang || "text",
+                fileName: stepData.fileName,
             };
         }
-        
+
         return stepData;
     });
 
@@ -163,7 +195,7 @@
         margin-right: 0.5em;
         margin-bottom: -0.2em;
         background: var(--icon) no-repeat center / contain;
-        content: '';
+        content: "";
     }
 
     /* Loading state styling */

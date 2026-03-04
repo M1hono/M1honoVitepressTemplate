@@ -1,0 +1,47 @@
+{
+  "level-1-minimal/": {
+    "valueHash": "d3d9446802a44259755d38e6d163e820",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-2-viewport-actions/": {
+    "valueHash": "98f13708210194c475687be6106a3b84",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-3-page-cssvars/": {
+    "valueHash": "34173cb38f07f89ddbebc2ac9128303f",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level1Minimal/": {
+    "valueHash": "d3d9446802a44259755d38e6d163e820",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level2ViewportActions/": {
+    "valueHash": "98f13708210194c475687be6106a3b84",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level3PageCssvars/": {
+    "valueHash": "34173cb38f07f89ddbebc2ac9128303f",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level1Minimal.md": {
+    "valueHash": "d3d9446802a44259755d38e6d163e820",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level2ViewportActions.md": {
+    "valueHash": "98f13708210194c475687be6106a3b84",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level3PageCssvars.md": {
+    "valueHash": "34173cb38f07f89ddbebc2ac9128303f",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

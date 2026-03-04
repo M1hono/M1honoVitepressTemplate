@@ -122,3 +122,82 @@
 .lite-tree .icon {
     color: var(--vp-c-text-1) !important;
 }
+
+/* ===== TOPBAR & RESPONSIVE REFINEMENTS ===== */
+/* Keep brand title aligned with topbar text rhythm */
+.VPNavBarTitle {
+    min-width: 0;
+    flex-shrink: 1;
+    display: flex;
+    align-items: center;
+    height: var(--vp-nav-height);
+    position: relative;
+    isolation: isolate;
+}
+
+/* Keep title readable and aligned with nav text */
+.VPNavBarTitle .title {
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    display: inline-flex !important;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    font-family: var(--vp-font-family-base) !important;
+    font-size: 0.98rem;
+    font-weight: 640 !important;
+    letter-spacing: 0;
+    line-height: 1.2;
+    max-width: 100%;
+    width: auto !important;
+    min-height: 32px;
+}
+
+/* Mobile Topbar Adjustments */
+@media (max-width: 768px) {
+    .VPNavBarTitle {
+        flex: 1 1 0%;
+        margin-right: 16px;
+    }
+}
+
+/* ===== LOGO BEHIND TEXT (watermark effect) ===== */
+/* Float logo behind the text as a soft rotated watermark */
+.VPNavBarTitle .logo {
+    position: absolute !important;
+    left: 0 !important;
+    top: 50% !important;
+    transform: translate(6px, -50%) rotate(-8deg) scale(1.05) !important;
+    opacity: 0.78;
+    pointer-events: none;
+    z-index: -1;
+    width: auto !important;
+    height: auto !important;
+    max-height: 54px !important;
+    filter: grayscale(0%) contrast(1.12) !important;
+    margin: 0 !important;
+    transform-origin: center center;
+    transition:
+        opacity 0.3s ease,
+        transform 0.3s ease;
+}
+
+.dark .VPNavBarTitle .logo {
+    opacity: 0.86;
+}
+
+/* ===== ADAPTIVE NAV COLOR ===== */
+/* Bridge adaptive variables to nav components without overriding site-wide text vars */
+.VPNav.hero-nav-adaptive {
+    --vp-nav-text-color: var(--hero-nav-text-color);
+    --vp-nav-text-hover-color: var(
+        --hero-nav-text-hover-color,
+        var(--hero-nav-text-color)
+    );
+}
+.VPNav.hero-nav-adaptive .VPNavBarTitle .title,
+.VPNav.hero-nav-adaptive .VPNavBarMenuLink {
+    color: var(--vp-nav-text-color, var(--hero-nav-text-color));
+    transition: color 0.3s ease;
+}

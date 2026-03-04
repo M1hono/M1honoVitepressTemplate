@@ -1,8 +1,19 @@
 <script setup lang="ts">
+    import { computed } from "vue";
+    import { withBase } from "vitepress";
+    import { resolveAssetWithBase } from "@utils/assets";
+
+    /**
+     * Component props for Linkcard.
+     */
     interface Props {
+        /** The URL to link to */
         url: string;
+        /** Card title text */
         title: string;
+        /** Card description text */
         description: string;
+        /** Logo image URL */
         logo: string;
     }
 
@@ -12,23 +23,36 @@
         description: "",
         logo: "",
     });
+
+    /**
+     * Resolved logo URL with asset base path.
+     */
+    const resolvedLogo = computed(() => resolveAssetWithBase(props.logo));
+
+    /**
+     * Resolved URL - handles both external and internal links.
+     */
+    const resolvedUrl = computed(() => {
+        if (!props.url) return "";
+        if (/^(https?:)?\/\//.test(props.url)) return props.url;
+        return withBase(props.url);
+    });
 </script>
 
 <template>
     <div class="linkcard">
-        <a :href="props.url" target="_blank">
+        <a :href="resolvedUrl" target="_blank">
             <p class="description">
                 {{ props.title }}<br /><span>{{ props.description }}</span>
             </p>
             <div class="logo">
-                <img alt="logo" width="70px" height="70px" :src="props.logo" />
+                <img alt="logo" width="70px" height="70px" :src="resolvedLogo" />
             </div>
         </a>
     </div>
 </template>
 
 <style>
-    /* 卡片背景 */
     .linkcard {
         background-color: var(--linkcard-bg);
         border-radius: var(--linkcard-border-radius);
@@ -37,18 +61,15 @@
         margin-top: 15px;
     }
 
-    /* 卡片鼠标悬停 */
     .linkcard:hover {
         background-color: var(--linkcard-hover-bg);
     }
 
-    /* 链接样式 */
     .linkcard a {
         display: flex;
         align-items: center;
     }
 
-    /* 描述链接文字 */
     .linkcard .description {
         flex: 1;
         font-weight: 500;
@@ -59,18 +80,15 @@
         transition: color 0.5s;
     }
 
-    /* 描述链接文字2 */
     .linkcard .description span {
         font-size: 14px;
     }
 
-    /* logo图片 */
     .linkcard .logo img {
         width: 80px;
         object-fit: contain;
     }
 
-    /* 链接下划线去除 */
     .vp-doc a {
         text-decoration: none;
     }

@@ -69,6 +69,11 @@
     --carousel-border-radius: var(--border-radius-md);
     --carousel-bg: var(--vp-c-bg);
     --carousel-shadow: var(--shadow-sm);
+
+    /* ===== HERO ===== */
+    --hero-content-max-width: 620px;
+    --hero-action-gap: 12px;
+    --hero-background-opacity: 1;
 }
 
 .dark {

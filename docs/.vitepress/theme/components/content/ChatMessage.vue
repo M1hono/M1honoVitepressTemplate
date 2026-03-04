@@ -72,6 +72,7 @@
         getCurrentInstance,
     } from "vue";
     import { useData } from "vitepress";
+    import { resolveAssetWithBase } from "@utils/assets";
 
     const colorMap: Record<string, string> = {
         Alice: "#cc0066",
@@ -127,7 +128,7 @@
         avatarLoadError.value = false;
         try {
             const response = await fetch(
-                `https://api.github.com/users/${username}`
+                `https://api.github.com/users/${username}`,
             );
             if (response.ok) {
                 const data = await response.json();
@@ -137,7 +138,7 @@
         } catch (error) {
             console.warn(
                 `Failed to fetch GitHub avatar for ${username}:`,
-                error
+                error,
             );
         } finally {
             isLoadingGithubAvatar.value = false;
@@ -159,10 +160,10 @@
     });
 
     const finalAvatarSrc = computed(() => {
-        if (props.avatar) return props.avatar;
+        if (props.avatar) return resolveAssetWithBase(props.avatar);
         if (props.avatarType === "avatarmap" && props.nickname) {
             const avatarMap = theme.value.avatarMap || {};
-            return avatarMap[props.nickname];
+            return resolveAssetWithBase(avatarMap[props.nickname]);
         }
         if (props.avatarType === "github") return githubAvatarUrl.value;
         return null;
@@ -196,11 +197,11 @@
         (newNickname) => {
             if (props.avatarType === "github" && newNickname && !props.avatar) {
                 fetchGithubAvatar(newNickname).then(
-                    (url) => (githubAvatarUrl.value = url)
+                    (url) => (githubAvatarUrl.value = url),
                 );
             }
         },
-        { immediate: true }
+        { immediate: true },
     );
 
     function handleAvatarError() {
@@ -318,7 +319,9 @@
         overflow: hidden;
         opacity: 0;
         transform: translateX(-20%);
-        transition: transform 0.3s ease-out, opacity 0.3s ease;
+        transition:
+            transform 0.3s ease-out,
+            opacity 0.3s ease;
 
         &.shown {
             opacity: 1;
@@ -352,24 +355,30 @@
                 padding-left: 0.5rem;
             }
 
-            .message-box {
-                border-radius: 0.5rem 0.2rem 0.5rem 0.5rem;
-
-                &::before {
-                    right: auto;
-                    left: 100%;
-                    top: 8px;
-                    border-right: 0;
-                    border-left: $arrow-size solid var(--vp-c-border);
-                }
-
-                &::after {
-                    right: auto;
-                    left: 100%;
-                    top: 9px;
-                    border-right: 0;
-                    border-left: ($arrow-size - 1px) solid var(--vp-c-bg);
-                }
+            /* Right bubble: arrow points right toward avatar */
+            &::before {
+                content: "";
+                position: absolute;
+                left: 100%; /* flush with right edge of bubble */
+                right: auto;
+                top: 10px;
+                width: 0;
+                height: 0;
+                border: $arrow-size solid transparent;
+                border-left-color: var(--vp-c-border);
+                border-right: 0;
+            }
+            &::after {
+                content: "";
+                position: absolute;
+                left: 100%;
+                right: auto;
+                top: 11px;
+                width: 0;
+                height: 0;
+                border: ($arrow-size - 1px) solid transparent;
+                border-left-color: var(--vp-c-bg);
+                border-right: 0;
             }
         }
 
@@ -461,11 +470,12 @@
                 margin: 0 !important;
             }
 
+            /* Left bubble: arrow points left toward avatar */
             &::before {
                 content: "";
                 position: absolute;
-                right: 100%;
-                top: 8px;
+                right: 100%; /* flush with left edge of bubble */
+                top: 10px;
                 width: 0;
                 height: 0;
                 border: $arrow-size solid transparent;
@@ -476,7 +486,7 @@
                 content: "";
                 position: absolute;
                 right: 100%;
-                top: 9px;
+                top: 11px;
                 width: 0;
                 height: 0;
                 border: ($arrow-size - 1px) solid transparent;

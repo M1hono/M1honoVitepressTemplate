@@ -1,5 +1,10 @@
-import { getSidebar, getConfiguredLanguages, configureSidebar } from "../utils/sidebar/index.ts";
-import { getLanguageLinks } from "../config/project-config.js";
+import {
+    getSidebar,
+    getConfiguredLanguages,
+    _internalConfigureSidebar,
+    clearCache,
+} from "../utils/sidebar/index.ts";
+import { getLanguageLinks } from "../utils/config/project-config.ts";
 import { getSrcPath, getVitepressPath } from "../utils/config/path-resolver.js";
 
 async function buildSidebars() {
@@ -11,13 +16,15 @@ async function buildSidebars() {
     const srcPath = getSrcPath();
     const cachePath = getVitepressPath("cache/sidebar");
     
-    configureSidebar({
+    _internalConfigureSidebar({
         languages: languages,
         debug: process.env.NODE_ENV === 'development',
         rootDir: process.cwd(),
         docsDir: srcPath,
         cacheDir: cachePath,
     });
+
+    clearCache();
     
     const configuredLanguages = getConfiguredLanguages();
     console.log(`📚 Using configured languages: ${configuredLanguages.join(", ")}`);

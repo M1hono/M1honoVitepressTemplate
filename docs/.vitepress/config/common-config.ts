@@ -1,14 +1,14 @@
 import type { DefaultTheme, HeadConfig, UserConfig } from "vitepress";
 import { resolve } from "path";
 import { fileURLToPath } from "url";
-import { 
-    getProjectInfo, 
-    isFeatureEnabled, 
+import {
+    getProjectInfo,
+    isFeatureEnabled,
     getPaths,
     getLanguageLinks,
     autoDiscoverLanguageModules,
-} from "./project-config";
-import { templateCompilerOptions } from '@tresjs/core'
+} from "../utils/config/project-config";
+import { templateCompilerOptions } from "@tresjs/core";
 
 import { sidebarPlugin } from "../utils/sidebar/";
 import { markdown } from "./markdown-plugins";
@@ -16,7 +16,10 @@ import {
     groupIconVitePlugin,
     localIconLoader,
 } from "vitepress-plugin-group-icons";
-import { GitChangelog, GitChangelogMarkdownSection } from '@nolebase/vitepress-plugin-git-changelog/vite';
+import {
+    GitChangelog,
+    GitChangelogMarkdownSection,
+} from "@nolebase/vitepress-plugin-git-changelog/vite";
 
 const projectInfo = getProjectInfo();
 const projectPaths = getPaths();
@@ -33,40 +36,55 @@ function generateAvatarUrl(username: string) {
 
 export const commonConfig: UserConfig<DefaultTheme.Config> = {
     title: projectInfo.name,
-    description: 'A template for Vitepress documentation',
+    description: "A template for Vitepress documentation",
     base: projectInfo.base,
-    
+
     srcDir: projectPaths.src,
     outDir: projectPaths.build,
     cacheDir: projectPaths.cache,
-    
+
     lastUpdated: true,
     cleanUrls: true,
     metaChunk: true,
     ignoreDeadLinks: true,
 
     head: [
-        ["link", { 
-            rel: "icon", 
-            href: projectInfo.favicon.startsWith('http') 
-                ? projectInfo.favicon 
-                : `${projectInfo.base}${projectInfo.favicon}` 
-        }],
-        ["meta", { name: "keywords", content: (projectInfo as any).keyWords?.join(", ") || "vitepress, template, documentation" }],
+        [
+            "link",
+            {
+                rel: "icon",
+                href: projectInfo.favicon.startsWith("http")
+                    ? projectInfo.favicon
+                    : `${projectInfo.base}${projectInfo.favicon}`,
+            },
+        ],
+        [
+            "meta",
+            {
+                name: "keywords",
+                content:
+                    (projectInfo as any).keyWords?.join(", ") ||
+                    "vitepress, template, documentation",
+            },
+        ],
         ["meta", { name: "author", content: projectInfo.author }],
         ["meta", { property: "og:title", content: projectInfo.name }],
-        ["meta", { property: "og:description", content: 'A template for Vitepress documentation' }],
+        [
+            "meta",
+            {
+                property: "og:description",
+                content: "A template for Vitepress documentation",
+            },
+        ],
         ["meta", { property: "og:url", content: projectInfo.homepage }],
         ["meta", { property: "og:type", content: "website" }],
     ] as HeadConfig[],
 
     transformHead({ assets }) {
-        const faviconHref = projectInfo.favicon.startsWith('http') 
-            ? projectInfo.favicon 
+        const faviconHref = projectInfo.favicon.startsWith("http")
+            ? projectInfo.favicon
             : `${projectInfo.base}${projectInfo.favicon}`;
-        return [
-            ["link", { rel: "icon", href: faviconHref }],
-        ];
+        return [["link", { rel: "icon", href: faviconHref }]];
     },
 
     markdown: { ...markdown },
@@ -76,22 +94,29 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
             compilerOptions: {
                 whitespace: "preserve",
                 // TresJS template compiler options will be added via vite config
-                ...templateCompilerOptions.template.compilerOptions
+                ...templateCompilerOptions.template.compilerOptions,
             },
         },
     },
 
     themeConfig: {
         logo: projectInfo.logo,
-        
-        socialLinks: (projectInfo.headerSocialLinks && projectInfo.headerSocialLinks.length > 0) ? projectInfo.headerSocialLinks : [],
+
+        socialLinks:
+            projectInfo.headerSocialLinks &&
+            projectInfo.headerSocialLinks.length > 0
+                ? projectInfo.headerSocialLinks
+                : [],
 
         langMenuLabel: "Change Language",
 
-        editLink: isFeatureEnabled('editLink') && projectInfo.editLink ? {
-            pattern: projectInfo.editLink.pattern,
-            text: projectInfo.editLink.text || "Edit this page"
-        } : undefined,
+        editLink:
+            isFeatureEnabled("editLink") && projectInfo.editLink
+                ? {
+                      pattern: projectInfo.editLink.pattern,
+                      text: projectInfo.editLink.text || "Edit this page",
+                  }
+                : undefined,
     } satisfies DefaultTheme.Config,
 
     vite: {
@@ -102,8 +127,8 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                     replacement: fileURLToPath(
                         new URL(
                             "../theme/components/VPHero.vue",
-                            import.meta.url
-                        )
+                            import.meta.url,
+                        ),
                     ),
                 },
                 {
@@ -111,8 +136,8 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                     replacement: fileURLToPath(
                         new URL(
                             "../theme/components/VPFeatures.vue",
-                            import.meta.url
-                        )
+                            import.meta.url,
+                        ),
                     ),
                 },
                 {
@@ -120,8 +145,8 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                     replacement: fileURLToPath(
                         new URL(
                             "../theme/components/VPButton.vue",
-                            import.meta.url
-                        )
+                            import.meta.url,
+                        ),
                     ),
                 },
                 {
@@ -129,8 +154,8 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                     replacement: fileURLToPath(
                         new URL(
                             "../theme/components/VPNavBarTranslations.vue",
-                            import.meta.url
-                        )
+                            import.meta.url,
+                        ),
                     ),
                 },
                 {
@@ -138,8 +163,44 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                     replacement: fileURLToPath(
                         new URL(
                             "../theme/components/VPNavScreenTranslations.vue",
-                            import.meta.url
-                        )
+                            import.meta.url,
+                        ),
+                    ),
+                },
+                {
+                    find: /^.*\/VPNav\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/navigation/nav/VPNav.vue",
+                            import.meta.url,
+                        ),
+                    ),
+                },
+                {
+                    find: /^.*\/VPNavBar\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/navigation/nav/VPNavBar.vue",
+                            import.meta.url,
+                        ),
+                    ),
+                },
+                {
+                    find: /^.*\/VPLocalNav\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/navigation/outline/VPLocalNav.vue",
+                            import.meta.url,
+                        ),
+                    ),
+                },
+                {
+                    find: /^.*\/VPLocalNavOutlineDropdown\.vue$/,
+                    replacement: fileURLToPath(
+                        new URL(
+                            "../theme/components/navigation/outline/VPLocalNavOutlineDropdown.vue",
+                            import.meta.url,
+                        ),
                     ),
                 },
                 {
@@ -148,11 +209,17 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                 },
                 {
                     find: "@config",
-                    replacement: resolve(projectPaths.vitepress, "config"),
+                    replacement: resolve(
+                        projectPaths.vitepress,
+                        "utils/config",
+                    ),
                 },
                 {
                     find: "@components",
-                    replacement: resolve(projectPaths.vitepress, "theme/components"),
+                    replacement: resolve(
+                        projectPaths.vitepress,
+                        "theme/components",
+                    ),
                 },
                 {
                     find: "@/locale",
@@ -166,22 +233,22 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                 "@nolebase/vitepress-plugin-enhanced-readabilities",
                 "@nolebase/vitepress-plugin-inline-link-preview",
                 "shiki-magic-move",
-                "virtual:nolebase-git-changelog"
+                "virtual:nolebase-git-changelog",
             ],
             include: [
-                'vue',
-                '@vueuse/core',
-                'mermaid',
-                'vitepress-plugin-nprogress',
-                'vitepress-plugin-tabs/client',
-                '@lite-tree/vue'
+                "vue",
+                "@vueuse/core",
+                "mermaid",
+                "vitepress-plugin-nprogress",
+                "vitepress-plugin-tabs/client",
+                "@lite-tree/vue",
             ],
-            force: true
+            force: true,
         },
         build: {
             chunkSizeWarningLimit: 1500,
-            target: 'esnext',
-            minify: 'esbuild'
+            target: "esnext",
+            minify: "esbuild",
         },
         ssr: {
             noExternal: [
@@ -189,14 +256,9 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                 "@nolebase/*",
                 "vitepress-plugin-tabs",
                 "shiki-magic-move",
-                "markdown-it-multiple-choice"
+                "markdown-it-multiple-choice",
             ],
-            external: [
-                "path",
-                "fs",
-                "fast-glob",
-                "gray-matter"
-            ]
+            external: ["path", "fs", "fast-glob", "gray-matter"],
         },
         css: {
             preprocessorOptions: {
@@ -206,9 +268,10 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
             },
         },
         define: {
-            __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: process.env.NODE_ENV === 'development',
+            __VUE_PROD_HYDRATION_MISMATCH_DETAILS__:
+                process.env.NODE_ENV === "development",
             __VUE_OPTIONS_API__: true,
-            __VUE_PROD_DEVTOOLS__: false
+            __VUE_PROD_DEVTOOLS__: false,
         },
         plugins: [
             // @ts-ignore
@@ -222,32 +285,36 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
             // @ts-ignore
             GitChangelogMarkdownSection(),
             // Conditionally load sidebar plugin based on autoSidebar feature flag
-            ...(isFeatureEnabled('autoSidebar') ? [
-                // @ts-ignore
-                sidebarPlugin({
-                    languages: getLanguageLinks().map(link => link.replace(/^\/|\/$/g, '')),
-                    debug: process.env.NODE_ENV === 'development',
-                    docsDir: projectPaths.docs,
-                    cacheDir: projectPaths.cache
-                })
-            ] : []),
+            ...(isFeatureEnabled("autoSidebar")
+                ? [
+                      // @ts-ignore
+                      sidebarPlugin({
+                          languages: getLanguageLinks().map((link) =>
+                              link.replace(/^\/|\/$/g, ""),
+                          ),
+                          debug: process.env.NODE_ENV === "development",
+                          docsDir: projectPaths.docs,
+                          cacheDir: projectPaths.cache,
+                      }),
+                  ]
+                : []),
             // @ts-ignore
             groupIconVitePlugin({
                 customIcon: {
                     json: localIconLoader(
                         import.meta.url,
-                        `../../src/public/svg/json.svg`
+                        `../../src/public/svg/json.svg`,
                     ),
                     md: localIconLoader(
                         import.meta.url,
-                        `../../src/public/svg/markdown.svg`
+                        `../../src/public/svg/markdown.svg`,
                     ),
                     ts: "logos:typescript-icon-round",
                     java: "logos:java",
                     css: "logos:css-3",
                     git: "logos:git-icon",
                 },
-            })
+            }),
         ],
     },
 };

@@ -1,0 +1,37 @@
+{
+  "level-1-text/": {
+    "valueHash": "d3d9446802a44259755d38e6d163e820",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-2-cards/": {
+    "valueHash": "98f13708210194c475687be6106a3b84",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-3-mixed/": {
+    "valueHash": "34173cb38f07f89ddbebc2ac9128303f",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level1Text.md": {
+    "valueHash": "d3d9446802a44259755d38e6d163e820",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level2Cards.md": {
+    "valueHash": "98f13708210194c475687be6106a3b84",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level3Mixed.md": {
+    "valueHash": "34173cb38f07f89ddbebc2ac9128303f",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level4MotionDensityBlur.md": {
+    "valueHash": "d645920e395fedad7bbbed0eca3fe2e0",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

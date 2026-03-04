@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join, basename, relative, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import glob from 'fast-glob';
-import { getLanguageCodes } from "../config/project-config.js";
+import { getLanguageCodes } from "../utils/config/project-config.ts";
 import { getSrcPath } from "../utils/config/path-resolver.js";
 
 /**

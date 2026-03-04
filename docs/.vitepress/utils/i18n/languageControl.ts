@@ -1,6 +1,6 @@
 import { computed } from "vue";
 import { useData } from "vitepress";
-import { getLanguages, getDefaultLanguage, getProjectInfo } from "../../config/project-config";
+import { getLanguages, getDefaultLanguage, getProjectInfo } from "@config/project-config";
 
 function ensureStartingSlash(path: string): string {
     return /^\//.test(path) ? path : `/${path}`;

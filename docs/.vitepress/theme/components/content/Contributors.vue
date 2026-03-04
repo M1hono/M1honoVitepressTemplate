@@ -1,10 +1,10 @@
 <script setup lang="ts">
     //@ts-nocheck
     import { ref, onMounted, computed } from "vue";
-    import { useData } from "vitepress";
+    import { useData, withBase } from "vitepress";
     import { Motion } from "motion-v";
     import { useSafeI18n } from "@utils/i18n/locale";
-    import { getProjectInfo } from "../../../config/project-config";
+    import { getProjectInfo } from "@config/project-config";
 
     const { t } = useSafeI18n("contributors", {
         title: "Contributors",
@@ -34,6 +34,7 @@
         showContributions?: boolean;
         enableCache?: boolean;
         title?: string;
+        layout?: "doc" | "hero";
     }
 
     const projectInfo = getProjectInfo();
@@ -41,7 +42,7 @@
     const getRepoInfo = () => {
         const repoUrl = projectInfo.repository.url;
         const match = repoUrl.match(
-            /github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?$/
+            /github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?$/,
         );
         if (match) {
             return { owner: match[1], repo: match[2] };
@@ -58,12 +59,23 @@
         maxCount: 200,
         showContributions: true,
         enableCache: true,
+        layout: undefined,
+    });
+
+    const { frontmatter } = useData();
+
+    const isHeroLayout = computed(() => {
+        // Allow prop override
+        if (props.layout === "hero") return true;
+        if (props.layout === "doc") return false;
+        // Auto-detect from frontmatter
+        return !!(
+            frontmatter.value.isHome ?? frontmatter.value.layout === "home"
+        );
     });
 
     const owner = computed(() => props.owner ?? defaultOwner);
     const repo = computed(() => props.repo ?? defaultRepo);
-
-    const { site } = useData();
 
     const contributors = ref<Contributor[]>([]);
     const loading = ref(true);
@@ -73,19 +85,19 @@
     const sortedContributors = computed(() =>
         contributors.value
             .sort((a, b) => b.contributions - a.contributions)
-            .slice(0, props.maxCount)
+            .slice(0, props.maxCount),
     );
 
     const ownerContributor = computed(() =>
         sortedContributors.value.find(
-            (c) => c.login.toLowerCase() === owner.value.toLowerCase()
-        )
+            (c) => c.login.toLowerCase() === owner.value.toLowerCase(),
+        ),
     );
 
     const regularContributors = computed(() =>
         sortedContributors.value.filter(
-            (c) => c.login.toLowerCase() !== owner.value.toLowerCase()
-        )
+            (c) => c.login.toLowerCase() !== owner.value.toLowerCase(),
+        ),
     );
 
     interface ContributorGroup {
@@ -119,7 +131,7 @@
 
             const group = contributors.slice(
                 currentIndex,
-                currentIndex + groupSize
+                currentIndex + groupSize,
             );
 
             if (group.length > 0) {
@@ -142,13 +154,12 @@
     const totalContributions = computed(() =>
         contributors.value.reduce(
             (sum, contributor) => sum + contributor.contributions,
-            0
-        )
+            0,
+        ),
     );
 
-    const getCachedAvatarPath = (login: string): string => {
-        return `/contributors/${login}.png`;
-    };
+    const getCachedAvatarPath = (login: string): string =>
+        withBase(`/contributors/${login}.png`);
 
     const checkCachedAvatar = async (login: string): Promise<boolean> => {
         if (!props.enableCache) return false;
@@ -203,19 +214,19 @@
                     headers: {
                         Accept: "application/vnd.github.v3+json",
                     },
-                }
+                },
             );
 
             if (!response.ok) {
                 throw new Error(
-                    `GitHub API error: ${response.status} ${response.statusText}`
+                    `GitHub API error: ${response.status} ${response.statusText}`,
                 );
             }
 
             const data: Contributor[] = await response.json();
 
             contributors.value = data.filter(
-                (contributor) => contributor.type !== "Bot"
+                (contributor) => contributor.type !== "Bot",
             );
         } catch (err) {
             console.error("Failed to fetch contributors:", err);
@@ -227,12 +238,16 @@
 
     const handleAvatarError = async (
         event: Event,
-        contributor: Contributor
+        contributor: Contributor,
     ) => {
         const img = event.target as HTMLImageElement;
         const cachedPath = getCachedAvatarPath(contributor.login);
 
-        if (img.src !== `${location.origin}${cachedPath}`) {
+        const absoluteCachedPath = new URL(
+            cachedPath,
+            location.origin,
+        ).toString();
+        if (img.src !== absoluteCachedPath) {
             const hasCached = await checkCachedAvatar(contributor.login);
             if (hasCached) {
                 img.src = cachedPath;
@@ -253,7 +268,7 @@
 </script>
 
 <template>
-    <div class="contributors-container">
+    <div class="contributors-container" :class="{ 'is-hero': isHeroLayout }">
         <div class="contributors-content">
             <!-- Header -->
             <div class="contributors-header">
@@ -437,37 +452,50 @@
 
 <style scoped>
     .contributors-container {
-        width: 100vw;
-        margin-left: 50%;
-        transform: translateX(-50%);
+        width: 100%;
+        margin: 0;
         padding: 0;
-        background: #ffffff;
+        background: transparent;
         position: relative;
         overflow: hidden;
     }
 
-    .dark .contributors-container {
-        background: #1b1b1f !important;
+    /* Hero layout - full width with background */
+    .contributors-container.is-hero {
+        width: 100vw;
+        margin-left: 50%;
+        transform: translateX(-50%);
+        background: #ffffff;
+    }
+
+    .dark .contributors-container.is-hero {
+        background: #1b1b1f;
     }
 
     .contributors-content {
-        max-width: 1800px;
+        max-width: 100%;
         margin: 0 auto;
-        padding: 60px 24px;
+        padding: 20px 0;
         background: transparent;
         border: none;
         border-radius: 0;
         position: relative;
     }
 
+    /* Larger padding for hero layout */
+    .contributors-container.is-hero .contributors-content {
+        max-width: 1800px;
+        padding: 60px 24px;
+    }
+
     @media (min-width: 640px) {
-        .contributors-content {
+        .contributors-container.is-hero .contributors-content {
             padding: 80px 48px;
         }
     }
 
     @media (min-width: 960px) {
-        .contributors-content {
+        .contributors-container.is-hero .contributors-content {
             padding: 100px 64px;
         }
     }
@@ -783,10 +811,12 @@
     }
 
     .group-small .group-grid {
-        grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+        /* auto-fill with exact column width = avatars NEVER shrink below 60px */
+        grid-template-columns: repeat(auto-fill, 72px);
         gap: var(--grid-gap);
         max-width: 1200px;
         margin: 0 auto;
+        justify-content: center;
     }
 
     .group-small .contributor-card {
@@ -807,13 +837,21 @@
     }
 
     .group-small .avatar-container {
+        /* Never allow the avatar container to be squished by the grid */
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
         margin: 0 0 8px 0;
         position: relative;
     }
 
     .group-small .contributor-avatar {
+        /* Explicit size + flex-shrink guard to prevent any compression */
         width: 40px;
         height: 40px;
+        min-width: 40px;
+        min-height: 40px;
+        flex-shrink: 0;
     }
 
     .group-small .contributor-info {
@@ -865,8 +903,9 @@
         }
 
         .group-small .group-grid {
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            grid-template-columns: repeat(auto-fill, 80px);
             max-width: 1200px;
+            justify-content: center;
         }
 
         .group-small .contributor-card {
@@ -920,8 +959,9 @@
         }
 
         .group-small .group-grid {
-            grid-template-columns: repeat(10, 1fr);
+            grid-template-columns: repeat(auto-fill, 80px);
             max-width: 1400px;
+            justify-content: center;
         }
 
         .group-small .contributor-card {
@@ -1032,10 +1072,16 @@
     .contributor-avatar {
         width: 64px;
         height: 64px;
+        display: block;
+        aspect-ratio: 1 / 1;
         border-radius: 50%;
         border: 2px solid rgba(var(--vp-c-divider-rgb), 0.2);
         transition: all 0.3s ease;
         object-fit: cover;
+        object-position: center;
+        /* Avoid global markdown image rules compressing width while height stays fixed */
+        max-width: none !important;
+        flex: 0 0 auto;
     }
 
     .contributor-card:hover .contributor-avatar {
@@ -1201,8 +1247,9 @@
         }
 
         .group-small .group-grid {
-            grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+            grid-template-columns: repeat(auto-fill, 64px);
             max-width: 100%;
+            justify-content: center;
         }
 
         .group-small .contributor-card {
@@ -1277,9 +1324,10 @@
         }
 
         .group-small .group-grid {
-            grid-template-columns: repeat(10, 1fr);
+            grid-template-columns: repeat(auto-fill, 32px);
             gap: 6px;
             width: 100%;
+            justify-content: center;
         }
 
         .group-small .contributor-card {
@@ -1330,8 +1378,9 @@
         }
 
         .group-small .group-grid {
-            grid-template-columns: repeat(10, 1fr);
+            grid-template-columns: repeat(auto-fill, 28px);
             gap: 4px;
+            justify-content: center;
         }
 
         .group-small .contributor-card {

@@ -1,91 +1,98 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from 'vue';
-import { useData } from 'vitepress';
+    import { computed, onMounted, ref, watch } from "vue";
+    import { useData } from "vitepress";
+    import { resolveAssetWithBase } from "@utils/assets";
 
-interface VideoConfig {
-  src?: string;
-  light?: string;
-  dark?: string;
-  autoplay?: boolean;
-  loop?: boolean;
-  muted?: boolean;
-  controls?: boolean;
-  poster?: string;
-}
+    interface VideoConfig {
+        src?: string;
+        light?: string;
+        dark?: string;
+        autoplay?: boolean;
+        loop?: boolean;
+        muted?: boolean;
+        controls?: boolean;
+        poster?: string;
+        fit?: "contain" | "cover" | "fill" | "none" | "scale-down";
+        position?: string;
+    }
 
-const props = defineProps<{
-  config?: VideoConfig;
-}>();
+    const props = defineProps<{
+        config?: VideoConfig;
+    }>();
 
-const { isDark } = useData();
-const videoRef = ref<HTMLVideoElement | null>(null);
+    const { isDark } = useData();
+    const videoRef = ref<HTMLVideoElement | null>(null);
 
-const videoSrc = computed(() => {
-  if (!props.config) return '';
-  if (isDark.value && props.config.dark) return props.config.dark;
-  if (!isDark.value && props.config.light) return props.config.light;
-  return props.config.src || '';
-});
-
-const posterSrc = computed(() => {
-  return props.config?.poster || '';
-});
-
-const videoOptions = computed(() => ({
-  autoplay: props.config?.autoplay ?? true,
-  loop: props.config?.loop ?? true,
-  muted: props.config?.muted ?? true,
-  controls: props.config?.controls ?? false,
-  playsinline: true
-}));
-
-onMounted(() => {
-  if (videoRef.value && videoOptions.value.autoplay) {
-    videoRef.value.play().catch(() => {
-      // Autoplay was prevented
+    const source = computed(() => {
+        if (!props.config) return "";
+        if (isDark.value && props.config.dark) return props.config.dark;
+        if (!isDark.value && props.config.light) return props.config.light;
+        return resolveAssetWithBase(
+            props.config.src || props.config.light || props.config.dark || "",
+        );
     });
-  }
-});
+
+    const options = computed(() => ({
+        autoplay: props.config?.autoplay ?? true,
+        loop: props.config?.loop ?? true,
+        muted: props.config?.muted ?? true,
+        controls: props.config?.controls ?? false,
+        poster: resolveAssetWithBase(props.config?.poster),
+        fit: props.config?.fit ?? "contain",
+        position: props.config?.position ?? "center center",
+    }));
+
+    const tryAutoPlay = () => {
+        if (!videoRef.value || !options.value.autoplay) return;
+        videoRef.value.play().catch(() => {
+            // Ignore autoplay restrictions.
+        });
+    };
+
+    onMounted(() => {
+        tryAutoPlay();
+    });
+
+    watch(source, () => {
+        tryAutoPlay();
+    });
 </script>
 
 <template>
-  <div class="video-display">
-    <video
-      v-if="videoSrc"
-      ref="videoRef"
-      :src="videoSrc"
-      :poster="posterSrc"
-      :autoplay="videoOptions.autoplay"
-      :loop="videoOptions.loop"
-      :muted="videoOptions.muted"
-      :controls="videoOptions.controls"
-      playsinline
-      class="hero-video-src"
-    />
-  </div>
+    <div class="video-display">
+        <video
+            v-if="source"
+            ref="videoRef"
+            class="hero-video-src"
+            :src="source"
+            :poster="options.poster"
+            :autoplay="options.autoplay"
+            :loop="options.loop"
+            :muted="options.muted"
+            :controls="options.controls"
+            :style="{
+                objectFit: options.fit,
+                objectPosition: options.position,
+            }"
+            playsinline
+        />
+    </div>
 </template>
 
 <style scoped>
-.video-display {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    .video-display {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
 
-.hero-video-src {
-  width: 100%;
-  height: 100%;
-  max-width: 600px;
-  max-height: 600px;
-  object-fit: contain;
-  border-radius: 16px;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.hero-video-src:hover {
-  transform: scale(1.02);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-}
+    .hero-video-src {
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        border-radius: inherit;
+    }
 </style>

@@ -29,7 +29,7 @@
     import { defineAsyncComponent } from "vue";
     import utils from "@utils";
     import { useSafeI18n } from "@utils/i18n/locale";
-    import { getProjectInfo } from "../../../config/project-config";
+    import { getProjectInfo } from "@config/project-config";
 
     // Async import for vue-echarts to avoid SSR issues
     const VChart = defineAsyncComponent(async () => {
@@ -181,62 +181,18 @@
                     data: contributions.value,
                     lineStyle: {
                         width: props.lineWidth,
-                        color: {
-                            type: "linear",
-                            x: 0,
-                            y: 0,
-                            x2: 1,
-                            y2: 0,
-                            colorStops: [
-                                {
-                                    offset: 0,
-                                    color: isDark.value ? "#60a5fa" : "#3b82f6",
-                                },
-                                {
-                                    offset: 0.5,
-                                    color: isDark.value ? "#a78bfa" : "#8b5cf6",
-                                },
-                                {
-                                    offset: 1,
-                                    color: isDark.value ? "#f472b6" : "#ec4899",
-                                },
-                            ],
-                        },
+                        color: isDark.value ? "#60a5fa" : "#3b82f6",
                         shadowColor: isDark.value
-                            ? "rgba(96, 165, 250, 0.3)"
-                            : "rgba(59, 130, 246, 0.3)",
-                        shadowBlur: 10,
-                        shadowOffsetY: 2,
+                            ? "rgba(96, 165, 250, 0.4)"
+                            : "rgba(59, 130, 246, 0.4)",
+                        shadowBlur: 12,
+                        shadowOffsetY: 4,
                     },
                     areaStyle: props.fill
                         ? {
-                              color: {
-                                  type: "linear",
-                                  x: 0,
-                                  y: 0,
-                                  x2: 0,
-                                  y2: 1,
-                                  colorStops: [
-                                      {
-                                          offset: 0,
-                                          color: isDark.value
-                                              ? "rgba(96, 165, 250, 0.4)"
-                                              : "rgba(59, 130, 246, 0.3)",
-                                      },
-                                      {
-                                          offset: 0.7,
-                                          color: isDark.value
-                                              ? "rgba(167, 139, 250, 0.2)"
-                                              : "rgba(139, 92, 246, 0.15)",
-                                      },
-                                      {
-                                          offset: 1,
-                                          color: isDark.value
-                                              ? "rgba(244, 114, 182, 0.1)"
-                                              : "rgba(236, 72, 153, 0.05)",
-                                      },
-                                  ],
-                              },
+                              color: isDark.value
+                                  ? "rgba(96, 165, 250, 0.25)"
+                                  : "rgba(59, 130, 246, 0.2)",
                           }
                         : undefined,
                     symbol: "circle",
@@ -456,12 +412,8 @@
     }
 
     .bar {
-        width: 10px; /* Wider bars */
-        background: linear-gradient(
-            0deg,
-            var(--vp-c-brand-1) 0%,
-            var(--vp-c-brand-3) 100%
-        );
+        width: 10px;
+        background: var(--vp-c-brand-1);
         border-radius: 5px;
         animation: loading-wave 1.5s ease-in-out infinite;
         animation-delay: calc(var(--i) * 0.1s);

@@ -1,0 +1,27 @@
+{
+  "_self_": {
+    "valueHash": "df1641c275a41278a69010774137c3c3",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "particlesConfig.md": {
+    "valueHash": "96aa1e109ec7980c2f1ac92615f23230",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "particlesColor.md": {
+    "valueHash": "5e8435b38fd1fdb5a4cfaa58d1d27cf9",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "customTextures.md": {
+    "valueHash": "ded34db84c20b6e2bdee5579c0ba98f5",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "fullShowcase.md": {
+    "valueHash": "2d4c7811861cfb9dbbea180bbe59bba5",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

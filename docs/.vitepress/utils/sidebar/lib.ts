@@ -219,6 +219,70 @@ function getFileCachePath(lang: string): string {
     return resolve(cacheDir, `${getCacheKey(lang)}.json`);
 }
 
+function getNewestMatchingMtime(
+    rootPath: string,
+    matcher: (fileName: string) => boolean
+): number {
+    if (!existsSync(rootPath)) return 0;
+
+    let newestMtime = 0;
+    const queue: string[] = [rootPath];
+
+    while (queue.length > 0) {
+        const currentPath = queue.pop() as string;
+        let entries: any[] = [];
+
+        try {
+            entries = readdirSync(currentPath, { withFileTypes: true }) as any[];
+        } catch {
+            continue;
+        }
+
+        for (const entry of entries) {
+            const entryName = String(entry.name);
+            const entryPath = resolve(currentPath, entryName);
+            if (entry.isDirectory()) {
+                queue.push(entryPath);
+                continue;
+            }
+            if (!entry.isFile() || !matcher(entryName)) {
+                continue;
+            }
+
+            try {
+                const mtime = statSync(entryPath).mtime.getTime();
+                if (mtime > newestMtime) {
+                    newestMtime = mtime;
+                }
+            } catch {
+                // Ignore transient file-system errors while walking cache inputs.
+            }
+        }
+    }
+
+    return newestMtime;
+}
+
+function getNewestDocsMtime(lang: string): number {
+    const config = getConfig();
+    const docsPath = resolve(config.rootDir, config.docsDir, lang);
+    return getNewestMatchingMtime(docsPath, (name) =>
+        name.toLowerCase() === "index.md"
+    );
+}
+
+function getNewestSidebarConfigMtime(lang: string): number {
+    const config = getConfig();
+    const sidebarConfigPath = resolve(
+        config.rootDir,
+        ".vitepress/config/sidebar",
+        lang
+    );
+    return getNewestMatchingMtime(sidebarConfigPath, (name) =>
+        name.toLowerCase().endsWith(".json")
+    );
+}
+
 function isFileCacheValid(lang: string): boolean {
     const config = getConfig();
     const cachePath = getFileCachePath(lang);
@@ -235,12 +299,15 @@ function isFileCacheValid(lang: string): boolean {
             return false;
         }
 
-        const docsPath = resolve(config.rootDir, config.docsDir, lang);
-        if (existsSync(docsPath)) {
-            const docsStats = statSync(docsPath);
-            if (docsStats.mtime.getTime() > cacheStats.mtime.getTime()) {
-                return false;
-            }
+        const cacheMtime = cacheStats.mtime.getTime();
+        const newestDocsMtime = getNewestDocsMtime(lang);
+        if (newestDocsMtime > cacheMtime) {
+            return false;
+        }
+
+        const newestSidebarConfigMtime = getNewestSidebarConfigMtime(lang);
+        if (newestSidebarConfigMtime > cacheMtime) {
+            return false;
         }
 
         return true;

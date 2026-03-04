@@ -25,22 +25,26 @@
     padding-left: 16px;
 }
 
-/* Beautiful item styling - thinner vertically */
+/* Beautiful item styling - thicker bento-box pill shape */
 .VPSidebarItem .item {
-    padding: 6px 8px;
-    margin: 1px 4px;
-    border-radius: 6px;
-    transition: all 0.2s ease;
+    padding: 8px 12px;
+    margin: 2px 6px;
+    border-radius: 12px;
+    transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
     position: relative;
     display: flex;
     align-items: center;
-    width: calc(100% - 8px);
-    min-height: 32px;
+    width: calc(100% - 12px);
+    min-height: 38px;
 }
 
-/* Hover effects */
+/* Hover effects - softer glassmorphism */
 .VPSidebarItem .item:hover {
-    background-color: var(--vp-c-default-soft);
+    background-color: color-mix(
+        in srgb,
+        var(--vp-c-default-soft) 60%,
+        transparent
+    );
 }
 
 /* Active state styling */
@@ -50,21 +54,21 @@
     padding-left: 5px;
 } */
 
-/* Text improvements - bold and thinner */
+/* Text improvements */
 .VPSidebarItem .text {
     font-size: 16px;
     line-height: 1.3;
     padding: 0;
-    transition: color 0.2s ease;
-    font-weight: 700 !important;
+    transition: color 0.25s ease;
     flex-grow: 1;
     display: flex;
     align-items: center;
 }
 
 .VPSidebarItem.level-0 .text {
-    font-weight: 700 !important;
-    font-size: 17px;
+    font-weight: 800 !important;
+    font-family: "Playfair Display", "EB Garamond", ui-serif, Georgia, serif;
+    font-size: 19px;
     color: var(--vp-c-text-1);
 }
 
@@ -96,7 +100,16 @@
 .VPSidebarItem.level-4.is-active > .item .link > .text,
 .VPSidebarItem.level-5.is-active > .item .link > .text {
     color: var(--vp-c-brand-1);
-    font-weight: 700 !important;
+    font-weight: 800 !important;
+}
+
+/* Active Soft Enclosure - Bento Box */
+.VPSidebarItem.is-active > .item {
+    background-color: color-mix(
+        in srgb,
+        var(--vp-c-brand-soft) 40%,
+        transparent
+    );
 }
 
 /* Improved caret styling - thinner */

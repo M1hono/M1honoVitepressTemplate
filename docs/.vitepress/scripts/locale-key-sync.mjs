@@ -316,14 +316,13 @@ async function syncTranslationFile(filePath, componentKeys, useDefaults) {
     await jsonFileHandler.write(filePath, newTranslations);
 }
 
-async function syncSnippetFiles(lang, additionalFiles) {
+async function syncSnippetFiles(lang) {
     const snippetDir = path.join(LOCALE_DIR, lang, 'snippets');
     await fs.mkdir(snippetDir, { recursive: true });
 
     const filesToCreate = [
         'default',
-        'custom',
-        ...additionalFiles
+        'custom'
     ];
 
     for (const baseName of filesToCreate) {
@@ -437,9 +436,8 @@ async function main() {
     console.log(`📋 Generated component ID mapping with ${Object.keys(componentIdMapping).length} entries`);
     
     console.log('\n🔄 Processing snippet files...');
-    const customSnippets = projectConfig.customSnippetFileNames || [];
     for (const lang of languages) {
-        await syncSnippetFiles(lang, customSnippets);
+        await syncSnippetFiles(lang);
     }
 
     await syncFooterFiles(languages, primaryLanguage);

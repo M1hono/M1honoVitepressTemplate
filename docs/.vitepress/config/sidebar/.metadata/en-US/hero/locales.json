@@ -1,0 +1,32 @@
+{
+  "_self_": {
+    "valueHash": "792d16788a0d21d232cbacbd094cec79",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "matrix/": {
+    "valueHash": "03f7681e61075c5cf9ce937cb61730d1",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "all-config.md": {
+    "valueHash": "16d24b582d305f16e6b14ba533ea9754",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "AllConfig.md": {
+    "valueHash": "16d24b582d305f16e6b14ba533ea9754",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "AllConfig/": {
+    "valueHash": "16d24b582d305f16e6b14ba533ea9754",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "heroRuntime.md": {
+    "valueHash": "541cc7dfb2d317c99a9d71858497c7da",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

@@ -2,7 +2,7 @@
     <div class="pdf-viewer" ref="pdfContainer">
         <embed
             v-if="isReady"
-            :src="pdfSource"
+            :src="resolvedPdfSource"
             :width="containerWidth + 'px'"
             :height="containerHeight + 'px'"
             type="application/pdf"
@@ -12,8 +12,12 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, onMounted, onUnmounted, nextTick } from "vue";
+    import { computed, ref, onMounted, onUnmounted, nextTick } from "vue";
+    import { resolveAssetWithBase } from "@utils/assets";
 
+    /**
+     * Path to the PDF file (relative to public folder).
+     */
     const props = defineProps({
         pdfSource: {
             type: String,
@@ -21,11 +25,21 @@
         },
     });
 
+    /**
+     * Resolved PDF source URL.
+     */
+    const resolvedPdfSource = computed(() =>
+        resolveAssetWithBase(props.pdfSource)
+    );
+
     const pdfContainer = ref<HTMLElement | null>(null);
     const containerWidth = ref("100%");
     const containerHeight = ref("auto");
     const isReady = ref(false);
 
+    /**
+     * Updates viewer dimensions based on container size.
+     */
     const updateViewerDimensions = () => {
         if (pdfContainer.value) {
             const pdfWidth = pdfContainer.value.clientWidth;
@@ -37,6 +51,12 @@
         }
     };
 
+    /**
+     * Creates a debounced version of a function.
+     * @param func - Function to debounce
+     * @param wait - Wait time in milliseconds
+     * @returns Debounced function
+     */
     function debounce(func: (...args: any[]) => void, wait: number) {
         let timeout: NodeJS.Timeout | null = null;
         return function executedFunction(...args: any[]) {

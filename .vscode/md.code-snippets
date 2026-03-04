@@ -153,8 +153,15 @@
 
     "@fm: Hero Snippets": {
         "prefix": "@fm-hero-snippets",
-        "body": ["hero:", "  customSnippet: ${1|true,'custom'|}"],
-        "description": "Frontmatter: Configure custom floating word snippets for the VPHero component. Use 'true' for custom.json or provide a custom filename (without .json)."
+        "body": [
+            "hero:",
+            "  snippets:",
+            "    - name: ${1:capabilities}",
+            "      snippets:",
+            "        - ${2:Runtime Complete}",
+            "        - ${3:Layered Backgrounds}"
+        ],
+        "description": "Frontmatter: Configure hero snippet words using canonical hero.snippets structure."
     },
 
     // ---------- Sidebar Tags Frontmatter ----------
@@ -993,11 +1000,15 @@
             "  image:",
             "    src: \"${4:/logo.png}\"",
             "    alt: \"${5:Project Logo}\"",
-            "  customSnippet: ${6|true,'custom'|}",
+            "  snippets:",
+            "    - name: ${6:capabilities}",
+            "      snippets:",
+            "        - ${7:Runtime Complete}",
+            "        - ${8:Layered Backgrounds}",
             "  actions:",
             "    - theme: brand",
-            "      text: \"${7:Get Started}\"",
-            "      link: \"${8:/guide/}\"",
+            "      text: \"${9:Get Started}\"",
+            "      link: \"${10:/guide/}\"",
             "---",
             "",
             "$0"
@@ -1025,11 +1036,15 @@
             "  image:",
             "    src: \"${4:/logo.png}\"",
             "    alt: \"${5:Project Logo}\"",
-            "  customSnippet: ${6|true,'custom'|}",
+            "  snippets:",
+            "    - name: ${6:capabilities}",
+            "      snippets:",
+            "        - ${7:Runtime Complete}",
+            "        - ${8:Layered Backgrounds}",
             "  actions:",
             "    - theme: brand",
-            "      text: \"${7:Get Started}\"",
-            "      link: \"${8:/guide/}\""
+            "      text: \"${9:Get Started}\"",
+            "      link: \"${10:/guide/}\""
         ],
         "description": "Hero configuration block for existing pages."
     },

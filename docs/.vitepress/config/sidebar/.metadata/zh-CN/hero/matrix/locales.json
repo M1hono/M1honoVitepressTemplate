@@ -1,0 +1,72 @@
+{
+  "_self_": {
+    "valueHash": "0bcfbde198d3a34f89816af65f5a3702",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "basic/": {
+    "valueHash": "d9cc6b46595103e5920defc0ce8f7321",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "background-single/": {
+    "valueHash": "f71c3ae7dab69d8fd0502e7f8997c61f",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "layers/": {
+    "valueHash": "c8e5ac6506bb054abce017c9354881c0",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "waves/": {
+    "valueHash": "e2d245e5f5f2e2cf31573b1f0336c37a",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "image-types/": {
+    "valueHash": "19a47bbacc30392fc7399a7387ace8e9",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "buttons-features/": {
+    "valueHash": "3760ebc57f8d8eab2bedc983ddffeca7",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "floating/": {
+    "valueHash": "d054921c6321166b8dbbd2b4c4560cdb",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "reference/": {
+    "valueHash": "0e6ffe5f4a01ba833a9791da58fbd783",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "config-coverage/": {
+    "valueHash": "480e69c98e286961811f99eec3805f09",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "backgroundSingle/": {
+    "valueHash": "f71c3ae7dab69d8fd0502e7f8997c61f",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "imageTypes/": {
+    "valueHash": "19a47bbacc30392fc7399a7387ace8e9",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "buttonsFeatures/": {
+    "valueHash": "3760ebc57f8d8eab2bedc983ddffeca7",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "configCoverage/": {
+    "valueHash": "480e69c98e286961811f99eec3805f09",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

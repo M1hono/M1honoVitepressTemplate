@@ -1,9 +1,11 @@
 <script lang="ts" setup>
-    // @i18n
     import { useData } from "vitepress";
     import { computed } from "vue";
     import { useSafeI18n } from "@utils/i18n/locale";
 
+    /**
+     * Component ID for i18n translations.
+     */
     const { t } = useSafeI18n("state-component", {
         preliminaryTitle: '🌱 Preliminary Completion',
         preliminaryText: 'The content in this article has been preliminarily completed and can serve as a reference. However, there may be possible errors or areas in need of improvement.',
@@ -17,12 +19,23 @@
 
     const { frontmatter } = useData();
 
+    /**
+     * Supported state types for article status.
+     */
     type StateType = "preliminary" | "unfinished" | "outdated" | "renovating";
 
+    /**
+     * Current article state based on frontmatter.
+     */
     const state = computed(
         () => switchState(frontmatter.value?.state) ?? false
     );
 
+    /**
+     * Maps string state to StateType enum.
+     * @param state - State string from frontmatter
+     * @returns StateType or undefined if invalid
+     */
     function switchState(state: string): StateType | void {
         switch (state) {
             case "preliminary":
@@ -35,6 +48,9 @@
         }
     }
 
+    /**
+     * Computed i18n text based on current state.
+     */
     const i18nText = computed(() => {
         if (!state.value) return { title: '', text: '' };
         const translations = t as any;
@@ -44,6 +60,9 @@
         }
     });
 
+    /**
+     * Background color based on state type.
+     */
     const colorControl = computed(() =>
         state.value === "preliminary" || state.value === "renovating"
             ? "var(--vp-custom-block-warning-bg)"

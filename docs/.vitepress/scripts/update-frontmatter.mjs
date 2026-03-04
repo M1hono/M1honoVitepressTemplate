@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, relative, resolve } from "path";
 import glob from "fast-glob";
 import matter from "gray-matter";
-import { getLanguageCodes } from "../config/project-config.js";
+import { getLanguageCodes } from "../utils/config/project-config.ts";
 import { getSrcPath } from "../utils/config/path-resolver.js";
 
 class FrontmatterUpdater {

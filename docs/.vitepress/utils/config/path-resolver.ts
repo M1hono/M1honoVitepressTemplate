@@ -1,5 +1,5 @@
 import { resolve, join } from 'path';
-import { projectConfig } from '../../config/project-config';
+import { projectConfig } from "../../config/project-config";
 
 /**
  * Path resolver utilities for Node.js environments only

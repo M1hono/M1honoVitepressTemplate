@@ -22,6 +22,7 @@
 /* @import "./base/hero.css"; */
 @import "./base/nav.css";
 @import "./base/sidebar.css";
+@import "./base/outline.css";
 
 /* ===== PLUGIN STYLES ===== */
 @import "./plugins/algolia.css";
@@ -33,6 +34,7 @@
 
 /* ===== COMPONENT STYLES ===== */
 @import "./components/stepper.css";
+@import "./components/steps.css";
 @import "./components/carousel.css";
 @import "./components/tags.css";
 @import "./components/timeline.css";
@@ -90,4 +92,28 @@
 @keyframes ssr-loading-spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+/* ===== HERO PREMIUM BASELINE ===== */
+.VPHero.hero-premium::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(
+            64% 52% at 12% 10%,
+            rgba(var(--vp-c-brand-rgb), 0.12) 0%,
+            transparent 100%
+        ),
+        radial-gradient(
+            54% 46% at 88% 26%,
+            rgba(var(--vp-c-brand-rgb), 0.08) 0%,
+            transparent 100%
+        );
+}
+
+.VPHero.hero-premium.hero-premium--media::before {
+    opacity: 0;
 }

@@ -21,6 +21,9 @@
     import type { PropType } from "vue";
     import { computed } from "vue";
 
+    /**
+     * Visual style variant for the alert.
+     */
     type AlertVariant =
         | "elevated"
         | "flat"
@@ -28,63 +31,104 @@
         | "outlined"
         | "text"
         | "plain";
+
+    /**
+     * Spacing density for the alert.
+     */
     type AlertDensity = "default" | "comfortable" | "compact";
+
+    /**
+     * Border position for the alert.
+     */
     type AlertBorder = "start" | "end" | "top" | "bottom" | boolean;
 
     const props = defineProps({
+        /**
+         * Alert type/color variant.
+         */
         type: {
             type: String as PropType<"success" | "info" | "warning" | "error">,
             default: undefined,
         },
+        /**
+         * Visual style variant.
+         */
         variant: {
             type: String as PropType<AlertVariant>,
             default: "flat",
         },
+        /**
+         * Spacing density.
+         */
         density: {
             type: String as PropType<AlertDensity>,
             default: "default",
         },
+        /**
+         * Border position or boolean for visibility.
+         */
         border: {
             type: [String, Boolean] as PropType<AlertBorder>,
             default: undefined,
         },
+        /**
+         * Custom color for the alert.
+         */
         color: {
             type: String,
             default: undefined,
         },
+        /**
+         * Custom color for light theme.
+         */
         lightColor: {
             type: String,
             default: undefined,
         },
+        /**
+         * Custom color for dark theme.
+         */
         darkColor: {
             type: String,
             default: undefined,
         },
+        /**
+         * Custom icon to display.
+         */
         icon: {
             type: String,
             default: undefined,
         },
+        /**
+         * Alert title text.
+         */
         title: {
             type: String,
             default: undefined,
         },
+        /**
+         * Alert body text.
+         */
         text: {
             type: String,
             default: undefined,
         },
     });
 
+    /**
+     * Computed styles for theme-aware custom colors.
+     */
     const colorStyles = computed(() => {
         const styles: Record<string, string> = {};
-        
+
         if (props.lightColor) {
             styles['--custom-alert-light-color'] = props.lightColor;
         }
-        
+
         if (props.darkColor) {
             styles['--custom-alert-dark-color'] = props.darkColor;
         }
-        
+
         return styles;
     });
 </script>

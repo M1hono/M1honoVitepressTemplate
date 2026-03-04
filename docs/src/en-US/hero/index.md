@@ -1,40 +1,32 @@
 ---
-layout: home
-
-hero:
-  name: "Hero Showcase"
-  text: "Basic Hero Display"
-  tagline: "The simplest Hero component configuration with title, subtitle, and action buttons"
-  actions:
-    - theme: brand
-      text: "View More"
-      link: /en-US/hero/gradient
-    - theme: alt
-      text: "Get Help"
-      link: /en-US/hero/image
-
-features:
-  - icon: 🎯
-    title: "Basic Configuration"
-    details: "Show the most basic configuration of Hero component"
-
-  - icon: ⚡
-    title: "Responsive Design"
-    details: "Perfectly adapts to various screen sizes"
-
-  - icon: 🎨
-    title: "Customizable Theme"
-    details: "Support for dark/light mode switching"
+title: Hero Playground
+layout: doc
+root: true
+maxDepth: 6
+collapsed: false
+description: "Hero documentation and configuration entry for Hero Playground."
+priority: 10
 ---
+# Hero Playground
 
-# Hero Component Showcase
+Use the progressive matrix to validate every hero runtime configuration path.
 
-Welcome to view various Hero component display effects.
+## Quick Links
 
-## Available Examples
+- [All Hero Configuration](./AllConfig) — Complete API reference for every hero frontmatter field
+- [Hero Config Matrix](./matrix/index) — Progressive showcase pages for every configuration path
 
-- [Gradient Background](./gradient) - Gradient color background effect
-- [Image Background](./image) - Use image as background
-- [Video Background](./video) - Use video as background
-- [Particles Effect](./particles) - Particle animation background
-- [3D Effect](./3d-effect) - 3D hover effect
+## Hero System Overview
+
+The hero system is controlled entirely by `frontmatter.hero.*` in each page's YAML front matter.
+
+| System | Key | Description |
+| --- | --- | --- |
+| Layout | `hero.layout.viewport` | Full-viewport or content-height hero |
+| Typography | `hero.typography` | Motion profile for title/text/tagline/image |
+| Background | `hero.background` | Single or layered backgrounds (image/video/color/shader/particles) |
+| Waves | `hero.waves` | SVG wave bridge at the bottom of the hero |
+| Image | `hero.image` | Right-side hero media (image/video/gif/model3d/lottie) |
+| Floating | `hero.floating` | Decorative floating elements above the background |
+| Colors | `hero.colors` | Text, nav bar, and search box color overrides |
+| Actions | `hero.actions` | CTA buttons with full style customization |

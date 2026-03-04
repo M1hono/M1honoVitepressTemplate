@@ -1,175 +1,163 @@
-<template>
-  <div v-if="layers.length" class="hero-background">
-    <div
-      v-for="(layer, index) in layers"
-      :key="`${layer.type}-${index}`"
-      class="hero-bg-layer"
-      :style="layerStyle(layer, index)"
-    >
-      <div
-        v-if="layer.type === 'color'"
-        class="hero-bg-color"
-        :style="colorStyle(layer)"
-      ></div>
-      <div
-        v-else-if="layer.type === 'image'"
-        class="hero-bg-image"
-        :style="imageStyle(layer)"
-      ></div>
-      <video
-        v-else-if="layer.type === 'video'"
-        class="hero-bg-video"
-        :src="videoSrc(layer)"
-        :autoplay="layer.video?.autoplay ?? true"
-        :loop="layer.video?.loop ?? true"
-        :muted="layer.video?.muted ?? true"
-        playsinline
-      ></video>
-      <HeroShaderBackground
-        v-else-if="layer.type === 'shader'"
-        :vertex-shader="layer.shader?.custom?.vertex"
-        :fragment-shader="layer.shader?.custom?.fragment"
-        :preset="layer.shader?.preset"
-        :speed="layer.shader?.speed ?? 1"
-        :paused="layer.shader?.paused ?? false"
-      />
-      <ParticleSystem
-        v-else-if="layer.type === 'particles'"
-        :config="layer.particles ?? layer"
-      />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { computed } from 'vue';
-import { useData } from 'vitepress';
-import ParticleSystem from './ParticleSystem.vue';
-import HeroShaderBackground from './HeroShaderBackground.vue';
+    import { computed, onMounted, ref } from "vue";
+    import { useData } from "vitepress";
+    import BackgroundLayer from "./background/BackgroundLayer.vue";
+    import {
+        type HeroBackgroundConfig,
+        resolveNormalizedBackgroundLayers,
+    } from "../../../utils/vitepress/hero-frontmatter";
 
-interface ThemeableSource {
-  src?: string;
-  light?: string;
-  dark?: string;
-  alt?: string;
-}
+    const props = defineProps<{
+        config?: HeroBackgroundConfig;
+    }>();
+    const { isDark } = useData();
 
-interface BackgroundLayer {
-  type: 'image' | 'video' | 'color' | 'shader' | 'particles' | 'none';
-  zIndex?: number;
-  opacity?: number;
-  blend?: string;
-  image?: ThemeableSource & Record<string, any>;
-  video?: ThemeableSource & Record<string, any>;
-  color?: Record<string, any>;
-  shader?: Record<string, any>;
-  particles?: Record<string, any>;
-}
+    /**
+     * Reactive dark mode state that tracks isDark changes properly.
+     */
+    const isDarkClient = computed(() => isDark.value);
+    const isMounted = ref(false);
 
-interface BackgroundConfig extends Partial<BackgroundLayer> {
-  mode?: 'single' | 'layers';
-  layers?: BackgroundLayer[];
-}
+    onMounted(() => {
+        isMounted.value = true;
+    });
 
-const props = defineProps<{ config?: BackgroundConfig }>();
-const { isDark } = useData();
+    const config = computed(() => props.config);
 
-const layers = computed<BackgroundLayer[]>(() => {
-  const config = props.config;
-  if (!config) return [];
-  if (config.mode === 'layers' && Array.isArray(config.layers)) {
-    return config.layers as BackgroundLayer[];
-  }
-  if (config.type && config.type !== 'none') {
-    return [config as BackgroundLayer];
-  }
-  return [];
-});
-
-const layerStyle = (layer: BackgroundLayer, index: number) => ({
-  zIndex: layer.zIndex ?? index,
-  opacity: layer.opacity ?? 1,
-  mixBlendMode: layer.blend ?? 'normal',
-});
-
-const resolveThemeableSrc = (source?: ThemeableSource) => {
-  if (!source) return '';
-  if (source.light || source.dark) {
-    return isDark.value ? source.dark || source.light || '' : source.light || source.dark || '';
-  }
-  return source.src || '';
-};
-
-const imageStyle = (layer: BackgroundLayer) => {
-  const image = layer.image;
-  const src = resolveThemeableSrc(image);
-  return {
-    backgroundImage: src ? `url(${src})` : 'none',
-    backgroundSize: image?.size ?? 'cover',
-    backgroundPosition: image?.position ?? 'center center',
-    backgroundRepeat: image?.repeat ?? 'no-repeat',
-    filter: image?.blur ? `blur(${image.blur}px)` : undefined,
-    transform: image?.scale ? `scale(${image.scale})` : undefined,
-  };
-};
-
-const videoSrc = (layer: BackgroundLayer) => resolveThemeableSrc(layer.video);
-
-const colorStyle = (layer: BackgroundLayer) => {
-  const color = layer.color || {};
-  if (color.gradient?.enabled) {
-    const stops = (color.gradient.stops || [])
-      .map((stop: any) => `${stop.color} ${stop.position ?? ''}`.trim())
-      .join(', ');
-    if (color.gradient.type === 'radial') {
-      return {
-        backgroundImage: `radial-gradient(${color.gradient.shape ?? 'ellipse'} ${color.gradient.size ?? 'farthest-corner'} at ${color.gradient.center ?? '50% 50%'}, ${stops})`,
-      };
+    function warn(message: string) {
+        if (import.meta.env.DEV) {
+            console.warn(`[hero][background] ${message}`);
+        }
     }
-    if (color.gradient.type === 'conic') {
-      return {
-        backgroundImage: `conic-gradient(from ${color.gradient.direction ?? '0deg'} at ${color.gradient.center ?? '50% 50%'}, ${stops})`,
-      };
+
+    const normalizedLayers = computed(() =>
+        resolveNormalizedBackgroundLayers(config.value, warn),
+    );
+
+    const filterStyle = computed(() => {
+        const heroBackground = config.value;
+        const opacity =
+            typeof heroBackground?.opacity === "number"
+                ? heroBackground.opacity
+                : 1;
+        const brightness =
+            typeof heroBackground?.brightness === "number"
+                ? heroBackground.brightness
+                : 1;
+        const contrast =
+            typeof heroBackground?.contrast === "number"
+                ? heroBackground.contrast
+                : 1;
+        const saturation =
+            typeof heroBackground?.saturation === "number"
+                ? heroBackground.saturation
+                : 1;
+        const extraFilter =
+            typeof heroBackground?.filter === "string"
+                ? heroBackground.filter.trim()
+                : "";
+
+        const filterParts = [
+            `brightness(${Math.max(0, brightness)})`,
+            `contrast(${Math.max(0, contrast)})`,
+            `saturate(${Math.max(0, saturation)})`,
+        ];
+
+        if (extraFilter) filterParts.push(extraFilter);
+
+        return {
+            opacity: String(Math.max(0, Math.min(1, opacity))),
+            filter: filterParts.join(" "),
+        };
+    });
+
+    function resolveThemeValue<T>(
+        value: T | { light?: T; dark?: T; value?: T } | undefined,
+    ): T | undefined {
+        if (value === undefined || value === null) return undefined;
+        if (typeof value !== "object" || Array.isArray(value))
+            return value as T;
+        const theme = value as { light?: T; dark?: T; value?: T };
+        return isDarkClient.value
+            ? (theme.dark ?? theme.light ?? theme.value)
+            : (theme.light ?? theme.dark ?? theme.value);
     }
-    return {
-      backgroundImage: `linear-gradient(${color.gradient.direction ?? '135deg'}, ${stops})`,
-    };
-  }
-  const solid = color.solid || {};
-  const solidValue = solid.light || solid.dark || solid.value;
-  if (solidValue && (solid.light || solid.dark)) {
-    return {
-      backgroundColor: isDark.value ? solid.dark || solid.light : solid.light || solid.dark,
-    };
-  }
-  return {
-    backgroundColor: solid.value || 'transparent',
-  };
-};
+
+    function toCssValue(value: unknown): string | undefined {
+        if (value === undefined || value === null) return undefined;
+        if (typeof value === "string") return value;
+        if (typeof value === "number") return String(value);
+        if (typeof value === "boolean") return value ? "1" : "0";
+        if (Array.isArray(value))
+            return value.map((item) => String(item)).join(" ");
+        return String(value);
+    }
+
+    const cssVariableStyle = computed(() => {
+        const _mounted = isMounted.value;
+        const _dark = isDarkClient.value;
+
+        const style: Record<string, string> = {};
+        const mergedVars =
+            config.value?.cssVars && typeof config.value.cssVars === "object"
+                ? (config.value.cssVars as Record<string, unknown>)
+                : {};
+        if (Object.keys(mergedVars).length === 0) return style;
+
+        for (const [rawKey, rawValue] of Object.entries(mergedVars)) {
+            const key = rawKey.startsWith("--") ? rawKey : `--${rawKey}`;
+            const resolved = resolveThemeValue(rawValue as any);
+            const cssValue = toCssValue(resolved);
+            if (cssValue !== undefined) style[key] = cssValue;
+        }
+
+        return style;
+    });
+
+    const rootStyle = computed(() => {
+        const style: Record<string, string> = { ...cssVariableStyle.value };
+        const configStyle = config.value?.style as
+            | Record<string, unknown>
+            | undefined;
+        if (!configStyle) return style;
+
+        for (const [key, value] of Object.entries(configStyle)) {
+            const resolved = resolveThemeValue(value as any);
+            const cssValue = toCssValue(resolved);
+            if (cssValue !== undefined) style[key] = cssValue;
+        }
+
+        return style;
+    });
 </script>
 
+<template>
+    <div
+        v-if="normalizedLayers.length > 0"
+        class="hero-background"
+        :style="rootStyle"
+    >
+        <div class="hero-background__layers" :style="filterStyle">
+            <BackgroundLayer
+                v-for="(layer, index) in normalizedLayers"
+                :key="`${layer.type}-${index}`"
+                :layer="layer"
+            />
+        </div>
+    </div>
+</template>
+
 <style scoped>
-.hero-background {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  overflow: hidden;
-}
+    .hero-background {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+    }
 
-.hero-bg-layer {
-  position: absolute;
-  inset: 0;
-}
-
-.hero-bg-color,
-.hero-bg-image,
-.hero-bg-video {
-  width: 100%;
-  height: 100%;
-}
-
-.hero-bg-video {
-  object-fit: cover;
-}
+    .hero-background__layers {
+        position: absolute;
+        inset: 0;
+    }
 </style>

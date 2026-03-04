@@ -6,7 +6,7 @@
         getProjectInfo,
         getLanguages,
         getDefaultLanguage,
-    } from "../../../config/project-config";
+    } from "@config/project-config";
     import type { FooterConfig } from "../../../utils/content/footer";
     import { Icon } from "@iconify/vue";
     import utils from "../../../utils";
@@ -15,6 +15,9 @@
     const { frontmatter, lang, isDark } = useData();
     const projectInfo = getProjectInfo();
 
+    /**
+     * Component ID for i18n translations.
+     */
     const { t } = useSafeI18n("footer", {
         visits: "次访问",
         siteVisitors: "位访客",
@@ -23,12 +26,19 @@
     const footerData = ref<FooterConfig | null>(null);
     const currentYear = ref("");
 
+    /**
+     * Whether the current page is the home page.
+     */
     const isHome = computed(() => {
         return !!(
             frontmatter.value.isHome ?? frontmatter.value.layout === "home"
         );
     });
 
+    /**
+     * Loads footer configuration for the current language.
+     * @param currentLang - Current language code
+     */
     const loadFooterData = async (currentLang: string) => {
         const languages = getLanguages();
         const defaultLang = getDefaultLanguage();
@@ -63,6 +73,9 @@
         }
     };
 
+    /**
+     * Updates the current screen width.
+     */
     const updateScreenWidth = () => {
         screenWidth.value = window.innerWidth;
     };
@@ -79,6 +92,9 @@
         };
     });
 
+    /**
+     * Filtered footer groups based on page type.
+     */
     const filteredGroups = computed(() => {
         if (!footerData.value?.group) return [];
 
@@ -91,6 +107,10 @@
 
     const screenWidth = ref(0);
 
+    /**
+     * Gets the current screen size category.
+     * @returns Screen size category (xs, sm, md, lg)
+     */
     const getScreenSize = () => {
         const width = screenWidth.value;
         if (width <= 360) return "xs";
@@ -99,6 +119,12 @@
         return "lg";
     };
 
+    /**
+     * Calculates optimal column count based on group count and screen size.
+     * @param groupCount - Number of footer groups
+     * @param screenSize - Current screen size category
+     * @returns Optimal number of columns
+     */
     const calculateOptimalColumns = (
         groupCount: number,
         screenSize: string
@@ -116,6 +142,9 @@
         return Math.min(groupCount, maxColumns[screenSize]);
     };
 
+    /**
+     * Computed layout styles for footer groups based on screen size.
+     */
     const footerLayoutStyle = computed(() => {
         const groupCount = filteredGroups.value.length;
         if (groupCount === 0) return {};
@@ -159,29 +188,59 @@
         }
     });
 
+    /**
+     * Checks if a URL is an external link.
+     * @param url - URL to check
+     * @returns True if external link
+     */
     const isExternalLink = (url: string) => {
         return /^https?:\/\//.test(url);
     };
 
+    /**
+     * Resolves icon source based on icon configuration.
+     * @param icon - Icon configuration object
+     * @returns Resolved icon source URL or string
+     */
     const getIconSrc = (icon: any): string => {
         if (!icon) return "";
         if (typeof icon === "string") return icon;
-        if (icon.light && icon.dark) {
-            return isDark.value ? icon.dark : icon.light;
+        if (
+            typeof icon === "object" &&
+            (icon.light || icon.dark || icon.value)
+        ) {
+            return isDark.value
+                ? (icon.dark ?? icon.light ?? icon.value ?? "")
+                : (icon.light ?? icon.dark ?? icon.value ?? "");
         }
         return icon.icon || "";
     };
 
+    /**
+     * Checks if icon source is inline SVG.
+     * @param src - Icon source string
+     * @returns True if inline SVG
+     */
     const isInlineSvg = (src: string): boolean => {
         return src.trim().startsWith("<svg");
     };
 
+    /**
+     * Checks if icon source is an Iconify icon.
+     * @param src - Icon source string
+     * @returns True if Iconify icon
+     */
     const isIconifyIcon = (src: string): boolean => {
         return (
             src.includes(":") && !src.startsWith("http") && !src.startsWith("/")
         );
     };
 
+    /**
+     * Checks if icon source is an image URL.
+     * @param src - Icon source string
+     * @returns True if image URL
+     */
     const isImageUrl = (src: string): boolean => {
         return (
             /\.(svg|png|jpg|jpeg|gif|webp)$/i.test(src) ||
@@ -189,9 +248,18 @@
         );
     };
 
+    /**
+     * Gets icon color based on theme.
+     * @param icon - Icon configuration
+     * @param isDark - Whether dark theme is active
+     * @returns Resolved color string or undefined
+     */
     const getIconColor = (icon: any, isDark: boolean): string | undefined => {
         if (!icon?.color) return undefined;
-        return isDark ? icon.color.dark : icon.color.light;
+        if (typeof icon.color !== "object") return icon.color;
+        return isDark
+            ? (icon.color.dark ?? icon.color.light ?? icon.color.value)
+            : (icon.color.light ?? icon.color.dark ?? icon.color.value);
     };
 </script>
 

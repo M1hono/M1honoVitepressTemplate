@@ -1,0 +1,47 @@
+{
+  "level-1-default/": {
+    "valueHash": "d3d9446802a44259755d38e6d163e820",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-2-shape-opacity/": {
+    "valueHash": "98f13708210194c475687be6106a3b84",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level-3-mobile-tuning/": {
+    "valueHash": "34173cb38f07f89ddbebc2ac9128303f",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "deprecated-background-type/": {
+    "valueHash": "8613985ec49eb8f757ae6439e879bb2a",
+    "isUserSet": false,
+    "isActiveInStructure": false
+  },
+  "level1Default.md": {
+    "valueHash": "d3d9446802a44259755d38e6d163e820",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level2ShapeOpacity.md": {
+    "valueHash": "98f13708210194c475687be6106a3b84",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level3MobileTuning.md": {
+    "valueHash": "34173cb38f07f89ddbebc2ac9128303f",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "deprecatedBackgroundType.md": {
+    "valueHash": "8613985ec49eb8f757ae6439e879bb2a",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "level4OutlineColor.md": {
+    "valueHash": "d645920e395fedad7bbbed0eca3fe2e0",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  }
+}

@@ -1,25 +1,36 @@
-import type { DefaultTheme } from 'vitepress';
-import { getProjectInfo, getLanguageByCode, getLangCodeFromLink, getSearchLocaleKey, isFeatureEnabled } from '../project-config';
-import { getSidebarSync } from '../../utils/sidebar';
+import type { DefaultTheme } from "vitepress";
+import type { SearchLocalesByProvider } from "../../utils/config/project-config";
+import {
+    getProjectInfo,
+    getLanguageByCode,
+    getLangCodeFromLink,
+    getSearchLocaleKey,
+    isFeatureEnabled,
+} from "../../utils/config/project-config";
+import { getSidebarSync } from "../../utils/sidebar";
 
 const projectInfo = getProjectInfo();
-const langConfig = getLanguageByCode('en-US')!;
+const langConfig = getLanguageByCode("en-US")!;
 
 export const en_US = <DefaultTheme.Config>{
     label: langConfig.displayName,
     lang: langConfig.giscusLang,
     link: langConfig.link,
-    title: 'Mihono Vitepress Template',
-    description: 'A template for Vitepress documentation',
+    title: "Mihono Vitepress Template",
+    description: "A template for Vitepress documentation",
     themeConfig: {
         nav: [
             {
                 text: "Home",
                 link: "/",
-            }   
+            },
+            {
+                text: "Hero All Config",
+                link: "/en-US/hero/AllConfig",
+            },
         ],
-        sidebar: isFeatureEnabled('autoSidebar') 
-            ? getSidebarSync(getLangCodeFromLink(langConfig.link!)) 
+        sidebar: isFeatureEnabled("autoSidebar")
+            ? getSidebarSync(getLangCodeFromLink(langConfig.link!))
             : [],
         outline: {
             level: "deep",
@@ -36,10 +47,15 @@ export const en_US = <DefaultTheme.Config>{
                 timeStyle: "medium",
             },
         },
-        editLink: isFeatureEnabled('editLink') && projectInfo.editLink ? {
-            pattern: projectInfo.editLink.pattern,
-            text: projectInfo.editLink.text || "Edit this page on GitHub"
-        } : undefined,
+        editLink:
+            isFeatureEnabled("editLink") && projectInfo.editLink
+                ? {
+                      pattern: projectInfo.editLink.pattern,
+                      text:
+                          projectInfo.editLink.text ||
+                          "Edit this page on GitHub",
+                  }
+                : undefined,
         langMenuLabel: "Change Language",
         darkModeSwitchLabel: "Switch Theme",
         lightModeSwitchTitle: "Switch to light mode",
@@ -68,9 +84,11 @@ export const search: DefaultTheme.AlgoliaSearchOptions["locales"] = {
                     recentSearchesTitle: "Recent",
                     noRecentSearchesText: "No recent searches",
                     saveRecentSearchButtonTitle: "Save this search",
-                    removeRecentSearchButtonTitle: "Remove this search from history",
+                    removeRecentSearchButtonTitle:
+                        "Remove this search from history",
                     favoriteSearchesTitle: "Favorites",
-                    removeFavoriteSearchButtonTitle: "Remove this search from favorites",
+                    removeFavoriteSearchButtonTitle:
+                        "Remove this search from favorites",
                 },
                 errorScreen: {
                     titleText: "Unable to fetch results",
@@ -85,10 +103,38 @@ export const search: DefaultTheme.AlgoliaSearchOptions["locales"] = {
                 noResultsScreen: {
                     noResultsText: "No results for",
                     suggestedQueryText: "Try searching for",
-                    reportMissingResultsText: "Believe this query should return results?",
+                    reportMissingResultsText:
+                        "Believe this query should return results?",
                     reportMissingResultsLinkText: "Let us know",
                 },
             },
         },
     },
+};
+
+export const localSearch: DefaultTheme.LocalSearchOptions["locales"] = {
+    [getSearchLocaleKey(langConfig.code)]: {
+        translations: {
+            button: {
+                buttonText: "Search",
+                buttonAriaLabel: "Search",
+            },
+            modal: {
+                displayDetails: "Display detailed list",
+                resetButtonTitle: "Clear query",
+                backButtonTitle: "Close search",
+                noResultsText: "No results for $q",
+                footer: {
+                    selectText: "to select",
+                    navigateText: "to navigate",
+                    closeText: "to close",
+                },
+            },
+        },
+    },
+};
+
+export const searchLocales: SearchLocalesByProvider = {
+    algolia: search,
+    local: localSearch,
 };

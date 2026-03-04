@@ -22,6 +22,10 @@
     import { ref, onMounted, onUnmounted } from "vue";
 
     const { isDark } = useData();
+
+    /**
+     * Bilibili video BV ID.
+     */
     const props = defineProps({
         bvid: {
             type: String,
@@ -32,6 +36,9 @@
     const videoIframe = ref<HTMLIFrameElement | null>(null);
     let player: any = null;
 
+    /**
+     * Toggles play/pause state of the embedded player.
+     */
     const togglePlay = () => {
         if (player) {
             if (player.paused) {
@@ -42,6 +49,10 @@
         }
     };
 
+    /**
+     * Handles postMessage events from the Bilibili iframe player.
+     * @param event - Message event from iframe
+     */
     const handleMessage = (event: MessageEvent) => {
         if (event.source === videoIframe.value?.contentWindow) {
             if (event.data.type === "videoInfo") {

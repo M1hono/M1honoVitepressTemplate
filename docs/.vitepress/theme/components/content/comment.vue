@@ -18,7 +18,7 @@
         getGiscusConfig,
         getLangCodeFromVitepressLang,
         generateGiscusTerm,
-    } from "../../../config/project-config";
+    } from "@config/project-config";
 
     const { isDark, lang, localeIndex, frontmatter } = useData();
     const route = useRoute();

@@ -3,9 +3,15 @@ import { withMermaid } from "vitepress-plugin-mermaid";
 import withDrawio from "@dhlx/vitepress-plugin-drawio";
 
 import { commonConfig } from "./config/common-config"
-import { generateLocalesConfigAuto, getProjectInfo, isFeatureEnabled } from "./config/project-config"
+import {
+    generateLocalesConfigAuto,
+    getProjectInfo,
+    isFeatureEnabled,
+    resolveThemeSearchConfig,
+} from "./utils/config/project-config"
 
 const { locales, searchLocales } = await generateLocalesConfigAuto(true);
+const resolvedSearchConfig = resolveThemeSearchConfig(searchLocales);
 const projectInfo = getProjectInfo();
 
 const finalConfig = {
@@ -13,15 +19,7 @@ const finalConfig = {
     locales,
     themeConfig: {
         ...commonConfig.themeConfig,
-        search: isFeatureEnabled('search') ? {
-            provider: "algolia",
-            options: {
-                appId: projectInfo.algolia.appId,
-                apiKey: projectInfo.algolia.apiKey, 
-                indexName: projectInfo.algolia.indexName,
-                locales: searchLocales
-            }
-        } : undefined,
+        search: resolvedSearchConfig,
     }
 };
 

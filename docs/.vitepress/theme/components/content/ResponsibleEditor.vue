@@ -3,7 +3,7 @@
     import { useData } from "vitepress";
     import { computed } from "vue";
     import { useSafeI18n } from "@utils/i18n/locale";
-    import { getProjectInfo } from "../../../config/project-config";
+    import { getProjectInfo } from "@config/project-config";
 
     const { t } = useSafeI18n("responsible-editor", {
         editorLabel: "Responsible Editor:",

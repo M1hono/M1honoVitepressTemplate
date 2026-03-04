@@ -1,57 +1,236 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { motion } from 'motion-v';
+    import { computed } from "vue";
+    import type { HeroTypographyStyleType } from "@utils/vitepress/hero-frontmatter";
 
-const props = defineProps<{
-  text?: string;
-}>();
+    const props = defineProps<{
+        text?: string;
+        animate?: boolean;
+        styleType?: HeroTypographyStyleType;
+    }>();
+
+    const styleClass = computed(() =>
+        props.styleType === "none"
+            ? "tagline--none"
+            : props.styleType === "slanted-wrap"
+              ? "tagline--slanted-wrap"
+              : props.styleType === "grouped-float"
+                ? "tagline--grouped-float"
+                : "tagline--floating-tilt",
+    );
 </script>
 
 <template>
-  <motion.p
-    v-if="text"
-    class="hero-tagline"
-    :initial="{ opacity: 0, y: 20 }"
-    :animate="{ opacity: 1, y: 0 }"
-    :transition="{ duration: 0.8, delay: 0.4 }"
-  >
-    {{ text }}
-  </motion.p>
+    <p v-if="text" class="tagline" :class="styleClass" v-html="text" />
 </template>
 
 <style scoped>
-.hero-tagline {
-  margin: 0 0 1.5rem 0;
-  font-size: clamp(18px, 2.5vw, 28px);
-  font-weight: 500;
-  line-height: 1.6;
-  color: var(--vp-c-text-2);
-  max-width: 600px;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  position: relative;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
-}
+    .tagline {
+        padding-top: var(--hero-tagline-padding-top, 18px);
+        max-width: var(--hero-tagline-max-width, 680px);
+        line-height: var(--hero-tagline-line-height, 1.6);
+        font-size: var(--hero-tagline-font-size, clamp(1.15rem, 2.2vw, 1.6rem));
+        font-weight: var(--hero-tagline-weight, 500);
+        font-family: var(--hero-tagline-font, inherit);
+        letter-spacing: var(--hero-tagline-letter-spacing, -0.01em);
+        text-align: var(--hero-tagline-align, inherit);
+        white-space: pre-wrap;
+        color: var(--hero-tagline-color, var(--vp-c-text-2));
+        text-wrap: pretty;
+        position: relative;
+        will-change: transform;
+    }
 
-.dark .hero-tagline {
-  text-shadow: 0 2px 3px rgba(0, 0, 0, 0.25);
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15));
-}
+    .tagline--floating-tilt {
+        transform-origin: left 52%;
+        transform: translate3d(
+                calc(
+                    var(--hero-typo-tagline-x, 0px) *
+                        var(--hero-typo-node-factor, 1)
+                ),
+                calc(
+                    var(--hero-typo-tagline-y, 0px) *
+                        var(--hero-typo-node-factor, 1)
+                ),
+                0
+            )
+            scale(
+                calc(
+                    1 + (var(--hero-typo-tagline-scale, 1) - 1) *
+                        var(--hero-typo-node-factor, 1)
+                )
+            );
+    }
 
-@media (max-width: 768px) {
-  .hero-tagline {
-    font-size: clamp(16px, 4vw, 22px);
-    text-align: center;
-    margin-left: auto;
-    margin-right: auto;
-  }
-}
+    .tagline--slanted-wrap {
+        transform-origin: left 46%;
+        transform: translate3d(
+                calc(
+                    var(--hero-typo-tagline-x, 0px) *
+                        var(--hero-typo-node-factor, 1)
+                ),
+                calc(
+                    var(--hero-typo-tagline-y, 0px) *
+                        var(--hero-typo-node-factor, 1)
+                ),
+                0
+            )
+            rotate(
+                calc(
+                    var(--hero-typo-tagline-rotate, 0deg) *
+                        var(--hero-typo-node-factor, 1)
+                )
+            )
+            scale(
+                calc(
+                    1 + (var(--hero-typo-tagline-scale, 1) - 1) *
+                        var(--hero-typo-node-factor, 1)
+                )
+            );
+    }
 
-@media (max-width: 480px) {
-  .hero-tagline {
-    font-size: clamp(14px, 5vw, 20px);
-    margin-bottom: 1rem;
-  }
-}
+    .tagline--grouped-float {
+        transform-origin: left 50%;
+        --hero-grouped-tagline-base-x: calc(
+            var(--hero-typo-tagline-x, 0px) * var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-tagline-base-y: calc(
+            var(--hero-typo-tagline-y, 0px) * var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-tagline-base-rotate: calc(
+            var(--hero-typo-tagline-rotate, 0deg) *
+                var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-tagline-base-scale: calc(
+            1 + (var(--hero-typo-tagline-scale, 1) - 1) *
+                var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-tagline-drift-x: calc(
+            var(--hero-typo-tagline-drift-x, 12px) *
+                var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-tagline-drift-y: calc(
+            var(--hero-typo-tagline-drift-y, 10px) *
+                var(--hero-typo-node-factor, 1)
+        );
+        transform: translate3d(
+                var(--hero-grouped-tagline-base-x),
+                var(--hero-grouped-tagline-base-y),
+                0
+            )
+            rotate(var(--hero-grouped-tagline-base-rotate))
+            scale(var(--hero-grouped-tagline-base-scale));
+        animation: hero-grouped-tagline-float 15.6s
+            cubic-bezier(0.44, 0.04, 0.24, 0.98) infinite;
+        animation-delay: -5.1s;
+    }
+
+    @keyframes hero-grouped-tagline-float {
+        0%,
+        100% {
+            transform: translate3d(
+                    var(--hero-grouped-tagline-base-x),
+                    var(--hero-grouped-tagline-base-y),
+                    0
+                )
+                rotate(var(--hero-grouped-tagline-base-rotate))
+                scale(var(--hero-grouped-tagline-base-scale));
+        }
+        23% {
+            transform: translate3d(
+                    calc(
+                        var(--hero-grouped-tagline-base-x) +
+                            var(--hero-grouped-tagline-drift-x) * 0.34
+                    ),
+                    calc(
+                        var(--hero-grouped-tagline-base-y) -
+                            var(--hero-grouped-tagline-drift-y) * 0.68
+                    ),
+                    0
+                )
+                rotate(
+                    calc(
+                        var(--hero-grouped-tagline-base-rotate) + 0.48deg *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                )
+                scale(
+                    calc(
+                        var(--hero-grouped-tagline-base-scale) + 0.013 *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                );
+        }
+        51% {
+            transform: translate3d(
+                    calc(
+                        var(--hero-grouped-tagline-base-x) -
+                            var(--hero-grouped-tagline-drift-x) * 0.7
+                    ),
+                    calc(
+                        var(--hero-grouped-tagline-base-y) +
+                            var(--hero-grouped-tagline-drift-y) * 0.3
+                    ),
+                    0
+                )
+                rotate(
+                    calc(
+                        var(--hero-grouped-tagline-base-rotate) - 0.55deg *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                )
+                scale(
+                    calc(
+                        var(--hero-grouped-tagline-base-scale) - 0.009 *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                );
+        }
+        76% {
+            transform: translate3d(
+                    calc(
+                        var(--hero-grouped-tagline-base-x) +
+                            var(--hero-grouped-tagline-drift-x) * 0.24
+                    ),
+                    calc(
+                        var(--hero-grouped-tagline-base-y) +
+                            var(--hero-grouped-tagline-drift-y) * 0.58
+                    ),
+                    0
+                )
+                rotate(
+                    calc(
+                        var(--hero-grouped-tagline-base-rotate) + 0.28deg *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                )
+                scale(
+                    calc(
+                        var(--hero-grouped-tagline-base-scale) + 0.006 *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                );
+        }
+    }
+
+    .tagline--none {
+        transform: none;
+    }
+
+    @media (min-width: 640px) {
+        .tagline {
+            max-width: var(--hero-tagline-max-width, 720px);
+        }
+    }
+
+    @media (min-width: 960px) {
+        .tagline {
+            max-width: var(--hero-tagline-max-width, 760px);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .tagline--grouped-float {
+            animation: none !important;
+        }
+    }
 </style>

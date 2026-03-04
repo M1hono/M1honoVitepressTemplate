@@ -44,7 +44,7 @@ export const projectConfig: ProjectConfig = {
 
          // Feature Toggles
      features: {
-         search: false, // Algolia search
+         search: true, // Global search toggle
          gitChangelog: true, // Git changelog
          mermaid: true, // Diagram support
          autoSidebar: true, // Auto sidebar generation
@@ -86,14 +86,72 @@ paths: {
 ### Search Configuration
 
 ```typescript
+search: {
+    enabled: true,
+    provider: "local", // "local" | "algolia" | "none" | custom string
+    local: {
+        options: {
+            detailedView: "auto",
+            disableQueryPersistence: false
+        }
+    },
+    algolia: {
+        appId: "YOUR_APP_ID",
+        apiKey: "YOUR_API_KEY",
+        indexName: "YOUR_INDEX_NAME"
+    },
+    providers: {
+        // Example custom plugin provider
+        // "my-search-plugin": {
+        //   options: {},
+        //   locales: {},
+        //   resolver: ({ provider, providerConfig }) => ({
+        //      provider: provider as "local" | "algolia",
+        //      options: providerConfig?.options as any
+        //   })
+        // }
+    }
+},
+
+// Legacy (still supported):
 algolia: {
     appId: "YOUR_APP_ID",
     apiKey: "YOUR_API_KEY",
     indexName: "YOUR_INDEX_NAME"
 },
 features: {
-    search: true  // Enable search
+    search: true  // Global on/off switch
 }
+```
+
+Quick provider switching:
+
+```typescript
+search: { enabled: true, provider: "local" }   // Built-in local index
+search: { enabled: true, provider: "algolia" } // Algolia DocSearch
+search: { enabled: true, provider: "none" }    // Hide search
+```
+
+Plugin extension API:
+
+```typescript
+// .vitepress/config.mts
+import {
+  registerSearchProviderResolver,
+  resolveThemeSearchConfig,
+  generateLocalesConfigAuto
+} from "./utils/config/project-config";
+
+registerSearchProviderResolver("my-search-plugin", ({ providerConfig }) => {
+  // Adapt plugin options to VitePress themeConfig.search shape
+  return {
+    provider: "local",
+    options: providerConfig?.options as any
+  };
+});
+
+const { locales, searchLocales } = await generateLocalesConfigAuto(true);
+const search = resolveThemeSearchConfig(searchLocales);
 ```
 
 ## Adding Languages
@@ -229,6 +287,29 @@ export const search: DefaultTheme.AlgoliaSearchOptions["locales"] = {
             },
         },
     },
+};
+
+export const localSearch: DefaultTheme.LocalSearchOptions["locales"] = {
+    fr: {
+        translations: {
+            button: {
+                buttonText: "Rechercher",
+                buttonAriaLabel: "Rechercher",
+            },
+            modal: {
+                displayDetails: "Afficher les détails",
+                resetButtonTitle: "Réinitialiser la recherche",
+                backButtonTitle: "Fermer la recherche",
+                noResultsText: "Aucun résultat pour $q",
+            },
+        },
+    },
+};
+
+// Recommended for new language files:
+export const searchLocales = {
+    algolia: search,
+    local: localSearch,
 };
 ```
 

@@ -1,85 +1,273 @@
 <script setup lang="ts">
-import { computed } from 'vue';
-import { motion } from 'motion-v';
+    import { computed } from "vue";
+    import type { HeroTypographyStyleType } from "@utils/vitepress/hero-frontmatter";
 
-const props = defineProps<{
-  text?: string;
-}>();
+    const props = defineProps<{
+        text?: string;
+        animate?: boolean;
+        styleType?: HeroTypographyStyleType;
+    }>();
 
-const words = computed(() => {
-  if (!props.text) return [];
-  return props.text.split(' ');
-});
+    const styleClass = computed(() =>
+        props.styleType === "none"
+            ? "name--none"
+            : props.styleType === "slanted-wrap"
+              ? "name--slanted-wrap"
+              : props.styleType === "grouped-float"
+                ? "name--grouped-float"
+                : "name--floating-tilt",
+    );
 </script>
 
 <template>
-  <div v-if="text" class="hero-title">
-    <h1 class="title">
-      <span
-        v-for="(word, wordIndex) in words"
-        :key="`word-${wordIndex}`"
-        class="word"
-      >
-        <span
-          v-for="(letter, letterIndex) in word.split('')"
-          :key="`letter-${wordIndex}-${letterIndex}`"
-          class="letter"
-        >
-          {{ letter }}
-        </span>
-        <span class="word-space">&nbsp;</span>
-      </span>
-    </h1>
-  </div>
+    <span v-if="text" class="name clip" :class="styleClass" v-html="text" />
 </template>
 
 <style scoped>
-.hero-title {
-  margin-bottom: 1.5rem;
-}
+    .name {
+        width: fit-content;
+        max-width: var(--hero-name-max-width, 820px);
+        letter-spacing: var(--hero-name-letter-spacing, -0.02em);
+        line-height: var(--hero-name-line-height, 0.95);
+        font-size: var(--hero-name-font-size, clamp(3.2rem, 7.5vw, 6.4rem));
+        font-weight: var(--hero-name-weight, 800);
+        font-family: var(
+            --hero-name-font,
+            "Playfair Display",
+            "EB Garamond",
+            ui-serif,
+            Georgia,
+            serif
+        );
+        text-align: var(--hero-name-align, inherit);
+        white-space: pre-wrap;
+        color: var(--hero-name-color, var(--vp-home-hero-name-color));
+        text-wrap: balance;
+        position: relative;
+        text-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+        will-change: transform;
+    }
 
-.title {
-  margin: 0;
-  font-size: clamp(40px, 8vw, 80px);
-  font-weight: 900;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-  font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  position: relative;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
-  color: var(--vp-c-brand-1);
-}
+    .name--floating-tilt {
+        transform-origin: left 56%;
+        transform: translate3d(
+                calc(
+                    var(--hero-typo-title-x, 0px) *
+                        var(--hero-typo-node-factor, 1)
+                ),
+                calc(
+                    var(--hero-typo-title-y, 0px) *
+                        var(--hero-typo-node-factor, 1)
+                ),
+                0
+            )
+            scale(
+                calc(
+                    1 + (var(--hero-typo-title-scale, 1) - 1) *
+                        var(--hero-typo-node-factor, 1)
+                )
+            );
+    }
 
-.word {
-  display: inline-block;
-}
+    .name--slanted-wrap {
+        transform-origin: left 54%;
+        transform: translate3d(
+                calc(
+                    var(--hero-typo-title-x, 0px) *
+                        var(--hero-typo-node-factor, 1)
+                ),
+                calc(
+                    var(--hero-typo-title-y, 0px) *
+                        var(--hero-typo-node-factor, 1)
+                ),
+                0
+            )
+            rotate(
+                calc(
+                    var(--hero-typo-title-rotate, 0deg) *
+                        var(--hero-typo-node-factor, 1)
+                )
+            )
+            scale(
+                calc(
+                    1 + (var(--hero-typo-title-scale, 1) - 1) *
+                        var(--hero-typo-node-factor, 1)
+                )
+            );
+    }
 
-.letter {
-  display: inline-block;
-  transform-origin: bottom;
-}
+    .name--grouped-float {
+        transform-origin: left 56%;
+        --hero-grouped-title-base-x: calc(
+            var(--hero-typo-title-x, 0px) * var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-title-base-y: calc(
+            var(--hero-typo-title-y, 0px) * var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-title-base-rotate: calc(
+            var(--hero-typo-title-rotate, 0deg) *
+                var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-title-base-scale: calc(
+            1 + (var(--hero-typo-title-scale, 1) - 1) *
+                var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-title-drift-x: calc(
+            var(--hero-typo-title-drift-x, 10px) *
+                var(--hero-typo-node-factor, 1)
+        );
+        --hero-grouped-title-drift-y: calc(
+            var(--hero-typo-title-drift-y, 9px) *
+                var(--hero-typo-node-factor, 1)
+        );
+        transform: translate3d(
+                var(--hero-grouped-title-base-x),
+                var(--hero-grouped-title-base-y),
+                0
+            )
+            rotate(var(--hero-grouped-title-base-rotate))
+            scale(var(--hero-grouped-title-base-scale));
+        animation: hero-grouped-title-float 12.2s
+            cubic-bezier(0.46, 0.03, 0.22, 0.98) infinite;
+        animation-delay: -1.7s;
+    }
 
-.word-space {
-  display: inline-block;
-  width: 0.25em;
-}
+    @keyframes hero-grouped-title-float {
+        0%,
+        100% {
+            transform: translate3d(
+                    var(--hero-grouped-title-base-x),
+                    var(--hero-grouped-title-base-y),
+                    0
+                )
+                rotate(var(--hero-grouped-title-base-rotate))
+                scale(var(--hero-grouped-title-base-scale));
+        }
+        24% {
+            transform: translate3d(
+                    calc(
+                        var(--hero-grouped-title-base-x) +
+                            var(--hero-grouped-title-drift-x) * 0.64
+                    ),
+                    calc(
+                        var(--hero-grouped-title-base-y) -
+                            var(--hero-grouped-title-drift-y) * 0.42
+                    ),
+                    0
+                )
+                rotate(
+                    calc(
+                        var(--hero-grouped-title-base-rotate) + 0.82deg *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                )
+                scale(
+                    calc(
+                        var(--hero-grouped-title-base-scale) + 0.018 *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                );
+        }
+        49% {
+            transform: translate3d(
+                    calc(
+                        var(--hero-grouped-title-base-x) -
+                            var(--hero-grouped-title-drift-x) * 0.28
+                    ),
+                    calc(
+                        var(--hero-grouped-title-base-y) +
+                            var(--hero-grouped-title-drift-y) * 0.58
+                    ),
+                    0
+                )
+                rotate(
+                    calc(
+                        var(--hero-grouped-title-base-rotate) - 0.54deg *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                )
+                scale(
+                    calc(
+                        var(--hero-grouped-title-base-scale) - 0.012 *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                );
+        }
+        72% {
+            transform: translate3d(
+                    calc(
+                        var(--hero-grouped-title-base-x) +
+                            var(--hero-grouped-title-drift-x) * 0.22
+                    ),
+                    calc(
+                        var(--hero-grouped-title-base-y) -
+                            var(--hero-grouped-title-drift-y) * 0.74
+                    ),
+                    0
+                )
+                rotate(
+                    calc(
+                        var(--hero-grouped-title-base-rotate) + 0.36deg *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                )
+                scale(
+                    calc(
+                        var(--hero-grouped-title-base-scale) + 0.008 *
+                            var(--hero-typo-node-factor, 1)
+                    )
+                );
+        }
+    }
 
-.dark .title {
-  filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.4));
-}
+    .name--none {
+        transform: none;
+    }
 
-@media (max-width: 768px) {
-  .title {
-    font-size: clamp(32px, 10vw, 60px);
-    text-align: center;
-  }
-}
+    /* Gradient underline accent — enable by setting --hero-name-accent-color */
+    .name::after {
+        content: "";
+        display: block;
+        height: var(--hero-name-accent-height, 4px);
+        border-radius: 2px;
+        margin-top: 0.12em;
+        background: var(--hero-name-accent-color, transparent);
+        transform-origin: left;
+        transform: scaleX(var(--hero-name-accent-scale, 0));
+        transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+        pointer-events: none;
+    }
 
-@media (max-width: 480px) {
-  .title {
-    font-size: clamp(28px, 12vw, 48px);
-  }
-}
+    /* Auto-reveal accent on mount if it is configured */
+    .name:where([data-accent]) ::after {
+        transform: scaleX(1);
+    }
+
+    .clip {
+        background: var(--vp-home-hero-name-background);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: var(
+            --hero-name-color,
+            var(--vp-home-hero-name-color)
+        );
+    }
+
+    @media (min-width: 640px) {
+        .name {
+            max-width: var(--hero-name-max-width, 720px);
+        }
+    }
+
+    @media (min-width: 960px) {
+        .name {
+            max-width: var(--hero-name-max-width, 760px);
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .name--grouped-float {
+            animation: none !important;
+        }
+    }
 </style>
