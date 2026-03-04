@@ -51,7 +51,12 @@ export function useFloatingElements(props: UseFloatingElementsProps) {
         if (value === undefined || value === null) return undefined;
         if (typeof value !== "object") return value as T;
         const themed = value as { light?: T; dark?: T; value?: T };
-        return isDark.value
+        const reactiveDark = isDark.value;
+        const domDark =
+            typeof document !== "undefined"
+                ? document.documentElement.classList.contains("dark")
+                : reactiveDark;
+        return domDark
             ? (themed.dark ?? themed.light ?? themed.value)
             : (themed.light ?? themed.dark ?? themed.value);
     }
@@ -393,7 +398,7 @@ export function useFloatingElements(props: UseFloatingElementsProps) {
     }));
 
     function itemStyle(item: NormalizedFloatingItem) {
-        return {
+        const style = {
             left: item.x,
             top: item.y,
             width: item.width,
@@ -457,6 +462,14 @@ export function useFloatingElements(props: UseFloatingElementsProps) {
             "--floating-shape-shadow": item.shapeShadow,
             "--floating-shape-size": item.shapeSize,
         } as Record<string, string | undefined>;
+
+        for (const [key, value] of Object.entries(style)) {
+            if (value === undefined || value === "") {
+                delete style[key];
+            }
+        }
+
+        return style;
     }
 
     return {
