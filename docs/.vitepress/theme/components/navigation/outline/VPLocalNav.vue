@@ -7,6 +7,8 @@
     import { useLocalNav } from "vitepress/dist/client/theme-default/composables/local-nav";
     // @ts-ignore VitePress internal
     import { getHeaders } from "vitepress/dist/client/theme-default/composables/outline";
+    // @ts-ignore VitePress internal
+    import { useSidebar } from "vitepress/dist/client/theme-default/composables/sidebar";
     import VPLocalNavOutlineDropdown from "./VPLocalNavOutlineDropdown.vue";
 
     defineProps<{
@@ -18,6 +20,7 @@
     }>();
 
     const { theme, frontmatter } = useData();
+    const { hasSidebar } = useSidebar();
     const { headers } = useLocalNav();
     const { y } = useWindowScroll();
 
@@ -42,13 +45,13 @@
     });
 
     const emptyAndNoSidebar = computed(() => {
-        return empty.value;
+        return empty.value && !hasSidebar.value;
     });
 
     const classes = computed(() => {
         return {
             VPLocalNav: true,
-            "has-sidebar": false,
+            "has-sidebar": hasSidebar.value,
             empty: empty.value,
             fixed: emptyAndNoSidebar.value,
         };
@@ -64,6 +67,19 @@
         :class="classes"
     >
         <div class="container">
+            <button
+                v-if="hasSidebar"
+                class="menu"
+                :aria-expanded="open"
+                aria-controls="VPSidebarNav"
+                @click="$emit('open-menu')"
+            >
+                <span class="vpi-align-left menu-icon"></span>
+                <span class="menu-text">
+                    {{ theme.sidebarMenuLabel || "Menu" }}
+                </span>
+            </button>
+
             <VPLocalNavOutlineDropdown
                 :headers="headers"
                 :navHeight="navHeight"

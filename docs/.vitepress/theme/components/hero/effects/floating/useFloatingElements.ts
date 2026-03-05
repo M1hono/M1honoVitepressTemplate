@@ -51,12 +51,7 @@ export function useFloatingElements(props: UseFloatingElementsProps) {
         if (value === undefined || value === null) return undefined;
         if (typeof value !== "object") return value as T;
         const themed = value as { light?: T; dark?: T; value?: T };
-        const reactiveDark = isDark.value;
-        const domDark =
-            typeof document !== "undefined"
-                ? document.documentElement.classList.contains("dark")
-                : reactiveDark;
-        return domDark
+        return isDark.value
             ? (themed.dark ?? themed.light ?? themed.value)
             : (themed.light ?? themed.dark ?? themed.value);
     }
