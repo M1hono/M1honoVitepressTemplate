@@ -1,17 +1,23 @@
-import type { DefaultTheme } from 'vitepress';
-import type { SearchLocalesByProvider } from '../../utils/config/project-config';
-import { getProjectInfo, getLanguageByCode, getLangCodeFromLink, getSearchLocaleKey, isFeatureEnabled } from '../../utils/config/project-config';
-import { getSidebarSync } from '../../utils/sidebar';
+import type { DefaultTheme } from "vitepress";
+import type { SearchLocalesByProvider } from "../../utils/config/project-config";
+import {
+    getProjectInfo,
+    getLanguageByCode,
+    getLangCodeFromLink,
+    getSearchLocaleKey,
+    isFeatureEnabled,
+} from "../../utils/config/project-config";
+import { getSidebarSync } from "../../utils/sidebar";
 
 const projectInfo = getProjectInfo();
 // Note: The 'code' field should follow the format "language-region" (e.g., "en-US", "zh-CN") for proper locale handling
-const langConfig = getLanguageByCode('lang-Code')!;
+const langConfig = getLanguageByCode("lang-Code")!;
 
 /**
  * This is a template language configuration file for Vitepress.
  * You must replace 'lang-Code' with the actual language code you want to support (e.g., 'en-US', 'zh-CN').
  * The name of the exported constant should also follow the format 'lang_Code' to ensure the logic in config.ts can correctly import and use it.
- * 
+ *
  * When adding a new language, make sure to:
  * 1. Add the language configuration in project-config.ts with the correct 'code' and 'fileName' fields.
  * 2. Copy this template file, rename it to match the 'fileName' specified in project-config.ts (e.g., 'en.ts', 'zh.ts'), and update the content with appropriate translations and settings for the new language.
@@ -23,17 +29,11 @@ export const lang_Code = <DefaultTheme.Config>{
     label: langConfig.displayName,
     lang: langConfig.giscusLang,
     link: langConfig.link,
-    title: 'Mihono Vitepress Template',
-    description: 'A template for Vitepress documentation',
+    title: "Mihono Vitepress Template",
+    description: "A template for Vitepress documentation",
     themeConfig: {
-        nav: [
-            {
-                text: "Home",
-                link: "/",
-            }   
-        ],
-        sidebar: isFeatureEnabled('autoSidebar') 
-            ? getSidebarSync(getLangCodeFromLink(langConfig.link!)) 
+        sidebar: isFeatureEnabled("autoSidebar")
+            ? getSidebarSync(getLangCodeFromLink(langConfig.link!))
             : [],
         outline: {
             level: "deep",
@@ -50,10 +50,15 @@ export const lang_Code = <DefaultTheme.Config>{
                 timeStyle: "medium",
             },
         },
-        editLink: isFeatureEnabled('editLink') && projectInfo.editLink ? {
-            pattern: projectInfo.editLink.pattern,
-            text: projectInfo.editLink.text || "Edit this page on GitHub"
-        } : undefined,
+        editLink:
+            isFeatureEnabled("editLink") && projectInfo.editLink
+                ? {
+                      pattern: projectInfo.editLink.pattern,
+                      text:
+                          projectInfo.editLink.text ||
+                          "Edit this page on GitHub",
+                  }
+                : undefined,
         langMenuLabel: "Change Language",
         darkModeSwitchLabel: "Switch Theme",
         lightModeSwitchTitle: "Switch to light mode",
@@ -82,9 +87,11 @@ export const search: DefaultTheme.AlgoliaSearchOptions["locales"] = {
                     recentSearchesTitle: "Recent",
                     noRecentSearchesText: "No recent searches",
                     saveRecentSearchButtonTitle: "Save this search",
-                    removeRecentSearchButtonTitle: "Remove this search from history",
+                    removeRecentSearchButtonTitle:
+                        "Remove this search from history",
                     favoriteSearchesTitle: "Favorites",
-                    removeFavoriteSearchButtonTitle: "Remove this search from favorites",
+                    removeFavoriteSearchButtonTitle:
+                        "Remove this search from favorites",
                 },
                 errorScreen: {
                     titleText: "Unable to fetch results",
@@ -99,7 +106,8 @@ export const search: DefaultTheme.AlgoliaSearchOptions["locales"] = {
                 noResultsScreen: {
                     noResultsText: "No results for",
                     suggestedQueryText: "Try searching for",
-                    reportMissingResultsText: "Believe this query should return results?",
+                    reportMissingResultsText:
+                        "Believe this query should return results?",
                     reportMissingResultsLinkText: "Let us know",
                 },
             },

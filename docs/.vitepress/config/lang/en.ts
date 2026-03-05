@@ -19,16 +19,6 @@ export const en_US = <DefaultTheme.Config>{
     title: "Mihono Vitepress Template",
     description: "A template for Vitepress documentation",
     themeConfig: {
-        nav: [
-            {
-                text: "Home",
-                link: "/",
-            },
-            {
-                text: "Hero All Config",
-                link: "/en-US/hero/AllConfig",
-            },
-        ],
         sidebar: isFeatureEnabled("autoSidebar")
             ? getSidebarSync(getLangCodeFromLink(langConfig.link!))
             : [],

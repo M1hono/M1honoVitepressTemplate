@@ -1,30 +1,26 @@
-import type { DefaultTheme } from 'vitepress';
-import type { SearchLocalesByProvider } from '../../utils/config/project-config';
-import { getProjectInfo, getLanguageByCode, getLangCodeFromLink, getSearchLocaleKey, isFeatureEnabled } from '../../utils/config/project-config';
-import { getSidebarSync } from '../../utils/sidebar';
+import type { DefaultTheme } from "vitepress";
+import type { SearchLocalesByProvider } from "../../utils/config/project-config";
+import {
+    getProjectInfo,
+    getLanguageByCode,
+    getLangCodeFromLink,
+    getSearchLocaleKey,
+    isFeatureEnabled,
+} from "../../utils/config/project-config";
+import { getSidebarSync } from "../../utils/sidebar";
 
 const projectInfo = getProjectInfo();
-const langConfig = getLanguageByCode('zh-CN')!;
+const langConfig = getLanguageByCode("zh-CN")!;
 
 export const zh_CN = <DefaultTheme.Config>{
     label: langConfig.displayName,
     lang: langConfig.giscusLang,
     link: langConfig.link,
-    title: 'Mihono Vitepress 模版',
-    description: '一个基于 Vitepress 的文档模版',
+    title: "Mihono Vitepress 模版",
+    description: "一个基于 Vitepress 的文档模版",
     themeConfig: {
-        nav: [
-            {
-                text: "首页",
-                link: "/",
-            },
-            {
-                text: "Hero 全配置",
-                link: "/zh-CN/hero/AllConfig",
-            },
-        ],
-        sidebar: isFeatureEnabled('autoSidebar') 
-            ? getSidebarSync(getLangCodeFromLink(langConfig.link!)) 
+        sidebar: isFeatureEnabled("autoSidebar")
+            ? getSidebarSync(getLangCodeFromLink(langConfig.link!))
             : [],
         outline: {
             level: "deep",
@@ -41,10 +37,14 @@ export const zh_CN = <DefaultTheme.Config>{
                 timeStyle: "medium",
             },
         },
-        editLink: isFeatureEnabled('editLink') && projectInfo.editLink ? {
-            pattern: projectInfo.editLink.pattern,
-            text: projectInfo.editLink.text || "在 GitHub 上编辑此页面"
-        } : undefined,
+        editLink:
+            isFeatureEnabled("editLink") && projectInfo.editLink
+                ? {
+                      pattern: projectInfo.editLink.pattern,
+                      text:
+                          projectInfo.editLink.text || "在 GitHub 上编辑此页面",
+                  }
+                : undefined,
         langMenuLabel: "切换语言",
         returnToTopLabel: "回到顶部",
         sidebarMenuLabel: "菜单",
