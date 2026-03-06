@@ -2,7 +2,7 @@
 
 import { reactive, watchEffect } from "vue";
 import { useData } from "vitepress";
-import { getLanguages, getDefaultLanguage } from "@config/project-config";
+import { getLanguages, getDefaultLanguage } from "@config";
 import componentIdMappingData from "../../../config/locale/component-id-mapping.json";
 
 interface ComponentIdMapping {
@@ -17,11 +17,8 @@ class LocaleCodeResolver {
     );
     private readonly fallbackLocale = getDefaultLanguage().code;
 
-    resolve(localeFromVitePress: string | undefined) {
-        if (
-            localeFromVitePress &&
-            this.knownLocales.has(localeFromVitePress)
-        ) {
+    resolve(localeFromVitePress: string | undefined): string {
+        if (localeFromVitePress && this.knownLocales.has(localeFromVitePress)) {
             return localeFromVitePress;
         }
 
@@ -31,7 +28,7 @@ class LocaleCodeResolver {
         return this.fallbackLocale;
     }
 
-    private resolveFromPathname() {
+    private resolveFromPathname(): string | undefined {
         if (typeof window === "undefined") return undefined;
         const pathname = window.location.pathname;
         for (const language of getLanguages()) {
@@ -51,40 +48,51 @@ class ComponentPathResolver {
         this.mapping = mappingData?.mappings || {};
     }
 
-    resolve(componentId: string) {
+    resolve(componentId: string): string {
         return this.mapping[componentId] || componentId;
     }
 }
+
+const EMPTY_DICTIONARY: TranslationDictionary = Object.freeze({});
 
 class TranslationModuleLoader {
     private readonly translationModules = import.meta.glob(
         "../../../config/locale/*/components/**/*.json",
     );
 
-    async load(locale: string, componentPath: string) {
+    async load(
+        locale: string,
+        componentPath: string,
+    ): Promise<TranslationDictionary> {
         const modulePath = `../../../config/locale/${locale}/components/${componentPath}.json`;
         const moduleFactory = this.translationModules[modulePath];
-        if (!moduleFactory) return {} as TranslationDictionary;
+        if (!moduleFactory) return EMPTY_DICTIONARY;
 
         try {
             const moduleValue = await moduleFactory();
             const raw =
                 (moduleValue as { default?: TranslationDictionary }).default ||
                 moduleValue;
-            if (!raw || typeof raw !== "object") return {};
+            if (!raw || typeof raw !== "object") return EMPTY_DICTIONARY;
             return raw as TranslationDictionary;
-        } catch {
-            return {} as TranslationDictionary;
+        } catch (error) {
+            console.warn(
+                `[i18n] Failed to load translation: ${modulePath}`,
+                error,
+            );
+            return EMPTY_DICTIONARY;
         }
     }
 }
 
-function createCacheKey(componentId: string, locale: string) {
+function createCacheKey(componentId: string, locale: string): string {
     return `${componentId}@${locale}`;
 }
 
 class TranslationCacheStore {
-    private readonly cache = reactive<Record<string, TranslationDictionary>>({});
+    private readonly cache = reactive<Record<string, TranslationDictionary>>(
+        {},
+    );
     private readonly loading = new Set<string>();
 
     constructor(
@@ -96,7 +104,7 @@ class TranslationCacheStore {
         componentId: string,
         locale: string,
         defaults: TranslationDictionary,
-    ) {
+    ): TranslationDictionary {
         const cacheKey = createCacheKey(componentId, locale);
         if (!this.cache[cacheKey]) {
             this.cache[cacheKey] = { ...defaults };
@@ -109,7 +117,7 @@ class TranslationCacheStore {
         componentId: string,
         locale: string,
         defaults: TranslationDictionary,
-    ) {
+    ): void {
         const cacheKey = createCacheKey(componentId, locale);
         if (this.loading.has(cacheKey)) return;
 
@@ -132,10 +140,17 @@ class TranslationCacheStore {
     }
 }
 
+/**
+ * Updates a reactive translation object in-place.
+ *
+ * NOTE: This function intentionally mutates the target object to preserve
+ * Vue's reactivity reference. For reactive objects, the reference must
+ * remain stable for watchers to detect changes properly.
+ */
 function syncTranslationObject(
     target: Record<string, string>,
     nextValues: Record<string, string>,
-) {
+): void {
     Object.keys(target).forEach((key) => {
         if (!(key in nextValues)) {
             delete target[key];
@@ -186,7 +201,6 @@ export function useSafeI18n<T extends Record<string, string>>(
 export function createI18nHook<T extends Record<string, string>>(
     componentId: string,
     defaultTranslations: T,
-) {
+): () => { t: T } {
     return () => useSafeI18n(componentId, defaultTranslations);
 }
-

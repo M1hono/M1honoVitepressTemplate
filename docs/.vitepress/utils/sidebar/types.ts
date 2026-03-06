@@ -95,8 +95,6 @@ export interface DirectoryConfig {
     groups?: GroupConfig[]
     /** External links to be added to this directory's sidebar */
     externalLinks?: ExternalLinkConfig[]
-    /** Allow other frontmatter fields */
-    [key: string]: any
 }
 
 /**
@@ -133,8 +131,6 @@ export interface GlobalSidebarConfig {
         /** Default hidden state for items if not specified */
         hidden?: boolean
     }
-    /** Allow other configuration fields */
-    [key: string]: any
 }
 
 /**
@@ -170,8 +166,6 @@ export interface EffectiveDirConfig {
     isDevMode: boolean
     /** @internal Base for relative keys of children */
     _baseRelativePathForChildren?: string
-    /** Allow other merged fields */
-    [key: string]: any
 }
 
 /**
@@ -186,8 +180,6 @@ export interface FileConfig {
     hidden?: boolean
     /** Priority for ordering this file among siblings */
     priority?: number
-    /** Allow other frontmatter fields */
-    [key: string]: any
 }
 
 /**

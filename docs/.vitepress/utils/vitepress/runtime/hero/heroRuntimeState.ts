@@ -5,6 +5,7 @@ import { useData } from "vitepress";
 import {
     HeroActionConfig,
     HeroBackgroundConfig,
+    HeroFloatingConfig,
     HeroFrontmatterConfig,
     HeroImageConfig,
     HeroImageThemeableSource,
@@ -76,9 +77,9 @@ export function createHeroRuntimeState(props: VPHeroProps) {
 
     const viewportEnabled = computed(() => resolveViewportEnabled(heroConfig.value));
     const hasWaves = computed(() => true);
-    const floatingConfig = computed<Record<string, any> | undefined>(() => {
+    const floatingConfig = computed<HeroFloatingConfig | undefined>(() => {
         const value = heroConfig.value.floating;
-        return value && typeof value === "object" ? (value as Record<string, any>) : undefined;
+        return value && typeof value === "object" ? (value as HeroFloatingConfig) : undefined;
     });
 
     const { heroTypographyType, hasColorOverrides, hasMediaBackground, heroCssVarsStyle } =

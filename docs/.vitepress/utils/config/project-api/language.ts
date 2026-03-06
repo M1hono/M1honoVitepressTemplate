@@ -16,7 +16,7 @@ export function getLanguageCodes(): string[] {
     return projectConfig.languages.map((lang) => lang.code);
 }
 
-export function getLanguageLinks(): string[] {
+export function getLanguageLinks(): (string | undefined)[] {
     return projectConfig.languages.map((lang) => lang.link);
 }
 
@@ -46,8 +46,8 @@ export function getLanguageByCode(code: string): LanguageConfig | undefined {
     });
 }
 
-export function getLocalesConfig() {
-    const locales: Record<string, any> = {};
+export function getLocalesConfig(): Record<string, { label: string; lang: string; link: string }> {
+    const locales: Record<string, { label: string; lang: string; link: string }> = {};
 
     projectConfig.languages.forEach((lang) => {
         const key = lang.isDefault ? "root" : lang.code;
@@ -93,11 +93,7 @@ export function removeLangFromPath(path: string): string {
     for (const lang of projectConfig.languages) {
         const langLink = lang.link || `/${lang.code}/`;
 
-        if (lang.isDefault && cleanPath.startsWith(langLink)) {
-            return `/${cleanPath.substring(langLink.length)}`;
-        }
-
-        if (!lang.isDefault && cleanPath.startsWith(langLink)) {
+        if (cleanPath.startsWith(langLink)) {
             return `/${cleanPath.substring(langLink.length)}`;
         }
     }

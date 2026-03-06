@@ -1,16 +1,21 @@
 import { projectConfig } from "../../../config/project-config";
 import type { SearchLocalesByProvider } from "../project-types";
+import { mergeLocales } from "../shared-utils";
 import { getLangCodeFromLink } from "./language";
 
-function mergeLocales<T extends Record<string, any> | undefined>(
-    ...parts: T[]
-): Record<string, any> | undefined {
-    const merged = Object.assign({}, ...parts.filter(Boolean));
-    return Object.keys(merged).length > 0 ? merged : undefined;
+/**
+ * Base locale configuration structure for VitePress.
+ */
+interface LocaleConfigBase {
+    label: string;
+    lang?: string;
+    title?: string;
+    description?: string;
+    [key: string]: unknown;
 }
 
-export async function generateLocalesConfig(useRootForDefault: boolean = false) {
-    const locales: Record<string, any> = {};
+export async function generateLocalesConfig(useRootForDefault: boolean = false): Promise<Record<string, LocaleConfigBase>> {
+    const locales: Record<string, LocaleConfigBase> = {};
 
     for (const lang of projectConfig.languages) {
         try {
@@ -19,14 +24,14 @@ export async function generateLocalesConfig(useRootForDefault: boolean = false) 
             );
 
             const moduleKey = lang.code.replace("-", "_");
-            const langConfig = langModule[moduleKey as keyof typeof langModule];
+            const langConfig = langModule[moduleKey as keyof typeof langModule] as LocaleConfigBase | undefined;
 
             if (langConfig) {
                 const localeKey =
                     useRootForDefault && lang.isDefault ? "root" : lang.code;
                 locales[localeKey] = {
                     label: lang.displayName,
-                    ...(langConfig as any),
+                    ...langConfig,
                 };
             } else {
                 console.warn(
@@ -47,10 +52,10 @@ export async function generateLocalesConfig(useRootForDefault: boolean = false) 
 }
 
 export async function autoDiscoverLanguageModules(): Promise<{
-    langModules: Record<string, any>;
+    langModules: Record<string, LocaleConfigBase>;
     searchLocales: SearchLocalesByProvider;
 }> {
-    const langModules: Record<string, any> = {};
+    const langModules: Record<string, LocaleConfigBase> = {};
     const searchLocales: SearchLocalesByProvider = {};
 
     for (const lang of projectConfig.languages) {
@@ -73,10 +78,10 @@ export async function autoDiscoverLanguageModules(): Promise<{
                 lang.name.replace("-", "_"),
             ];
 
-            let foundConfig = null;
+            let foundConfig: LocaleConfigBase | null = null;
             for (const key of possibleKeys) {
                 if (langModule[key]) {
-                    foundConfig = langModule[key];
+                    foundConfig = langModule[key] as LocaleConfigBase;
                     langModules[lang.code.replace("-", "_")] = foundConfig;
                     break;
                 }
@@ -95,7 +100,7 @@ export async function autoDiscoverLanguageModules(): Promise<{
                 typeof langModule.searchLocales === "object"
             ) {
                 for (const [provider, locales] of Object.entries(
-                    langModule.searchLocales as Record<string, Record<string, any>>,
+                    langModule.searchLocales as Record<string, Record<string, unknown>>,
                 )) {
                     searchLocales[provider] = mergeLocales(
                         searchLocales[provider],
@@ -105,8 +110,8 @@ export async function autoDiscoverLanguageModules(): Promise<{
             } else if (langModule.search) {
                 searchLocales.algolia = mergeLocales(
                     searchLocales.algolia,
-                    langModule.search as Record<string, any>,
-                ) as any;
+                    langModule.search as Record<string, unknown>,
+                );
             }
         } catch (error) {
             console.warn(
@@ -121,7 +126,10 @@ export async function autoDiscoverLanguageModules(): Promise<{
 
 export async function generateLocalesConfigAuto(
     useRootForDefault: boolean = false,
-) {
+): Promise<{
+    locales: Record<string, LocaleConfigBase>;
+    searchLocales: SearchLocalesByProvider;
+}> {
     const { langModules, searchLocales } = await autoDiscoverLanguageModules();
     const locales = generateLocalesConfigFromModules(
         langModules,
@@ -131,16 +139,14 @@ export async function generateLocalesConfigAuto(
 }
 
 export function generateLocalesConfigFromModules(
-    langModules: Record<string, any>,
+    langModules: Record<string, LocaleConfigBase>,
     useRootForDefault: boolean = false,
-) {
-    const locales: Record<string, any> = {};
+): Record<string, LocaleConfigBase> {
+    const locales: Record<string, LocaleConfigBase> = {};
 
     for (const lang of projectConfig.languages) {
         const moduleKey = lang.code.replace("-", "_");
-        const langConfig = langModules[moduleKey as keyof typeof langModules] as
-            | Record<string, any>
-            | undefined;
+        const langConfig = langModules[moduleKey as keyof typeof langModules];
 
         if (langConfig) {
             let localeKey: string;
@@ -154,7 +160,7 @@ export function generateLocalesConfigFromModules(
 
             locales[localeKey] = {
                 label: lang.displayName,
-                ...(langConfig as any),
+                ...langConfig,
             };
         } else {
             console.warn(
@@ -169,7 +175,12 @@ export function generateLocalesConfigFromModules(
     return locales;
 }
 
-export function createAutoImportHelper() {
+export function createAutoImportHelper(): {
+    imports: string;
+    langModulesCode: string;
+    moduleMapping: string[];
+    getRequiredImports: () => Record<string, never>;
+} {
     const imports: string[] = [];
     const moduleMapping: string[] = [];
 
@@ -190,17 +201,15 @@ export function createAutoImportHelper() {
         imports: imports.join("\n"),
         langModulesCode,
         moduleMapping,
-        getRequiredImports: () => {
-            const result: Record<string, any> = {};
-            return result;
-        },
+        getRequiredImports: () => ({}),
     };
 }
 
+/** @deprecated Use generateLocalesConfigFromModules or generateLocalesConfigAuto instead. */
 export function generateLocalesConfigSync(
-    langModules: Record<string, any>,
+    langModules: Record<string, LocaleConfigBase>,
     useRootForDefault: boolean = false,
-) {
+): Record<string, LocaleConfigBase> {
     console.warn(
         "generateLocalesConfigSync is deprecated. Use generateLocalesConfigFromModules or generateLocalesConfigAuto instead.",
     );

@@ -420,13 +420,14 @@ function extractLanguageFromPath(filePath: string): string | null {
     const match = relativePath.match(/^[\/\\]([^\/\\]+)/);
     if (match) {
         const potentialLang = match[1];
+        const potentialLangPath = resolve(docsPath, potentialLang);
         if (
-            existsSync(resolve(docsPath, potentialLang)) &&
-            statSync(resolve(docsPath, potentialLang)).isDirectory()
+            existsSync(potentialLangPath) &&
+            statSync(potentialLangPath).isDirectory()
         ) {
             return potentialLang;
         }
     }
 
-    return "";
+    return null;
 }

@@ -7,15 +7,9 @@ import type {
     SearchProviderResolver,
     SearchProviderResolverContext,
 } from "../project-types";
+import { mergeLocales } from "../shared-utils";
 
 const searchProviderResolvers = new Map<string, SearchProviderResolver>();
-
-function mergeLocales<T extends Record<string, any> | undefined>(
-    ...parts: T[]
-): Record<string, any> | undefined {
-    const merged = Object.assign({}, ...parts.filter(Boolean));
-    return Object.keys(merged).length > 0 ? merged : undefined;
-}
 
 function resolveBuiltInAlgoliaSearch(
     context: SearchProviderResolverContext,

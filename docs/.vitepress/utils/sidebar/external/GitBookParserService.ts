@@ -249,7 +249,7 @@ export class GitBookParserService {
             if (item.items) {
                 // Recursively finalize children
                 this.finalizeStructure(item.items);
-                
+
                 // If no children, remove items array
                 if (item.items.length === 0) {
                     delete item.items;
@@ -262,28 +262,6 @@ export class GitBookParserService {
                 // No children, remove collapsed property
                 item.collapsed = undefined;
             }
-        }
-    }
-
-    /**
-     * Enhanced error handling and validation
-     */
-    private validateStructure(items: SidebarItem[]): boolean {
-        try {
-            for (const item of items) {
-                if (!item.text || !item.link) {
-
-                    return false;
-                }
-                
-                if (item.items && !this.validateStructure(item.items)) {
-                    return false;
-                }
-            }
-            return true;
-        } catch (error) {
-
-            return false;
         }
     }
 } 

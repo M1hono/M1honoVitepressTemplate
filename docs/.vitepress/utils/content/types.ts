@@ -2,8 +2,9 @@
  * TypeScript types and interfaces for CryChicDoc utilities
  */
 
-// Re-export existing types from type.ts
-export * from "./";
+// ─────────────────────────────────────────────────────────────────────────────
+// Core utility types
+// ─────────────────────────────────────────────────────────────────────────────
 
 // Enhanced utility types
 export interface UtilsConfig {

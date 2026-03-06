@@ -1,8 +1,7 @@
 import glob from "fast-glob";
 import matter from "gray-matter";
-import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync } from "fs";
-import { resolve, dirname } from "path";
-import { mkdirSync } from "fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from "fs";
+import { dirname, resolve } from "path";
 import { getLanguages, getDefaultLanguage, getPaths } from "@config/project-config";
 import { getSrcPath } from "../config/path-resolver";
 
@@ -29,7 +28,7 @@ export function getSupportedLanguages(): string[] {
     return getLanguages().map(lang => lang.code);
 }
 
-export function getLanguageConfig(code: string) {
+export function getLanguageConfig(code: string): ReturnType<typeof getLanguages>[number] | undefined {
     return getLanguages().find(lang => lang.code === code);
 }
 

@@ -23,6 +23,8 @@
  * ```
  */
 
+/// <reference types="vite/client" />
+
 import { projectConfig } from "./project-config";
 import type { NavConfig, NavItem } from "./navTypes";
 
@@ -32,8 +34,7 @@ import type { NavConfig, NavItem } from "./navTypes";
  *
  * @internal
  */
-// @ts-ignore — Vite's `import.meta.glob` types require the "vite/client" reference
-const navModules = import.meta.glob("../../config/locale/*/nav.ts", {
+const navModules = import.meta.glob< { default?: NavItem[] } >("../../config/locale/*/nav.ts", {
     eager: true,
 });
 
@@ -49,12 +50,16 @@ const locales: Record<string, NavItem[]> = {};
 for (const lang of projectConfig.languages) {
     const code = lang.code;
     const path = `../../config/locale/${code}/nav.ts`;
-    const mod = navModules[path] as
-        | { default?: NavItem[]; [key: string]: unknown }
-        | undefined;
+    const mod = navModules[path];
+
     if (mod) {
         // Prefer named default export; fall back to first value for CJS interop
-        locales[code] = mod.default ?? (Object.values(mod)[0] as NavItem[]);
+        const navItems = mod.default ?? (Object.values(mod)[0] as NavItem[] | undefined);
+        if (Array.isArray(navItems)) {
+            locales[code] = navItems;
+        } else {
+            console.warn(`[navConfig] Navigation module for "${code}" does not export a valid NavItem array`);
+        }
     }
 }
 

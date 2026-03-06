@@ -4,13 +4,13 @@ on:
     push:
         paths:
             - "skills/**"
-            - "scripts/package_skills.py"
+            - "docs/.vitepress/scripts/package_skills.py"
             - ".github/workflows/skills-artifacts.yml"
             - ".gitignore"
     pull_request:
         paths:
             - "skills/**"
-            - "scripts/package_skills.py"
+            - "docs/.vitepress/scripts/package_skills.py"
             - ".github/workflows/skills-artifacts.yml"
             - ".gitignore"
     workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
             - name: Discover skills
               id: discover
               run: |
-                  SKILLS_JSON=$(python3 scripts/package_skills.py --skills-root skills --list-only --json)
+                  SKILLS_JSON=$(python3 docs/.vitepress/scripts/package_skills.py --skills-root skills --list-only --json)
                   echo "skills=$SKILLS_JSON" >> "$GITHUB_OUTPUT"
                   echo "Discovered skills: $SKILLS_JSON"
 

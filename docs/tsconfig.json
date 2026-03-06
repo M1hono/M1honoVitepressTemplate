@@ -17,7 +17,7 @@
         "paths": {
             "@utils": ["./.vitepress/utils/index.ts"],
             "@utils/*": ["./.vitepress/utils/*"],
-            "@config": ["./.vitepress/utils/config/index.ts"],
+            "@config": ["./.vitepress/utils/config/project-config.ts"],
             "@config/*": ["./.vitepress/utils/config/*"],
             "@components": ["./.vitepress/theme/components/index.ts"],
             "@components/*": ["./.vitepress/theme/components/*"]

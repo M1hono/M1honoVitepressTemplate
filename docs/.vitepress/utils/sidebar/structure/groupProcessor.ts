@@ -24,7 +24,7 @@ import { normalizePathSeparators } from '../shared/objectUtils';
 /**
  * Type definition for item processing callback function.
  * Used for processing individual file system entries during sidebar generation.
- * 
+ *
  * @typedef {Function} ItemProcessorFunction
  * @since 1.0.0
  */
@@ -38,7 +38,7 @@ export type ItemProcessorFunction = (
     isDevMode: boolean,
     configReader: ConfigReaderService,
     fs: FileSystem,
-    recursiveGeneratorForSubDir: any,
+    recursiveGeneratorForSubDir: RecursiveViewGeneratorFunction,
     globalGitBookExclusionList: string[],
     docsAbsPath: string
 ) => Promise<SidebarItem | null>;
@@ -291,38 +291,45 @@ export async function extractGroups(
 
 /**
  * Removes sidebar items that match the specified absolute paths.
- * 
+ *
  * Filters out items whose file paths or directory paths match any of the
  * paths in the removal set. Recursively processes nested items to ensure
- * complete removal of grouped content.
- * 
+ * complete removal of grouped content. Returns new objects without mutating
+ * the input array.
+ *
  * @param {SidebarItem[]} items - Sidebar items to filter
  * @param {Set<string>} pathsToRemove - Set of absolute paths to remove
- * @returns {SidebarItem[]} Filtered sidebar items with specified paths removed
+ * @returns {SidebarItem[]} New filtered sidebar items with specified paths removed
  * @since 1.0.0
  * @private
  */
 function filterItemsByPaths(items: SidebarItem[], pathsToRemove: Set<string>): SidebarItem[] {
-    return items.filter(item => {
-        if (item._filePath && pathsToRemove.has(normalizePathSeparators(item._filePath))) {
-            return false;
-        }
-        
-        if (item._isDirectory && item._relativePathKey) {
-            const itemPath = item._relativePathKey.replace(/\/$/, '');
-            for (const pathToRemove of pathsToRemove) {
-                if (pathToRemove.endsWith(itemPath) || pathToRemove.includes(`/${itemPath}/`)) {
-                    return false;
+    return items
+        .filter(item => {
+            if (item._filePath && pathsToRemove.has(normalizePathSeparators(item._filePath))) {
+                return false;
+            }
+
+            if (item._isDirectory && item._relativePathKey) {
+                const itemPath = item._relativePathKey.replace(/\/$/, '');
+                for (const pathToRemove of pathsToRemove) {
+                    if (pathToRemove.endsWith(itemPath) || pathToRemove.includes(`/${itemPath}/`)) {
+                        return false;
+                    }
                 }
             }
-        }
-        
-        if (item.items) {
-            item.items = filterItemsByPaths(item.items, pathsToRemove);
-        }
-        
-        return true;
-    });
+
+            return true;
+        })
+        .map(item => {
+            if (item.items) {
+                return {
+                    ...item,
+                    items: filterItemsByPaths(item.items, pathsToRemove)
+                };
+            }
+            return item;
+        });
 }
 
 /**

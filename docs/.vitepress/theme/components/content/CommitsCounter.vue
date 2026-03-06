@@ -246,14 +246,24 @@
      */
     const fetchContributions = async () => {
         try {
-            const commits = await utils.charts.github.githubApi.fetchAllCommits(
+            const result = await utils.charts.github.githubApi.fetchAllCommits(
                 username.value,
                 repoName.value
             );
 
+            if (!result.success) {
+                console.warn("Failed to fetch commits:", result.error);
+                contributions.value = [];
+                return;
+            }
+
+            if (result.rateLimited) {
+                console.warn("GitHub API rate limit was reached during fetch");
+            }
+
             contributions.value =
                 utils.charts.github.commitProcessor.processContributions(
-                    commits,
+                    result.commits,
                     props.daysToFetch
                 );
         } catch (error) {

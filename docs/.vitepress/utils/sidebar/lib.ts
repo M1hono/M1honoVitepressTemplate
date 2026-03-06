@@ -23,6 +23,7 @@ import {
     mkdirSync,
     statSync,
     readdirSync,
+    unlinkSync,
 } from "fs";
 import { generateSidebars } from "./main";
 
@@ -647,7 +648,7 @@ export function clearCache(lang?: string): void {
         const cachePath = getFileCachePath(lang);
         if (existsSync(cachePath)) {
             try {
-                require("fs").unlinkSync(cachePath);
+                unlinkSync(cachePath);
             } catch (error) {
                 if (config.debug) {
                     console.warn(
@@ -666,7 +667,7 @@ export function clearCache(lang?: string): void {
                 const files = readdirSync(cacheDir);
                 for (const file of files) {
                     if (file.startsWith("sidebar_") && file.endsWith(".json")) {
-                        require("fs").unlinkSync(resolve(cacheDir, file));
+                        unlinkSync(resolve(cacheDir, file));
                     }
                 }
             } catch (error) {

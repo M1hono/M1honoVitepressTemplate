@@ -23,25 +23,25 @@ import { MetadataManager } from "./MetadataManager";
 
 /**
  * Core synchronization engine for sidebar configuration management.
- * 
+ *
  * The SyncEngine coordinates the synchronization between dynamically generated
  * sidebar structures and persisted JSON override configurations. It employs a
  * conservative approach that preserves existing user configurations while safely
  * adding missing entries and managing metadata for change tracking.
- * 
+ *
  * Key principles:
  * - Never overrides existing user configurations
  * - Only adds missing entries to prevent configuration loss
  * - Maintains metadata for all configuration changes
  * - Supports rollback through inactive entry preservation
- * 
+ *
  * @class SyncEngine
  * @since 1.0.0
  * @public
  * @example
  * ```typescript
  * const syncEngine = new SyncEngine();
- * 
+ *
  * const result = await syncEngine.syncOverrideType(
  *   sidebarItems,
  *   existingConfig,
@@ -55,17 +55,7 @@ import { MetadataManager } from "./MetadataManager";
  * ```
  */
 export class SyncEngine {
-
-    /**
-     * Creates an instance of SyncEngine.
-     * 
-     * Currently uses a lightweight constructor as dependencies are passed
-     * to individual methods for maximum flexibility and testability.
-     * 
-     * @since 1.0.0
-     */
-    constructor() {
-    }
+    // Stateless utility class - all dependencies passed via method parameters
 
     /**
      * Synchronizes a specific override type with the current sidebar structure.

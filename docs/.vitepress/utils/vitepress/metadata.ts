@@ -10,11 +10,12 @@ export const readingTime = {
     },
 
     calculateImageTime: (imageCount: number): number => {
-        const n = imageCount;
-        if (n <= 10) {
-            return n * 13 + (n * (n - 1)) / 2;
+        // First 10 images: 13s + 12s + 11s + ... + 4s (arithmetic series)
+        // Additional images: 3s each
+        if (imageCount <= 10) {
+            return imageCount * 13 - (imageCount * (imageCount - 1)) / 2;
         }
-        return 175 + (n - 10) * 3;
+        return 85 + (imageCount - 10) * 3;
     },
 
     calculateTotalTime: (
@@ -46,7 +47,9 @@ export const contentAnalysis = {
             docDomContainer?.querySelector(".content-container .main")
                 ?.textContent || "";
 
-        return { wordCount: 0, imageCount };
+        const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length;
+
+        return { wordCount, imageCount };
     },
 
     cleanupMetadata: (): void => {

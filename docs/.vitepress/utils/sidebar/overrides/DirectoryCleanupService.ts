@@ -183,51 +183,13 @@ export class DirectoryCleanupService {
     }
 
     /**
-     * Checks if a directory contains only system-generated content.
-     * 
-     * Analyzes directory metadata to determine if all content is system-generated
-     * with no user modifications. This is used to safely identify directories
-     * that can be completely removed without data loss concerns.
-     * 
-     * @param {string} lang - Language code for the directory
-     * @param {string} dirSignature - Directory signature to analyze
-     * @returns {Promise<boolean>} Promise resolving to true if only system content exists
-     * @since 1.0.0
-     * @private
-     * @example
-     * ```typescript
-     * const isSystemOnly = await this.hasOnlySystemGeneratedContent('en', 'auto-generated');
-     * if (isSystemOnly) {
-     *   // Safe to delete completely
-     * }
-     * ```
-     */
-    private async hasOnlySystemGeneratedContent(lang: string, dirSignature: string): Promise<boolean> {
-        const overrideTypes: JsonOverrideFileType[] = ['locales', 'order', 'collapsed'];
-        
-        for (const type of overrideTypes) {
-            try {
-                const metadata = await this.metadataManager.readMetadata(type, lang, dirSignature);
-                for (const entry of Object.values(metadata)) {
-                    if (entry.isUserSet) {
-                        return false;
-                    }
-                }
-            } catch (error) {
-            }
-        }
-        
-        return true;
-    }
-
-    /**
      * Recursively deletes a directory and all its contents with fallback handling.
-     * 
+     *
      * Attempts complete directory removal using the file system's deleteDir method.
      * If that fails, falls back to individual file deletion for known JSON
      * configuration files. Provides robust cleanup even in edge cases or
      * permission-restricted environments.
-     * 
+     *
      * @param {string} dirPath - Absolute path to the directory to delete
      * @returns {Promise<void>} Promise resolving when deletion attempts complete
      * @since 1.0.0
@@ -240,21 +202,21 @@ export class DirectoryCleanupService {
     private async deleteDirectory(dirPath: string): Promise<void> {
         try {
             await this.fs.deleteDir(dirPath);
-            
+
         } catch (error) {
 
-            
             try {
                 const jsonFiles = ['locales.json', 'order.json', 'collapsed.json'];
-                
+
                 for (const jsonFile of jsonFiles) {
                     try {
                         await this.fs.deleteFile(path.join(dirPath, jsonFile));
                     } catch (fileError) {
+                        // Ignore individual file deletion errors
                     }
                 }
             } catch (fallbackError) {
-
+                // Silently ignore fallback errors - best effort cleanup
             }
         }
     }

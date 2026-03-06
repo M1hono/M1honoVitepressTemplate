@@ -37,15 +37,18 @@ export function createElementResizeState(
     const { debounceMs = 100 } = options;
 
     let observer: ResizeObserver | null = null;
-    const handler = debounceMs > 0
-        ? debounce((entries: ResizeObserverEntry[]) => {
-            const entry = entries[entries.length - 1];
-            if (entry) onResize(entry.contentRect);
-        }, debounceMs)
-        : (entries: ResizeObserverEntry[]) => {
-            const entry = entries[entries.length - 1];
-            if (entry) onResize(entry.contentRect);
-        };
+
+    type ResizeHandler = (entries: ResizeObserverEntry[]) => void;
+    type DebouncedHandler = ResizeHandler & { cancel(): void };
+
+    const baseHandler: ResizeHandler = (entries: ResizeObserverEntry[]) => {
+        const entry = entries[entries.length - 1];
+        if (entry) onResize(entry.contentRect);
+    };
+
+    const handler: ResizeHandler | DebouncedHandler = debounceMs > 0
+        ? debounce(baseHandler, debounceMs)
+        : baseHandler;
 
     onMounted(() => {
         if (typeof ResizeObserver === "undefined" || typeof window === "undefined") return;
@@ -56,7 +59,9 @@ export function createElementResizeState(
     onUnmounted(() => {
         observer?.disconnect();
         observer = null;
-        if ("cancel" in handler) (handler as { cancel(): void }).cancel();
+        if (typeof handler === "function" && "cancel" in handler) {
+            (handler as DebouncedHandler).cancel();
+        }
     });
 
     return {

@@ -1,11 +1,9 @@
 export interface NavLink {
     icon?: NavIcon | NavThemeIcon
-    badge?:
-        |string
-        |   {
-                text?: string
-                type?: 'info' | 'tip' | 'warning' | 'danger'
-            }
+    badge?: string | {
+        text?: string
+        type?: 'info' | 'tip' | 'warning' | 'danger'
+    }
     title: string
     desc?: string
     link: string

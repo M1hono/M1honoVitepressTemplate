@@ -69,8 +69,6 @@ const components = {
     ShaderEffectBlock,
 };
 
-console.log("Registered components:", Object.keys(components));
-
 /**
  * Registers global components and aliases for VitePress.
  */

@@ -1,5 +1,5 @@
 import { computed, onBeforeUnmount, ref } from "vue";
-import { NavLink } from "@utils/config/nav-types";
+import { NavLink } from "@utils/config/navTypes";
 
 const globalActiveMenuId = ref<string | null>(null);
 const globalHoveredLink = ref<NavLink | null>(null);
@@ -44,7 +44,10 @@ export function deactivateNavHoverMenu(menuId: string): void {
 
 export function createNavHoverPreviewState(menuId: string) {
     const activePreviewLink = computed<NavLink | null>(() =>
-        globalActiveMenuId.value === menuId && hasPreview(globalHoveredLink.value) ? globalHoveredLink.value : null,
+        globalActiveMenuId.value === menuId &&
+        hasPreview(globalHoveredLink.value)
+            ? globalHoveredLink.value
+            : null,
     );
 
     function onItemEnter(link: NavLink) {
@@ -92,4 +95,3 @@ export function createNavHoverPreviewState(menuId: string) {
         resetPreview,
     };
 }
-

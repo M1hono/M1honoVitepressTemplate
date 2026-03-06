@@ -1,12 +1,40 @@
 import { projectConfig } from "../../../config/project-config";
 import type {
     CopyLinkConfig,
+    DrawioConfig,
+    FooterOptionsConfig,
     GiscusConfig,
+    MdVarConfig,
     PathConfig,
+    ProjectConfig,
+    SearchConfig,
     SocialButton,
     SpecialBackPath,
 } from "../project-types";
 import { getProjectSearchConfig } from "./search";
+
+interface ProjectInfo {
+    name: string;
+    base: string;
+    version: string;
+    author: string;
+    license: string;
+    favicon: string;
+    logo: ProjectConfig["logo"];
+    repository: ProjectConfig["repository"];
+    homepage: string;
+    headerSocialLinks: ProjectConfig["headerSocialLinks"];
+    editLink: ProjectConfig["editLink"];
+    footerOptions: FooterOptionsConfig;
+    drawio: DrawioConfig;
+    mdVar: MdVarConfig;
+    algolia: {
+        appId: string;
+        apiKey: string;
+        indexName: string;
+    };
+    search: SearchConfig;
+}
 
 export function getDefaultCurrency(): string {
     return projectConfig.defaultCurrency;
@@ -22,7 +50,7 @@ export function isFeatureEnabled(
     return projectConfig.features[feature];
 }
 
-export function getProjectInfo() {
+export function getProjectInfo(): ProjectInfo {
     const resolvedSearch = getProjectSearchConfig();
 
     return {

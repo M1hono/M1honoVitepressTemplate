@@ -7,7 +7,7 @@
   "matrix/": {
     "valueHash": "68934a3e9455fa72420237eb05902327",
     "isUserSet": false,
-    "isActiveInStructure": true
+    "isActiveInStructure": false
   },
   "all-config.md": {
     "valueHash": "68934a3e9455fa72420237eb05902327",
@@ -17,7 +17,7 @@
   "AllConfig.md": {
     "valueHash": "68934a3e9455fa72420237eb05902327",
     "isUserSet": false,
-    "isActiveInStructure": true
+    "isActiveInStructure": false
   },
   "AllConfig/": {
     "valueHash": "68934a3e9455fa72420237eb05902327",
@@ -27,6 +27,6 @@
   "heroRuntime.md": {
     "valueHash": "68934a3e9455fa72420237eb05902327",
     "isUserSet": false,
-    "isActiveInStructure": false
+    "isActiveInStructure": true
   }
 }
