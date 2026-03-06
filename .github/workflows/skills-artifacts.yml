@@ -1,0 +1,69 @@
+name: Package Skills
+
+on:
+    push:
+        paths:
+            - "skills/**"
+            - "scripts/package_skills.py"
+            - ".github/workflows/skills-artifacts.yml"
+            - ".gitignore"
+    pull_request:
+        paths:
+            - "skills/**"
+            - "scripts/package_skills.py"
+            - ".github/workflows/skills-artifacts.yml"
+            - ".gitignore"
+    workflow_dispatch:
+
+jobs:
+    discover:
+        runs-on: ubuntu-latest
+        outputs:
+            skills: ${{ steps.discover.outputs.skills }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.x"
+
+            - name: Discover skills
+              id: discover
+              run: |
+                  SKILLS_JSON=$(python3 scripts/package_skills.py --skills-root skills --list-only --json)
+                  echo "skills=$SKILLS_JSON" >> "$GITHUB_OUTPUT"
+                  echo "Discovered skills: $SKILLS_JSON"
+
+    package:
+        needs: discover
+        if: ${{ needs.discover.outputs.skills != '[]' }}
+        runs-on: ubuntu-latest
+        strategy:
+            fail-fast: false
+            matrix:
+                skill: ${{ fromJson(needs.discover.outputs.skills) }}
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v4
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: "3.x"
+
+            - name: Package skill
+              run: |
+                  python3 docs/.vitepress/scripts/package_skills.py \
+                    --skills-root skills \
+                    --output-dir skills/artifacts \
+                    --skill "${{ matrix.skill }}"
+
+            - name: Upload skill artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: skill-${{ matrix.skill }}
+                  path: skills/artifacts/${{ matrix.skill }}.zip
+                  if-no-files-found: error
+                  retention-days: 14

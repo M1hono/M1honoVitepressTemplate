@@ -1,4 +1,8 @@
 {
   "_self_": "reference",
-  "keyInventory.md": "Frontmatter Key Inventory"
+  "keyInventory.md": "Frontmatter Key Inventory",
+  "maintainability.md": "Maintainability and Extension Guide",
+  "developmentWorkflow.md": "Development Workflow",
+  "extensionArchitecture.md": "Extension Architecture",
+  "heroExtension.md": "Hero Extension Playbook"
 }

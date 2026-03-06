@@ -1,4 +1,4 @@
-import type { Bill } from "../theme/components/content/bill";
+import type { Bill } from "@utils/content/billing/BillTypes";
 
 /**
  * @description Bill data configuration

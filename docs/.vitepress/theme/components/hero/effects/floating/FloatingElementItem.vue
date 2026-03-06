@@ -1,6 +1,6 @@
 <script setup lang="ts">
     import { computed } from "vue";
-    import type { NormalizedFloatingItem } from "./types";
+    import type { NormalizedFloatingItem } from "@utils/vitepress/runtime/hero/floatingTypes";
     import LottieDisplay from "../../image/LottieDisplay.vue";
 
     const props = defineProps<{
@@ -9,8 +9,17 @@
         itemStyle: Record<string, string | undefined>;
     }>();
 
+    const rawTypeClass = computed(() => {
+        const rawType = String(props.item.rawType || props.item.type || "text");
+        return `hero-floating-elements__item--raw-${rawType
+            .toLowerCase()
+            .replace(/[^a-z0-9_-]+/g, "-")}`;
+    });
+
     const itemClasses = computed(() => [
         `hero-floating-elements__item--${props.item.type}`,
+        rawTypeClass.value,
+        props.item.customClass || "",
         {
             "hero-floating-elements__text-gradient":
                 props.item.type === "text" &&
@@ -29,8 +38,16 @@
         :class="itemClasses"
         :style="itemStyle"
     >
+        <component
+            v-if="item.component"
+            :is="item.component"
+            class="hero-floating-elements__custom-component"
+            :item="item"
+            v-bind="item.componentProps"
+        />
+
         <img
-            v-if="item.type === 'image' && item.src"
+            v-else-if="item.type === 'image' && item.src"
             :src="item.src"
             :alt="item.alt"
             class="hero-floating-elements__image"

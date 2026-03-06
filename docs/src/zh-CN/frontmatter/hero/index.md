@@ -12,6 +12,8 @@ Hero 运行时 frontmatter，用于首页组合。
 
 - [Hero 运行时](./heroRuntime) - 包含示例的完整 hero frontmatter 契约
 - [Hero 全配置总览](../../hero/AllConfig) - 每个字段的完整 API 参考表
+- [Hero 扩展手册](../reference/heroExtension) - 排版、浮动元素、Shader、背景与导航搜索视觉扩展
+- [可维护性与扩展指南](../reference/maintainability) - Hero 相关框架改动应遵循的共享规范
 
 ## 主要章节
 

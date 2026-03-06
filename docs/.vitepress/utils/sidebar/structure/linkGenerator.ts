@@ -14,7 +14,7 @@
 
 import path from "node:path";
 import { GroupConfig } from "../types";
-import { FileSystem } from "../shared/FileSystem";
+import { FileSystem } from "@utils/vitepress/system/FileSystem";
 import { normalizePathSeparators } from "../shared/objectUtils";
 
 /**

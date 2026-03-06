@@ -1,30 +1,37 @@
 <script lang="ts" setup>
     import { computed } from "vue";
     import { useData } from "vitepress";
+    import { navConfig, type NavItem } from "@utils/config/navConfig";
+    import { projectConfig } from "@config/project-config";
     import {
-        navConfig,
-        type NavItem,
-    } from "../../../../utils/config/nav-config";
-    import { projectConfig } from "../../../../utils/config/project-config";
-    import { getLangCodeFromVitepressLang } from "../../../../utils/config/project-api";
+        getLangCodeFromVitepressLang,
+        getDefaultLanguage,
+    } from "@config/project-api";
     import {
         resolveAccessibleNavHref,
         prefixNavLinks,
-    } from "@utils/vitepress/nav-link-access";
+    } from "@utils/vitepress/api/navigation/NavLinkAccessService";
+    import { navDropdownLayoutRegistry } from "@utils/vitepress/api/navigation/NavDropdownLayoutRegistryApi";
     import VPNavLayoutSpotlight from "../layouts/VPNavLayoutSpotlight.vue";
     import VPNavLayoutColumns from "../layouts/VPNavLayoutColumns.vue";
     import VPNavBarMenuGroup from "vitepress/dist/client/theme-default/components/VPNavBarMenuGroup.vue";
     import VPNavBarMenuLink from "vitepress/dist/client/theme-default/components/VPNavBarMenuLink.vue";
+
+    navDropdownLayoutRegistry.registerLayouts([
+        { layout: "spotlight", component: VPNavLayoutSpotlight },
+        { layout: "columns", component: VPNavLayoutColumns },
+    ]);
 
     const { lang } = useData();
 
     // Load the appropriate navigation array for the current locale and prefix internal URLs
     const currentNav = computed<NavItem[]>(() => {
         const normalizedLang = getLangCodeFromVitepressLang(lang.value);
+        const defaultCode = getDefaultLanguage().code;
         const rawNav =
             navConfig.locales[lang.value] ||
             navConfig.locales[normalizedLang] ||
-            navConfig.locales["en-US"] ||
+            navConfig.locales[defaultCode] ||
             [];
 
         const langInfo = projectConfig.languages.find(
@@ -37,6 +44,12 @@
 
     const hasTopLevelHref = (item: NavItem) =>
         Boolean(resolveAccessibleNavHref(item.link, item.href));
+
+    const resolveDropdownLayoutComponent = (item: NavItem) =>
+        navDropdownLayoutRegistry.resolveLayoutComponent(
+            item.dropdown?.layout,
+            item.dropdown?.layoutComponent,
+        );
 </script>
 
 <template>
@@ -50,14 +63,9 @@
         >
         <template v-for="item in currentNav" :key="item.text">
             <template v-if="item.dropdown">
-                <!-- Spotlight Layout Dropdown -->
-                <VPNavLayoutSpotlight
-                    v-if="item.dropdown.layout === 'spotlight'"
-                    :item="item"
-                />
-                <!-- Columns Layout Dropdown -->
-                <VPNavLayoutColumns
-                    v-else-if="item.dropdown.layout === 'columns'"
+                <component
+                    :is="resolveDropdownLayoutComponent(item)"
+                    v-if="resolveDropdownLayoutComponent(item)"
                     :item="item"
                 />
                 <!-- Fallback to default VitePress Dropdown for standard links -->

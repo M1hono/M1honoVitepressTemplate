@@ -19,7 +19,8 @@
 </template>
 
 <script setup>
-    import { ref, onMounted, onUnmounted } from "vue";
+    import { ref, onMounted } from "vue";
+    import { createElementResizeState } from "@utils/vitepress/runtime/viewport";
 
     defineProps({
         showArrows: {
@@ -60,7 +61,10 @@
         isReady.value = true;
     };
 
-    const debouncedUpdateHeight = debounce(updateCarouselHeight, 100);
+    // ===== Resize observation via shared viewport API =====
+    createElementResizeState(carouselContainer, () => {
+        updateCarouselHeight();
+    });
 
     // ===== Mouse wheel navigation =====
     const handleWheel = (e) => {
@@ -75,36 +79,9 @@
         }
     };
 
-    // ===== Lifecycle =====
-    let resizeObserver = null;
-    if (typeof ResizeObserver !== "undefined" && typeof window !== "undefined") {
-        resizeObserver = new ResizeObserver(debouncedUpdateHeight);
-    }
-
     onMounted(() => {
         updateCarouselHeight();
-        if (resizeObserver && carouselContainer.value) {
-            resizeObserver.observe(carouselContainer.value);
-        }
-        if (typeof window !== "undefined") {
-            window.addEventListener("resize", debouncedUpdateHeight);
-        }
     });
-
-    onUnmounted(() => {
-        if (resizeObserver) resizeObserver.disconnect();
-        if (typeof window !== "undefined") {
-            window.removeEventListener("resize", debouncedUpdateHeight);
-        }
-    });
-
-    function debounce(func, wait) {
-        let timeout;
-        return function (...args) {
-            clearTimeout(timeout);
-            timeout = setTimeout(() => func(...args), wait);
-        };
-    }
 </script>
 
 <style scoped>

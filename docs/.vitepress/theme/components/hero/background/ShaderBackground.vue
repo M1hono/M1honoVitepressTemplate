@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { useData } from 'vitepress';
+import { computed, onMounted, ref, watch } from 'vue';
 import { TresCanvas, extend } from '@tresjs/core';
 import { Color, ShaderMaterial, Vector2, Vector3 } from 'three';
 import { getShaderTemplate, getShaderTemplateByType, type ShaderTemplate } from '../../../../config/shaders';
+import { useHeroTheme } from "@utils/vitepress/runtime/theme/heroThemeContext";
+import { createElementResizeState } from "@utils/vitepress/runtime/viewport";
 
 extend({ ShaderMaterial });
 
@@ -31,28 +32,27 @@ const props = defineProps<{
   config?: ShaderConfig;
 }>();
 
-const { isDark } = useData();
+const { isDarkRef, resolveThemeValue: resolveTV, themeVersion } = useHeroTheme();
 const containerRef = ref<HTMLElement | null>(null);
 const isClient = ref(false);
 const resolution = ref(new Vector2(1, 1));
 const uniforms = ref<Record<string, { value: any }>>({});
 const materialKey = ref('shader-0');
-let resizeObserver: ResizeObserver | null = null;
-let themeMutationObserver: MutationObserver | null = null;
-let themeSyncRafA: number | null = null;
-let themeSyncRafB: number | null = null;
+
+const { reobserve: reobserveContainer } = createElementResizeState(
+  containerRef,
+  () => {
+    syncResolution();
+  },
+  { debounceMs: 0 },
+);
 
 function isLikelyShaderCode(shader: unknown): shader is string {
   return typeof shader === 'string' && /void\s+main\s*\(/.test(shader);
 }
 
 function resolveThemeValue<T>(value: ThemeValue<T> | undefined): T | undefined {
-  if (value === undefined || value === null) return undefined;
-  if (typeof value !== 'object') return value as T;
-
-  const record = value as { value?: T; light?: T; dark?: T };
-  if (isDark.value) return record.dark ?? record.light ?? record.value;
-  return record.light ?? record.dark ?? record.value;
+  return resolveTV(value as any) as T | undefined;
 }
 
 function colorToVec3(input: unknown): Vector3 {
@@ -70,12 +70,12 @@ function colorToVec3(input: unknown): Vector3 {
 
 function resolveBackgroundColor(): Vector3 {
   if (typeof window === 'undefined') {
-    return isDark.value ? new Vector3(0.11, 0.11, 0.12) : new Vector3(1, 1, 1);
+    return isDarkRef.value ? new Vector3(0.11, 0.11, 0.12) : new Vector3(1, 1, 1);
   }
 
   const cssColor = getComputedStyle(document.documentElement).getPropertyValue('--vp-c-bg').trim();
   if (!cssColor) {
-    return isDark.value ? new Vector3(0.11, 0.11, 0.12) : new Vector3(1, 1, 1);
+    return isDarkRef.value ? new Vector3(0.11, 0.11, 0.12) : new Vector3(1, 1, 1);
   }
 
   const color = new Color(cssColor);
@@ -171,9 +171,9 @@ function rebuildUniforms(forceRecreate: boolean = false) {
 
   // Update theme state
   if (uniforms.value.uThemeIsDark) {
-    uniforms.value.uThemeIsDark.value = isDark.value ? 1 : 0;
+    uniforms.value.uThemeIsDark.value = isDarkRef.value ? 1 : 0;
   } else {
-    uniforms.value.uThemeIsDark = { value: isDark.value ? 1 : 0 };
+    uniforms.value.uThemeIsDark = { value: isDarkRef.value ? 1 : 0 };
   }
 
   // Update background color
@@ -208,31 +208,6 @@ function rebuildUniforms(forceRecreate: boolean = false) {
   }
 }
 
-function cancelThemeSyncFrames() {
-  if (themeSyncRafA !== null) {
-    cancelAnimationFrame(themeSyncRafA);
-    themeSyncRafA = null;
-  }
-  if (themeSyncRafB !== null) {
-    cancelAnimationFrame(themeSyncRafB);
-    themeSyncRafB = null;
-  }
-}
-
-function scheduleThemeSync() {
-  if (!isClient.value) return;
-  cancelThemeSyncFrames();
-
-  // Match the shader markdown plugin strategy: wait two RAFs after class changes
-  // so CSS variables (like --vp-c-bg) are stable before rebuilding uniforms.
-  themeSyncRafA = requestAnimationFrame(() => {
-    themeSyncRafB = requestAnimationFrame(() => {
-      rebuildUniforms();
-      syncResolution();
-    });
-  });
-}
-
 function syncResolution() {
   if (!containerRef.value) return;
   const rect = containerRef.value.getBoundingClientRect();
@@ -260,10 +235,11 @@ watch(
 );
 
 watch(
-  () => isDark.value,
+  () => themeVersion.value,
   () => {
-    // Don't recreate material on theme change - just update uniforms
-    scheduleThemeSync();
+    if (!isClient.value) return;
+    rebuildUniforms();
+    syncResolution();
   },
 );
 
@@ -271,31 +247,9 @@ onMounted(() => {
   isClient.value = true;
   syncResolution();
 
-  if (typeof ResizeObserver !== 'undefined' && containerRef.value) {
-    resizeObserver = new ResizeObserver(() => {
-      syncResolution();
-    });
-    resizeObserver.observe(containerRef.value);
+  if (containerRef.value) {
+    reobserveContainer(containerRef.value);
   }
-
-  if (typeof MutationObserver !== 'undefined') {
-    themeMutationObserver = new MutationObserver(() => {
-      scheduleThemeSync();
-    });
-
-    themeMutationObserver.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['class', 'style'],
-    });
-  }
-});
-
-onBeforeUnmount(() => {
-  resizeObserver?.disconnect();
-  resizeObserver = null;
-  themeMutationObserver?.disconnect();
-  themeMutationObserver = null;
-  cancelThemeSyncFrames();
 });
 </script>
 

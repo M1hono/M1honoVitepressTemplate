@@ -6,7 +6,7 @@
     import {
         resolveHomeLink,
         type HomeLinkKey,
-    } from "../../../../utils/vitepress/home-links";
+    } from "@utils/vitepress/services/homeLinkService";
 
     interface HeroAction {
         theme?: "brand" | "alt" | "sponsor" | "outline" | "ghost" | "danger";

@@ -1,6 +1,6 @@
 <script setup lang="ts">
     import { computed } from "vue";
-    import { resolveAssetWithBase } from "@utils/assets";
+    import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
 
     const props = withDefaults(
         defineProps<{

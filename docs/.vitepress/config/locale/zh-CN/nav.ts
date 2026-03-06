@@ -13,16 +13,13 @@
  * 所有路由已在 `docs/src/zh-CN/**` 源码树中验证。
  */
 
-import type { NavItem } from "../../../utils/config/nav-types";
+import type { NavItem } from "../../../utils/config/navTypes";
 
 const zhNav: NavItem[] = [
-    // ─── 首页 ──────────────────────────────────────────────────────────────
     {
         text: "首页",
         link: "/",
     },
-
-    // ─── 文档 ─ spotlight 布局 ─────────────────────────────────────────────
     {
         text: "文档",
         dropdown: {
@@ -117,13 +114,52 @@ const zhNav: NavItem[] = [
                                 },
                             ],
                         },
+                        {
+                            label: "开发指南",
+                            items: [
+                                {
+                                    text: "可维护性指南",
+                                    link: "/frontmatter/reference/maintainability",
+                                    desc: "模板扩展的高层规范与职责边界",
+                                    preview: {
+                                        title: "可维护性指南",
+                                        body: "当你要修改模板本身时，应先读这一页。\n\n它说明契约优先、运行时归属和跨仓库同步的基本规则。",
+                                    },
+                                },
+                                {
+                                    text: "开发工作流",
+                                    link: "/frontmatter/reference/developmentWorkflow",
+                                    desc: "改动顺序与校验流程",
+                                    preview: {
+                                        title: "开发工作流",
+                                        body: "建议顺序是：\n- 先 API 契约\n- 再共享运行时\n- 再视图层\n- 再文档示例\n- 最后执行校验命令",
+                                    },
+                                },
+                                {
+                                    text: "扩展架构说明",
+                                    link: "/frontmatter/reference/extensionArchitecture",
+                                    desc: "组件、运行时、配置与样式的职责边界",
+                                    preview: {
+                                        title: "扩展架构说明",
+                                        body: "用这页判断改动应该落在 `api`、`runtime`、`theme/components`、`config` 还是 `docs/src`。",
+                                    },
+                                },
+                                {
+                                    text: "Hero 扩展手册",
+                                    link: "/frontmatter/reference/heroExtension",
+                                    desc: "排版、浮动元素、Shader 与背景扩展方案",
+                                    preview: {
+                                        title: "Hero 扩展手册",
+                                        body: "用于新增排版风格、浮动元素类型、Shader 预设与背景渲染器，而不破坏共享契约。",
+                                    },
+                                },
+                            ],
+                        },
                     ],
                 },
             ],
         },
     },
-
-    // ─── 组件 ─ columns 布局 ───────────────────────────────────────────────
     {
         text: "组件",
         dropdown: {
@@ -204,8 +240,6 @@ const zhNav: NavItem[] = [
             ],
         },
     },
-
-    // ─── 社区 ─ columns 布局，含 Lottie 媒体预览 ───────────────────────────
     {
         text: "社区",
         dropdown: {

@@ -72,7 +72,7 @@
         getCurrentInstance,
     } from "vue";
     import { useData } from "vitepress";
-    import { resolveAssetWithBase } from "@utils/assets";
+    import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
 
     const colorMap: Record<string, string> = {
         Alice: "#cc0066",

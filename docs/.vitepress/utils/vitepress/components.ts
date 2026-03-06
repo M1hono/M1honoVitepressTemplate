@@ -13,12 +13,12 @@ import {
     MarkMapView,
     VChart,
     ShaderEffectBlock,
-} from "../../theme/components/content";
+} from "@utils/vitepress/componentRegistry/contentRegistry";
 import {
     YoutubeVideo,
     BilibiliVideo,
     PdfViewer,
-} from "../../theme/components/media";
+} from "@utils/vitepress/componentRegistry/mediaRegistry";
 import {
     Buttons,
     Carousels,
@@ -26,17 +26,17 @@ import {
     Animation,
     Preview,
     NotFound,
-} from "../../theme/components/ui";
-import MagicMoveContainer from "../../theme/components/ui/MagicMoveContainer.vue";
+} from "@utils/vitepress/componentRegistry/uiRegistry";
+import MagicMoveContainer from "@components/ui/MagicMoveContainer.vue";
 import { defineAsyncComponent } from "vue";
 import { LiteTree } from "@lite-tree/vue";
-import { TagsPage } from "../../theme/components/content";
+import { TagsPage } from "@utils/vitepress/componentRegistry/contentRegistry";
 
 const CommitsCounter = defineAsyncComponent(
-    () => import("../../theme/components/content/CommitsCounter.vue"),
+    () => import("@components/content/CommitsCounter.vue"),
 );
 const Contributors = defineAsyncComponent(
-    () => import("../../theme/components/content/Contributors.vue"),
+    () => import("@components/content/Contributors.vue"),
 );
 
 const components = {

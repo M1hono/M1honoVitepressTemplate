@@ -1,4 +1,8 @@
 {
   "_self_": false,
-  "keyInventory.md": false
+  "keyInventory.md": false,
+  "maintainability.md": false,
+  "developmentWorkflow.md": false,
+  "extensionArchitecture.md": false,
+  "heroExtension.md": false
 }

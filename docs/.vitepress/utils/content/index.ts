@@ -6,6 +6,8 @@
 import { countWord } from "./functions";
 import * as navLinkType from "./navLinkType";
 
+export * from "./billing";
+
 /**
  * Text processing utilities
  */

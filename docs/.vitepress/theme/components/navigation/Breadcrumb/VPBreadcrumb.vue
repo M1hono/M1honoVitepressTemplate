@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-    import { useBreadcrumb } from "@utils/vitepress/composables/useBreadcrumb";
+    import { createBreadcrumbState } from "@utils/vitepress/runtime/navigation/breadcrumbState";
     import { useData, withBase } from "vitepress";
     import { computed } from "vue";
 
-    const { breadcrumbs } = useBreadcrumb();
+    const { breadcrumbs } = createBreadcrumbState();
     const { frontmatter } = useData();
 
     const isExternalLink = (link: string) => /^(https?:)?\/\//.test(link);

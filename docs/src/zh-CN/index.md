@@ -5,6 +5,49 @@ hero:
     name: "VitePress 模板"
     text: "功能丰富的文档模板"
     tagline: "基于 VitePress 构建的现代化文档模板，集成多种增强插件和功能"
+    colors:
+        searchBackground:
+            light: "rgba(255, 255, 255, 0.42)"
+            dark: "rgba(15, 23, 42, 0.24)"
+        searchBackgroundScrolled:
+            light: "rgba(255, 255, 255, 0.62)"
+            dark: "rgba(15, 23, 42, 0.38)"
+        searchHoverBackground:
+            light: "rgba(255, 255, 255, 0.56)"
+            dark: "rgba(15, 23, 42, 0.34)"
+        searchHoverBackgroundScrolled:
+            light: "rgba(255, 255, 255, 0.74)"
+            dark: "rgba(15, 23, 42, 0.46)"
+        searchText:
+            light: "rgba(15, 23, 42, 0.82)"
+            dark: "rgba(255, 255, 255, 0.94)"
+        searchTextScrolled:
+            light: "rgba(15, 23, 42, 0.88)"
+            dark: "rgba(255, 255, 255, 0.96)"
+        searchTextMuted:
+            light: "rgba(15, 23, 42, 0.56)"
+            dark: "rgba(255, 255, 255, 0.72)"
+        searchTextMutedScrolled:
+            light: "rgba(15, 23, 42, 0.62)"
+            dark: "rgba(255, 255, 255, 0.76)"
+        searchBorder:
+            light: "rgba(15, 23, 42, 0.1)"
+            dark: "rgba(255, 255, 255, 0.14)"
+        searchBorderScrolled:
+            light: "rgba(15, 23, 42, 0.12)"
+            dark: "rgba(255, 255, 255, 0.18)"
+        searchKeyBackground:
+            light: "rgba(15, 23, 42, 0.06)"
+            dark: "rgba(255, 255, 255, 0.12)"
+        searchKeyBackgroundScrolled:
+            light: "rgba(15, 23, 42, 0.08)"
+            dark: "rgba(255, 255, 255, 0.16)"
+        searchKeyText:
+            light: "rgba(15, 23, 42, 0.6)"
+            dark: "rgba(255, 255, 255, 0.76)"
+        searchKeyTextScrolled:
+            light: "rgba(15, 23, 42, 0.66)"
+            dark: "rgba(255, 255, 255, 0.82)"
     typography:
         type: grouped-float
         motion:
@@ -83,31 +126,46 @@ hero:
           text: Hero 矩阵
           linkKey: heroMatrix
         - theme: alt
-          text: Hero 全配置
-          linkKey: heroAllConfig
-        - theme: alt
           text: Frontmatter API
           linkKey: frontmatterApi
+        - theme: alt
+          text: 可维护性指南
+          linkKey: maintainabilityGuide
         - theme: outline
-          text: 样式与插件
-          linkKey: stylesPlugins
+          text: 开发工作流
+          linkKey: developmentWorkflow
+        - theme: outline
+          text: 扩展架构
+          linkKey: extensionArchitecture
         - theme: ghost
-          text: 全部 Markdown
-          linkKey: allPages
+          text: Hero 扩展
+          linkKey: heroExtension
 
 features:
-    - icon: 🌠
-      title: Hero 矩阵
-      details: 按领域和层级查看全部 Hero 配置展示页。
-      linkKey: heroMatrix
-    - icon: 📚
-      title: 全部 Markdown 页面
-      details: 当前语言下所有 Markdown 页面导航总表。
-      linkKey: allPages
     - icon: ⚙️
       title: Frontmatter API
       details: 页面级与组件级 frontmatter 契约说明。
       linkKey: frontmatterApi
+    - icon: 🧭
+      title: 可维护性指南
+      details: 模板扩展的高层工程规范与协作边界。
+      linkKey: maintainabilityGuide
+    - icon: 🛠️
+      title: 开发工作流
+      details: 改动顺序、校验流程与上下游同步规则。
+      linkKey: developmentWorkflow
+    - icon: 🧱
+      title: 扩展架构
+      details: 组件、运行时、配置与样式应落在哪一层。
+      linkKey: extensionArchitecture
+    - icon: ✨
+      title: Hero 扩展
+      details: 排版、浮动元素、Shader、背景与导航搜索视觉扩展手册。
+      linkKey: heroExtension
+    - icon: 🌠
+      title: Hero 矩阵
+      details: 按领域和层级查看全部 Hero 配置展示页。
+      linkKey: heroMatrix
     - icon: 🎨
       title: 样式与插件
       details: 模板内置插件能力与样式体系使用方式。
@@ -120,14 +178,6 @@ features:
       title: Waves 矩阵
       details: Hero 与正文衔接波浪的层级、轮廓、移动参数示例。
       linkKey: wavesMatrix
-    - icon: ✨
-      title: 浮动元素
-      details: text/card/image/stat/icon 等浮动元素组合示例。
-      linkKey: floatingElements
-    - icon: 🧩
-      title: 图像类型
-      details: image/gif/video/model3d 显示与 frame 控制示例。
-      linkKey: imageTypes
     - icon: 🗂️
       title: 全配置总览
       details: Hero 契约字段的唯一权威入口，并连接到分层展示路径。

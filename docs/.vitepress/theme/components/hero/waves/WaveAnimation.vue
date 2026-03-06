@@ -1,6 +1,6 @@
 <script setup lang="ts">
     import { computed, onMounted, onBeforeUnmount, ref, watch } from "vue";
-    import { useData } from "vitepress";
+    import { useHeroTheme } from "@utils/vitepress/runtime/theme/heroThemeContext";
 
     interface WaveLayerConfig {
         color?: string;
@@ -28,7 +28,7 @@
         config?: WavesConfig;
     }>();
 
-    const { isDark } = useData();
+    const { isDarkRef, effectiveDark } = useHeroTheme();
 
     const canvasRef = ref<HTMLCanvasElement | null>(null);
     const isClient = ref(false);
@@ -191,7 +191,7 @@
 
         ctx.clearRect(0, 0, rect.width, rect.height);
 
-        const dark = isDark.value;
+        const dark = isDarkRef.value;
         const defaultColor = props.config?.color || "var(--vp-c-bg)";
         const totalLayers = layerConfigs.value.length;
 
@@ -297,8 +297,8 @@
         window.removeEventListener("resize", handleResize);
     });
 
-    // Re-render when theme changes - use reactive isDark from VitePress
-    watch(isDark, () => {
+    // Re-render when theme changes - use effectiveDark from hero context
+    watch(() => effectiveDark?.value, () => {
         if (isClient.value) {
             render();
         }

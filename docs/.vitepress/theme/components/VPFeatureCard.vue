@@ -3,7 +3,11 @@
     import { Icon } from "@iconify/vue";
     import { useData, withBase } from "vitepress";
     import type { DefaultTheme } from "vitepress/theme";
-    import { resolveAssetWithBase } from "@utils/assets";
+    import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
+    import {
+        resolveThemeSourceByMode,
+        useThemeRuntime,
+    } from "@utils/vitepress/runtime/theme";
 
     interface Feature {
         icon?: DefaultTheme.FeatureIcon | string;
@@ -23,6 +27,7 @@
         theme?: "brand" | "info" | "tip" | "warning" | "danger";
     }>();
     const { isDark } = useData();
+    const { effectiveDark } = useThemeRuntime(isDark);
 
     const isExternal = computed(() =>
         Boolean(
@@ -76,12 +81,8 @@
         const image = props.feature.image;
         if (!image) return "";
         if (typeof image === "string") return resolveAssetWithBase(image);
-        if (isDark.value)
-            return resolveAssetWithBase(
-                image.dark || image.light || image.src || "",
-            );
         return resolveAssetWithBase(
-            image.light || image.dark || image.src || "",
+            resolveThemeSourceByMode(image, effectiveDark.value) || "",
         );
     });
 
@@ -130,15 +131,10 @@
                 v-else-if="iconImage"
                 :src="
                     resolveIconAsset(
-                        isDark
-                            ? iconImage.dark ||
-                                  iconImage.light ||
-                                  iconImage.src ||
-                                  ''
-                            : iconImage.light ||
-                                  iconImage.dark ||
-                                  iconImage.src ||
-                                  '',
+                        resolveThemeSourceByMode(
+                            iconImage,
+                            effectiveDark,
+                        ) || '',
                     )
                 "
                 :alt="iconImage.alt || feature.title"

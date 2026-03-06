@@ -1,26 +1,17 @@
 <script setup lang="ts">
-    import { computed, onMounted, ref } from "vue";
-    import { useData } from "vitepress";
+    import { computed } from "vue";
     import BackgroundLayer from "./background/BackgroundLayer.vue";
     import {
         type HeroBackgroundConfig,
         resolveNormalizedBackgroundLayers,
-    } from "../../../utils/vitepress/hero-frontmatter";
+    } from "@utils/vitepress/api/frontmatter/hero";
+    import { useHeroTheme } from "@utils/vitepress/runtime/theme/heroThemeContext";
 
     const props = defineProps<{
         config?: HeroBackgroundConfig;
     }>();
-    const { isDark } = useData();
-
-    /**
-     * Reactive dark mode state that tracks isDark changes properly.
-     */
-    const isDarkClient = computed(() => isDark.value);
-    const isMounted = ref(false);
-
-    onMounted(() => {
-        isMounted.value = true;
-    });
+    const { isDarkRef, resolveThemeValue: resolveTV, toCssValue } =
+        useHeroTheme();
 
     const config = computed(() => props.config);
 
@@ -71,31 +62,8 @@
         };
     });
 
-    function resolveThemeValue<T>(
-        value: T | { light?: T; dark?: T; value?: T } | undefined,
-    ): T | undefined {
-        if (value === undefined || value === null) return undefined;
-        if (typeof value !== "object" || Array.isArray(value))
-            return value as T;
-        const theme = value as { light?: T; dark?: T; value?: T };
-        return isDarkClient.value
-            ? (theme.dark ?? theme.light ?? theme.value)
-            : (theme.light ?? theme.dark ?? theme.value);
-    }
-
-    function toCssValue(value: unknown): string | undefined {
-        if (value === undefined || value === null) return undefined;
-        if (typeof value === "string") return value;
-        if (typeof value === "number") return String(value);
-        if (typeof value === "boolean") return value ? "1" : "0";
-        if (Array.isArray(value))
-            return value.map((item) => String(item)).join(" ");
-        return String(value);
-    }
-
     const cssVariableStyle = computed(() => {
-        const _mounted = isMounted.value;
-        const _dark = isDarkClient.value;
+        const _dark = isDarkRef.value;
 
         const style: Record<string, string> = {};
         const mergedVars =
@@ -106,7 +74,7 @@
 
         for (const [rawKey, rawValue] of Object.entries(mergedVars)) {
             const key = rawKey.startsWith("--") ? rawKey : `--${rawKey}`;
-            const resolved = resolveThemeValue(rawValue as any);
+            const resolved = resolveTV(rawValue as any);
             const cssValue = toCssValue(resolved);
             if (cssValue !== undefined) style[key] = cssValue;
         }
@@ -122,7 +90,7 @@
         if (!configStyle) return style;
 
         for (const [key, value] of Object.entries(configStyle)) {
-            const resolved = resolveThemeValue(value as any);
+            const resolved = resolveTV(value as any);
             const cssValue = toCssValue(resolved);
             if (cssValue !== undefined) style[key] = cssValue;
         }

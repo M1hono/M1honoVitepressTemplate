@@ -1,16 +1,17 @@
 <script setup lang="ts">
     import { computed } from "vue";
-    import { useData } from "vitepress";
     import type {
         HeroImageConfig,
         HeroImageThemeableSource,
-    } from "../../../../utils/vitepress/hero-frontmatter";
+    } from "@utils/vitepress/api/frontmatter/hero";
 
     import ImageDisplay from "./ImageDisplay.vue";
     import VideoDisplay from "./VideoDisplay.vue";
     import GifDisplay from "./GifDisplay.vue";
     import Model3D from "./Model3D.vue";
     import LottieDisplay from "./LottieDisplay.vue";
+    import { useHeroTheme } from "@utils/vitepress/runtime/theme/heroThemeContext";
+    import { resolveThemeSourceByMode } from "@utils/vitepress/runtime/theme";
 
     interface GifConfig {
         src?: string;
@@ -45,7 +46,7 @@
         defaultImage?: HeroImageThemeableSource;
     }>();
 
-    const { isDark } = useData();
+    const { isDarkRef } = useHeroTheme();
 
     const imageType = computed(() => {
         return props.config?.type || "image";
@@ -77,9 +78,7 @@
         const source = fromImage || fromRoot || fallback;
         if (!source) return "";
 
-        if (isDark.value && source.dark) return source.dark;
-        if (!isDark.value && source.light) return source.light;
-        return source.src || source.light || source.dark || "";
+        return resolveThemeSourceByMode(source, isDarkRef.value) || "";
     });
 
     const hasRenderableImage = computed(() => {
@@ -249,9 +248,7 @@
 
     const lottieConfig = computed<LottieConfig>(() => {
         const source = (props.config?.lottie as LottieConfig | undefined) || {};
-        const themedSrc = isDark.value
-            ? source.dark || source.light || source.src
-            : source.light || source.dark || source.src;
+        const themedSrc = resolveThemeSourceByMode(source, isDarkRef.value);
 
         return {
             src: themedSrc || resolvedSource.value,

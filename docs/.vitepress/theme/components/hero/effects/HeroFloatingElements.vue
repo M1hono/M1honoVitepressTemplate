@@ -1,16 +1,17 @@
 <script setup lang="ts">
     import "./floating/floating-elements.css";
-    import type { FloatingConfig } from "./floating/types";
+    import { FloatingConfig } from "@utils/vitepress/runtime/hero/floatingTypes";
     import FloatingElementItem from "./floating/FloatingElementItem.vue";
-    import { useFloatingElements } from "./floating/useFloatingElements";
+    import { createFloatingElementsState } from "@utils/vitepress/runtime/hero/floatingElementsState";
 
     const props = defineProps<{
         config?: FloatingConfig;
         snippetWords?: string[];
+        isDarkRef?: { value: boolean };
     }>();
 
     const { isEnabled, normalizedItems, motionEnabled, rootStyle, itemStyle } =
-        useFloatingElements(props);
+        createFloatingElementsState(props);
 </script>
 
 <template>

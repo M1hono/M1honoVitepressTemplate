@@ -6,10 +6,10 @@
         navConfig,
         type NavItem,
         type NavLink,
-    } from "../../../../utils/config/nav-config";
-    import { projectConfig } from "../../../../utils/config/project-config";
-    import { getLangCodeFromVitepressLang } from "../../../../utils/config/project-api";
-    import { prefixNavLinks } from "@utils/vitepress/nav-link-access";
+    } from "@utils/config/navConfig";
+    import { projectConfig } from "@config/project-config";
+    import { getLangCodeFromVitepressLang } from "@config/project-api";
+    import { prefixNavLinks } from "@utils/vitepress/api/navigation/NavLinkAccessService";
     import VPNavScreenMenuGroup from "vitepress/dist/client/theme-default/components/VPNavScreenMenuGroup.vue";
     import VPNavScreenMenuLink from "vitepress/dist/client/theme-default/components/VPNavScreenMenuLink.vue";
     import VPNavScreenAppearance from "vitepress/dist/client/theme-default/components/VPNavScreenAppearance.vue";

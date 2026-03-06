@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import { computed } from "vue";
     import { withBase } from "vitepress";
-    import { resolveAssetWithBase } from "@utils/assets";
+    import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
 
     /**
      * Component props for Linkcard.

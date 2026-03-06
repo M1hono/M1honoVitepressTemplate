@@ -8,9 +8,9 @@ import {
     onBeforeUpdate,
     nextTick,
 } from "vue";
-import { BillManager } from "./billManager";
-import type { Bill } from "./bill";
-import { useSafeI18n } from "../../../utils/i18n/locale";
+import { BillManager } from "@utils/content/billing/BillManager";
+import type { Bill } from "@utils/content/billing/BillTypes";
+import { useSafeI18n } from "@utils/i18n/locale";
 import { getDefaultCurrency } from "@config/project-config";
 
 const props = defineProps<{

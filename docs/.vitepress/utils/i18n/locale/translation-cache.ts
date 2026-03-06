@@ -1,163 +1,192 @@
 /// <reference types="vite/client" />
 
-import { ref, reactive } from 'vue';
-import { useData } from 'vitepress';
+import { reactive, watchEffect } from "vue";
+import { useData } from "vitepress";
 import { getLanguages, getDefaultLanguage } from "@config/project-config";
-import componentIdMappingData from '../../../config/locale/component-id-mapping.json';
+import componentIdMappingData from "../../../config/locale/component-id-mapping.json";
 
 interface ComponentIdMapping {
-    generatedAt: string;
-    description: string;
-    mappings: Record<string, string>;
+    mappings?: Record<string, string>;
 }
 
-class TranslationCache {
-    private cache = reactive<Record<string, Record<string, string>>>({});
-    private currentLang = ref('en-US');
-    private componentIdMapping: Record<string, string> = {};
-    private mappingLoaded = false;
+type TranslationDictionary = Record<string, string>;
 
-    constructor() {
-        const defaultLang = getDefaultLanguage();
-        this.currentLang.value = defaultLang.code;
-        this.loadComponentIdMapping();
-    }
+class LocaleCodeResolver {
+    private readonly knownLocales = new Set<string>(
+        getLanguages().map((language) => language.code),
+    );
+    private readonly fallbackLocale = getDefaultLanguage().code;
 
-    private loadComponentIdMapping(): void {
-        if (this.mappingLoaded) return;
-        
-        try {
-            const mappingData = componentIdMappingData as ComponentIdMapping;
-            this.componentIdMapping = mappingData.mappings || {};
-            this.mappingLoaded = true;
-        } catch (error) {
-            this.mappingLoaded = true;
+    resolve(localeFromVitePress: string | undefined) {
+        if (
+            localeFromVitePress &&
+            this.knownLocales.has(localeFromVitePress)
+        ) {
+            return localeFromVitePress;
         }
+
+        const localeFromPath = this.resolveFromPathname();
+        if (localeFromPath) return localeFromPath;
+
+        return this.fallbackLocale;
     }
 
-    private getComponentFilePath(componentId: string): string {
-        return this.componentIdMapping[componentId] || componentId;
-    }
-
-    private detectLanguageFromURL(): string | null {
-        if (typeof window !== 'undefined') {
-            const path = window.location.pathname;
-            const languages = getLanguages();
-            for (const lang of languages) {
-                const linkPath = lang.link || `/${lang.code}/`;
-                if (path.startsWith(linkPath)) {
-                    return lang.code;
-                }
+    private resolveFromPathname() {
+        if (typeof window === "undefined") return undefined;
+        const pathname = window.location.pathname;
+        for (const language of getLanguages()) {
+            const basePath = language.link || `/${language.code}/`;
+            if (pathname.startsWith(basePath)) {
+                return language.code;
             }
         }
-        return null;
+        return undefined;
+    }
+}
+
+class ComponentPathResolver {
+    private readonly mapping: Record<string, string>;
+
+    constructor(mappingData: ComponentIdMapping) {
+        this.mapping = mappingData?.mappings || {};
     }
 
-    private detectLanguageFromVitePress(): string | null {
+    resolve(componentId: string) {
+        return this.mapping[componentId] || componentId;
+    }
+}
+
+class TranslationModuleLoader {
+    private readonly translationModules = import.meta.glob(
+        "../../../config/locale/*/components/**/*.json",
+    );
+
+    async load(locale: string, componentPath: string) {
+        const modulePath = `../../../config/locale/${locale}/components/${componentPath}.json`;
+        const moduleFactory = this.translationModules[modulePath];
+        if (!moduleFactory) return {} as TranslationDictionary;
+
         try {
-            const { lang } = useData();
-            if (lang?.value) {
-                return lang.value;
-            }
-        } catch (error) {
-            return null;
+            const moduleValue = await moduleFactory();
+            const raw =
+                (moduleValue as { default?: TranslationDictionary }).default ||
+                moduleValue;
+            if (!raw || typeof raw !== "object") return {};
+            return raw as TranslationDictionary;
+        } catch {
+            return {} as TranslationDictionary;
         }
-        return null;
     }
+}
 
-    private isValidLanguage(lang: string): boolean {
-        const languages = getLanguages();
-        return languages.some(l => l.code === lang);
-    }
+function createCacheKey(componentId: string, locale: string) {
+    return `${componentId}@${locale}`;
+}
 
-    private getCurrentLanguage(): string {
-        const urlLang = this.detectLanguageFromURL();
-        if (urlLang && this.isValidLanguage(urlLang)) {
-            this.currentLang.value = urlLang;
-            return urlLang;
-        }
+class TranslationCacheStore {
+    private readonly cache = reactive<Record<string, TranslationDictionary>>({});
+    private readonly loading = new Set<string>();
 
-        const vitePressed = this.detectLanguageFromVitePress();
-        if (vitePressed && this.isValidLanguage(vitePressed)) {
-            this.currentLang.value = vitePressed;
-            return vitePressed;
-        }
+    constructor(
+        private readonly pathResolver: ComponentPathResolver,
+        private readonly moduleLoader: TranslationModuleLoader,
+    ) {}
 
-        const defaultLang = getDefaultLanguage();
-        this.currentLang.value = defaultLang.code;
-        return defaultLang.code;
-    }
-
-    public getTranslations<T extends Record<string, string>>(
+    getBucket(
         componentId: string,
-        defaultTranslations: T
-    ): T {
-        const lang = this.getCurrentLanguage();
-        const cacheKey = `${componentId}@${lang}`;
-        
+        locale: string,
+        defaults: TranslationDictionary,
+    ) {
+        const cacheKey = createCacheKey(componentId, locale);
         if (!this.cache[cacheKey]) {
-            this.cache[cacheKey] = { ...defaultTranslations };
-            this.loadTranslationsAsync(componentId, lang, defaultTranslations);
+            this.cache[cacheKey] = { ...defaults };
         }
-        
-        return this.cache[cacheKey] as T;
+        this.ensureLoaded(componentId, locale, defaults);
+        return this.cache[cacheKey];
     }
 
-    private async loadTranslationsAsync<T extends Record<string, string>>(
+    private ensureLoaded(
         componentId: string,
-        lang: string,
-        defaultTranslations: T
-    ): Promise<void> {
-        try {
-            this.loadComponentIdMapping();
-            const componentFilePath = this.getComponentFilePath(componentId);
-            let translations: Record<string, string> = {};
-            
-            const languages = getLanguages();
-            const currentLang = languages.find(l => l.code === lang);
-            
-            if (currentLang) {
-                try {
-                    const translationModules = import.meta.glob('../../../config/locale/*/components/**/*.json');
-                    const modulePath = `../../../config/locale/${lang}/components/${componentFilePath}.json`;
-                    
-                    if (translationModules[modulePath]) {
-                        const module = await translationModules[modulePath]();
-                        translations = (module as any).default || module;
-                    }
-                } catch (error) {
-                    // Silent fail
+        locale: string,
+        defaults: TranslationDictionary,
+    ) {
+        const cacheKey = createCacheKey(componentId, locale);
+        if (this.loading.has(cacheKey)) return;
+
+        this.loading.add(cacheKey);
+        const componentPath = this.pathResolver.resolve(componentId);
+
+        this.moduleLoader
+            .load(locale, componentPath)
+            .then((translation) => {
+                if (!this.cache[cacheKey]) {
+                    this.cache[cacheKey] = { ...defaults };
                 }
-            }
-            
-            const cacheKey = `${componentId}@${lang}`;
-            
-            if (this.cache[cacheKey]) {
-                for (const [key, value] of Object.entries(translations)) {
+                Object.entries(translation).forEach(([key, value]) => {
                     this.cache[cacheKey][key] = value;
-                }
-            } else {
-                this.cache[cacheKey] = { ...defaultTranslations, ...translations };
-            }
-        } catch (error) {
-            // Silent fail
-        }
+                });
+            })
+            .finally(() => {
+                this.loading.delete(cacheKey);
+            });
     }
 }
 
-const translationCache = new TranslationCache();
+function syncTranslationObject(
+    target: Record<string, string>,
+    nextValues: Record<string, string>,
+) {
+    Object.keys(target).forEach((key) => {
+        if (!(key in nextValues)) {
+            delete target[key];
+        }
+    });
+    Object.entries(nextValues).forEach(([key, value]) => {
+        target[key] = value;
+    });
+}
+
+const localeCodeResolver = new LocaleCodeResolver();
+const componentPathResolver = new ComponentPathResolver(
+    componentIdMappingData as ComponentIdMapping,
+);
+const translationModuleLoader = new TranslationModuleLoader();
+const translationCacheStore = new TranslationCacheStore(
+    componentPathResolver,
+    translationModuleLoader,
+);
 
 export function useSafeI18n<T extends Record<string, string>>(
     componentId: string,
-    defaultTranslations: T
+    defaultTranslations: T,
 ): { t: T } {
-    const translations = translationCache.getTranslations(componentId, defaultTranslations);
-    return { t: translations };
+    const { lang } = useData();
+    const translationState = reactive({ ...defaultTranslations }) as T;
+
+    watchEffect(() => {
+        const locale = localeCodeResolver.resolve(lang.value);
+        const cachedBucket = translationCacheStore.getBucket(
+            componentId,
+            locale,
+            defaultTranslations,
+        );
+        const nextValues = {
+            ...defaultTranslations,
+            ...cachedBucket,
+        } as Record<string, string>;
+        syncTranslationObject(
+            translationState as Record<string, string>,
+            nextValues,
+        );
+    });
+
+    return { t: translationState };
 }
 
 export function createI18nHook<T extends Record<string, string>>(
     componentId: string,
-    defaultTranslations: T
+    defaultTranslations: T,
 ) {
     return () => useSafeI18n(componentId, defaultTranslations);
-} 
+}
+

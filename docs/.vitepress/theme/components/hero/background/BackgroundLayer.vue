@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useData } from 'vitepress';
-import type { HeroBackgroundLayerConfig } from '../../../../utils/vitepress/hero-frontmatter';
+import type { HeroBackgroundLayerConfig } from "@utils/vitepress/api/frontmatter/hero";
+import { useHeroTheme } from "@utils/vitepress/runtime/theme/heroThemeContext";
 
 import ColorBackground from './ColorBackground.vue';
 import ImageBackground from './ImageBackground.vue';
@@ -12,23 +12,7 @@ import ParticleSystem from './ParticleSystem.vue';
 const props = defineProps<{
   layer: HeroBackgroundLayerConfig;
 }>();
-const { isDark } = useData();
-
-function resolveThemeValue<T>(value: T | { light?: T; dark?: T; value?: T } | undefined): T | undefined {
-  if (value === undefined || value === null) return undefined;
-  if (typeof value !== 'object' || Array.isArray(value)) return value as T;
-  const theme = value as { light?: T; dark?: T; value?: T };
-  return isDark.value ? (theme.dark ?? theme.light ?? theme.value) : (theme.light ?? theme.dark ?? theme.value);
-}
-
-function toCssValue(value: unknown): string | undefined {
-  if (value === undefined || value === null) return undefined;
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number') return String(value);
-  if (typeof value === 'boolean') return value ? '1' : '0';
-  if (Array.isArray(value)) return value.map((item) => String(item)).join(' ');
-  return String(value);
-}
+const { resolveThemeValue, toCssValue } = useHeroTheme();
 
 const layerStyle = computed(() => {
   const style: Record<string, string> = {

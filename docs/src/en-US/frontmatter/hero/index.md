@@ -12,6 +12,8 @@ Hero runtime frontmatter for home page composition.
 
 - [Hero Runtime](./heroRuntime) - Complete hero frontmatter contract with examples
 - [All Hero Config](../../hero/AllConfig) - Full API reference table for every field
+- [Hero Extension Playbook](../reference/heroExtension) - Extend hero typography, floating items, shaders, backgrounds, and nav/search visuals
+- [Maintainability and Extension Guide](../reference/maintainability) - Shared engineering rules for hero-related framework changes
 
 ## Key Sections
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
     import { computed } from "vue";
-    import type { HomeLinkKey } from "../../../../utils/vitepress/home-links";
-    import type { HeroTypographyStyleType } from "../../../../utils/vitepress/hero-frontmatter";
+    import type { HomeLinkKey } from "@utils/vitepress/services/homeLinkService";
+    import { heroTypographyRegistry, HeroTypographyStyleType } from "@utils/vitepress/api/frontmatter/hero";
     import HeroTitle from "./HeroTitle.vue";
     import HeroTagline from "./HeroTagline.vue";
     import HeroActions from "./HeroActions.vue";
@@ -32,11 +32,7 @@
     const hasHeading = computed(() => Boolean(props.name || props.text));
     const motionEnabled = computed(() => props.animate !== false);
     const resolvedStyleType = computed<HeroTypographyStyleType>(() =>
-        props.styleType === "none" ||
-        props.styleType === "slanted-wrap" ||
-        props.styleType === "grouped-float"
-            ? props.styleType
-            : "floating-tilt",
+        heroTypographyRegistry.resolveStyleType(props.styleType),
     );
     const usesGroupedFloatStyle = computed(
         () => resolvedStyleType.value === "grouped-float",
@@ -68,23 +64,30 @@
 <template>
     <div
         class="hero-content"
-        :class="{
-            'hero-content--media': hasMediaBackground,
-            'hero-content--style-floating-tilt':
-                resolvedStyleType === 'floating-tilt',
-            'hero-content--style-grouped-float': usesGroupedFloatStyle,
-            'hero-content--style-slanted-wrap': usesSlantedWrapStyle,
-            'hero-content--style-none': !usesMotionStyle,
-        }"
+        :class="[
+            {
+                'hero-content--media': hasMediaBackground,
+                'hero-content--style-floating-tilt':
+                    resolvedStyleType === 'floating-tilt',
+                'hero-content--style-grouped-float': usesGroupedFloatStyle,
+                'hero-content--style-slanted-wrap': usesSlantedWrapStyle,
+                'hero-content--style-none': !usesMotionStyle,
+            },
+            `hero-content--style-${resolvedStyleType}`,
+        ]"
     >
         <h1
             v-if="hasHeading"
             class="heading"
-            :class="{
-                'heading--floating-tilt': resolvedStyleType === 'floating-tilt',
-                'heading--grouped-float': usesGroupedFloatStyle,
-                'heading--none': !usesMotionStyle,
-            }"
+            :class="[
+                {
+                    'heading--floating-tilt':
+                        resolvedStyleType === 'floating-tilt',
+                    'heading--grouped-float': usesGroupedFloatStyle,
+                    'heading--none': !usesMotionStyle,
+                },
+                `heading--style-${resolvedStyleType}`,
+            ]"
         >
             <Transition :name="titleTransitionName" appear :css="motionEnabled">
                 <HeroTitle
@@ -98,13 +101,16 @@
                 <span
                     v-if="text"
                     class="text"
-                    :class="{
-                        'text--floating-tilt':
-                            resolvedStyleType === 'floating-tilt',
-                        'text--grouped-float': usesGroupedFloatStyle,
-                        'text--slanted-wrap': usesSlantedWrapStyle,
-                        'text--none': !usesMotionStyle,
-                    }"
+                    :class="[
+                        {
+                            'text--floating-tilt':
+                                resolvedStyleType === 'floating-tilt',
+                            'text--grouped-float': usesGroupedFloatStyle,
+                            'text--slanted-wrap': usesSlantedWrapStyle,
+                            'text--none': !usesMotionStyle,
+                        },
+                        `text--style-${resolvedStyleType}`,
+                    ]"
                     v-html="text"
                 />
             </Transition>

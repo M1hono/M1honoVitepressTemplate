@@ -41,7 +41,7 @@ priority: 60
 | `hero.colors.navBackground` | hero colors | unset | Nav bar background color.
 | `hero.colors.searchBackground` | hero colors | unset | Search button background color.
 | `hero.background.color.gradient.animation` | hero background | unset | Gradient animation: `flow`, `rotate`, `pulse`.
-| `hero.actions[*].linkKey` | hero actions | unset | Named route key for action button link.
+| `hero.actions[*].linkKey` | hero actions | unset | Named route key for action button link, including developer docs such as `maintainabilityGuide`, `developmentWorkflow`, `extensionArchitecture`, and `heroExtension`.
 | `hero.actions[*].style` | hero actions | unset | Visual overrides for action button.
 | `hero.snippets` | hero | unset | Snippet data for floating elements.
 | `hero.floating` | hero | unset | Floating decorative elements config.

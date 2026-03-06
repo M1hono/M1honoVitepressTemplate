@@ -1,6 +1,9 @@
 <script setup lang="ts">
     import { computed } from "vue";
-    import type { HeroTypographyStyleType } from "@utils/vitepress/hero-frontmatter";
+    import {
+        heroTypographyRegistry,
+        HeroTypographyStyleType,
+    } from "@utils/vitepress/api/frontmatter/hero";
 
     const props = defineProps<{
         text?: string;
@@ -8,15 +11,20 @@
         styleType?: HeroTypographyStyleType;
     }>();
 
-    const styleClass = computed(() =>
-        props.styleType === "none"
+    const resolvedStyleType = computed<HeroTypographyStyleType>(() =>
+        heroTypographyRegistry.resolveStyleType(props.styleType),
+    );
+
+    const styleClass = computed(() => [
+        resolvedStyleType.value === "none"
             ? "name--none"
-            : props.styleType === "slanted-wrap"
+            : resolvedStyleType.value === "slanted-wrap"
               ? "name--slanted-wrap"
-              : props.styleType === "grouped-float"
+              : resolvedStyleType.value === "grouped-float"
                 ? "name--grouped-float"
                 : "name--floating-tilt",
-    );
+        `name--style-${resolvedStyleType.value}`,
+    ]);
 </script>
 
 <template>

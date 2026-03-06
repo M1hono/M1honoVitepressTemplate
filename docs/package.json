@@ -51,15 +51,16 @@
         "vuetify": "^3.8.7"
     },
     "scripts": {
-        "dev": "vitepress dev",
-        "build": "yarn locale && tsx .vitepress/scripts/build-sidebar.mjs && tsx .vitepress/scripts/generate-tag-data.mjs && vitepress build",
-        "preview": "vitepress preview",
-        "sidebar": "tsx .vitepress/scripts/build-sidebar.mjs",
-        "tags": "tsx .vitepress/scripts/generate-tag-data.mjs",
-        "locale": "tsx .vitepress/scripts/locale-key-sync.mjs",
-        "title": "notsxde .vitepress/scripts/update-index-titles.mjs",
-        "frontmatter": "tsx .vitepress/scripts/update-frontmatter.mjs",
-        "sync-config": "tsx .vitepress/scripts/sync-config-to-frontmatter.mjs"
+        "dev": "tsx --tsconfig tsconfig.json ./node_modules/vitepress/dist/node/cli.js dev",
+        "build": "tsx .vitepress/scripts/locale-key-sync.mjs && tsx .vitepress/scripts/build-sidebar.mjs && tsx .vitepress/scripts/generate-tag-data.mjs && tsx --tsconfig tsconfig.json ./node_modules/vitepress/dist/node/cli.js build",
+        "preview": "tsx --tsconfig tsconfig.json ./node_modules/vitepress/dist/node/cli.js preview",
+        "sidebar": "tsx --tsconfig tsconfig.json .vitepress/scripts/build-sidebar.mjs",
+        "tags": "tsx --tsconfig tsconfig.json .vitepress/scripts/generate-tag-data.mjs",
+        "locale": "tsx --tsconfig tsconfig.json .vitepress/scripts/locale-key-sync.mjs",
+        "title": "tsx --tsconfig tsconfig.json .vitepress/scripts/update-index-titles.mjs",
+        "frontmatter": "tsx --tsconfig tsconfig.json .vitepress/scripts/update-frontmatter.mjs",
+        "sync-config": "tsx .vitepress/scripts/sync-config-to-frontmatter.mjs",
+        "index": "tsx .vitepress/scripts/create-indexes.mjs"
     },
     "dependencies": {
         "@dhlx/vitepress-plugin-drawio": "^0.0.9",

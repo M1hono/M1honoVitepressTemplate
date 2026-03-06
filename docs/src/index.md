@@ -5,6 +5,49 @@ hero:
     name: "VitePress Template"
     text: "A feature-rich documentation template"
     tagline: "A modern documentation template built with VitePress, integrated with various enhanced plugins and features"
+    colors:
+        searchBackground:
+            light: "rgba(255, 255, 255, 0.42)"
+            dark: "rgba(15, 23, 42, 0.24)"
+        searchBackgroundScrolled:
+            light: "rgba(255, 255, 255, 0.62)"
+            dark: "rgba(15, 23, 42, 0.38)"
+        searchHoverBackground:
+            light: "rgba(255, 255, 255, 0.56)"
+            dark: "rgba(15, 23, 42, 0.34)"
+        searchHoverBackgroundScrolled:
+            light: "rgba(255, 255, 255, 0.74)"
+            dark: "rgba(15, 23, 42, 0.46)"
+        searchText:
+            light: "rgba(15, 23, 42, 0.82)"
+            dark: "rgba(255, 255, 255, 0.94)"
+        searchTextScrolled:
+            light: "rgba(15, 23, 42, 0.88)"
+            dark: "rgba(255, 255, 255, 0.96)"
+        searchTextMuted:
+            light: "rgba(15, 23, 42, 0.56)"
+            dark: "rgba(255, 255, 255, 0.72)"
+        searchTextMutedScrolled:
+            light: "rgba(15, 23, 42, 0.62)"
+            dark: "rgba(255, 255, 255, 0.76)"
+        searchBorder:
+            light: "rgba(15, 23, 42, 0.1)"
+            dark: "rgba(255, 255, 255, 0.14)"
+        searchBorderScrolled:
+            light: "rgba(15, 23, 42, 0.12)"
+            dark: "rgba(255, 255, 255, 0.18)"
+        searchKeyBackground:
+            light: "rgba(15, 23, 42, 0.06)"
+            dark: "rgba(255, 255, 255, 0.12)"
+        searchKeyBackgroundScrolled:
+            light: "rgba(15, 23, 42, 0.08)"
+            dark: "rgba(255, 255, 255, 0.16)"
+        searchKeyText:
+            light: "rgba(15, 23, 42, 0.6)"
+            dark: "rgba(255, 255, 255, 0.76)"
+        searchKeyTextScrolled:
+            light: "rgba(15, 23, 42, 0.66)"
+            dark: "rgba(255, 255, 255, 0.82)"
     typography:
         type: grouped-float
         motion:

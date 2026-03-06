@@ -1,10 +1,10 @@
 <script lang="ts" setup>
     import { useData } from "vitepress";
     import { computed, ref, onMounted } from "vue";
-    import utils from "../../../utils";
+    import utils from "@utils";
     import ProgressLinear from "../ui/ProgressLinear.vue";
     import State from "../ui/State.vue";
-    import { useSafeI18n } from "../../../utils/i18n/locale";
+    import { useSafeI18n } from "@utils/i18n/locale";
 
     /**
      * Component ID for i18n translations.

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useData } from 'vitepress';
-import { resolveAssetWithBase } from "@utils/assets";
+import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
+import { useHeroTheme } from "@utils/vitepress/runtime/theme/heroThemeContext";
+import { resolveThemeSourceByMode } from "@utils/vitepress/runtime/theme";
 
 interface ThemeableSource {
   src?: string;
@@ -22,15 +23,15 @@ const props = defineProps<{
   config?: VideoConfig;
 }>();
 
-const { isDark } = useData();
+const { isDarkRef } = useHeroTheme();
 
 const resolvedSrc = computed(() => {
   const source = props.config;
   if (!source) return '';
 
-  if (isDark.value && source.dark) return resolveAssetWithBase(source.dark);
-  if (!isDark.value && source.light) return resolveAssetWithBase(source.light);
-  return resolveAssetWithBase(source.src || source.light || source.dark || '');
+  return resolveAssetWithBase(
+    resolveThemeSourceByMode(source, isDarkRef.value) || '',
+  );
 });
 
 const options = computed(() => ({

@@ -13,7 +13,7 @@
     import { DRACOLoader } from "three/examples/jsm/loaders/DRACOLoader.js";
     import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
     import { withBase, useData } from "vitepress";
-    import { useSafeI18n } from "../../../../utils/i18n/locale";
+    import { useSafeI18n } from "@utils/i18n/locale";
 
     type Vec3Tuple = [number, number, number];
 

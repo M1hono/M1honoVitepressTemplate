@@ -1,0 +1,4 @@
+interface:
+  display_name: "VitePress Doc Sync"
+  short_description: "Sync template-derived docs across repos"
+  default_prompt: "Use $vitepress-doc-sync to align template-derived developer docs across the template, CrychicDoc, and toolkit-box-page."

@@ -7,7 +7,7 @@
         shallowRef,
         watch,
     } from "vue";
-    import { useData } from "vitepress";
+    import { useHeroTheme } from "@utils/vitepress/runtime/theme/heroThemeContext";
     import { TresCanvas } from "@tresjs/core";
     import {
         AdditiveBlending,
@@ -22,7 +22,7 @@
         TextureLoader,
     } from "three";
 
-    import { resolveAssetWithBase } from "../../../../utils/assets";
+    import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
 
     type ParticleType =
         | "stars"
@@ -123,7 +123,11 @@
         config?: ParticleConfig;
     }>();
 
-    const { isDark } = useData();
+    const {
+        isDarkRef,
+        effectiveDark,
+        resolveThemeValue: resolveThemeValueFromContext,
+    } = useHeroTheme();
 
     const isClient = shallowRef(false);
     const isMobile = shallowRef(false);
@@ -175,13 +179,7 @@
     }
 
     function resolveThemeValue<T>(value: T | ThemeValue<T> | undefined): T | undefined {
-        if (value === undefined || value === null) return undefined;
-        if (typeof value !== "object" || Array.isArray(value)) return value as T;
-
-        const theme = value as ThemeValue<T>;
-        return isDark.value
-            ? (theme.dark ?? theme.light ?? theme.value)
-            : (theme.light ?? theme.dark ?? theme.value);
+        return resolveThemeValueFromContext(value as ThemeValue<T> | undefined);
     }
 
     function normalizeColorValue(value: unknown): ColorValue | undefined {
@@ -980,7 +978,7 @@
     function getBlending(config: NormalizedParticleConfig) {
         if (
             (config.type === "stars" || config.type === "sparks") &&
-            isDark.value
+            isDarkRef.value
         ) {
             return AdditiveBlending;
         }
@@ -1285,7 +1283,7 @@
     );
 
     watch(
-        () => isDark.value,
+        () => effectiveDark?.value,
         () => {
             if (!isClient.value) return;
             initializeParticles();

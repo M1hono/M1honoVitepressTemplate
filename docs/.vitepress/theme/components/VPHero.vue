@@ -4,10 +4,12 @@
     import HeroContent from "./hero/content/HeroContent.vue";
     import HeroImage from "./hero/image/HeroImage.vue";
     import HeroFloatingElements from "./hero/effects/HeroFloatingElements.vue";
+    import { provide } from "vue";
     import {
-        useVPHeroRuntime,
-        type VPHeroProps,
-    } from "@utils/vitepress/composables/useVPHeroRuntime";
+        createHeroRuntimeState,
+        VPHeroProps,
+    } from "@utils/vitepress/runtime/hero/heroRuntimeState";
+    import { heroEffectiveDarkKey } from "@utils/vitepress/runtime/theme/heroThemeContext";
 
     const props = defineProps<VPHeroProps>();
 
@@ -36,37 +38,45 @@
         showScrollArrow,
         scrollPastHero,
         heroCssVarsStyle,
-    } = useVPHeroRuntime(props);
+        effectiveDark,
+        themeReady,
+    } = createHeroRuntimeState(props);
+
+    provide(heroEffectiveDarkKey, effectiveDark);
 </script>
 
 <template>
     <div
         ref="heroRoot"
         class="VPHero hero-premium"
-        :class="{
-            'has-image': hasImage,
-            'hero-premium--viewport': viewportEnabled,
-            'hero-premium--content': !viewportEnabled,
-            'hero-premium--media': hasMediaBackground,
-            'hero-premium--readable': hasColorOverrides,
-            'hero-premium--typography-grouped-float':
-                heroTypographyType === 'grouped-float',
-            'hero-premium--typography-slanted-wrap':
-                heroTypographyType === 'slanted-wrap',
-            'hero-premium--has-waves': hasWaves,
-            'hero-premium--wave-priority':
-                hideTaglineForWavePriority || hideActionsForWavePriority,
-        }"
+        :class="[
+            {
+                'has-image': hasImage,
+                'hero-premium--viewport': viewportEnabled,
+                'hero-premium--content': !viewportEnabled,
+                'hero-premium--media': hasMediaBackground,
+                'hero-premium--readable': hasColorOverrides,
+                'hero-premium--typography-grouped-float':
+                    heroTypographyType === 'grouped-float',
+                'hero-premium--typography-slanted-wrap':
+                    heroTypographyType === 'slanted-wrap',
+                'hero-premium--has-waves': hasWaves,
+                'hero-premium--wave-priority':
+                    hideTaglineForWavePriority || hideActionsForWavePriority,
+            },
+            `hero-premium--typography-${heroTypographyType}`,
+        ]"
         :style="heroCssVarsStyle"
     >
         <HeroBackground
-            v-if="backgroundConfig"
+            v-if="themeReady && backgroundConfig"
             :config="backgroundConfig"
             :has-media-background="hasMediaBackground"
         />
 
         <HeroFloatingElements
-            v-if="hasFloatingItems"
+            v-if="themeReady && hasFloatingItems"
+            :key="effectiveDark ? 'floating-dark' : 'floating-light'"
             :config="floatingConfig"
             :snippet-words="floatingSnippetWords"
         />
@@ -99,7 +109,7 @@
             </div>
 
             <Transition name="hero-image-float" appear>
-                <div v-if="hasImage" class="image">
+                <div v-if="themeReady && hasImage" class="image">
                     <div class="image-container">
                         <div v-if="imageBackgroundEnabled" class="image-bg" />
                         <slot name="home-hero-image">

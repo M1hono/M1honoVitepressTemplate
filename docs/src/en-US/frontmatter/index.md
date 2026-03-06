@@ -17,3 +17,10 @@ Frontmatter controls page-level configuration in VitePress.
 - [Content & UI](./content/contentAndUi) - Content and UI component frontmatter
 - [Sidebar System](./page/sidebarAutoSystem) - Sidebar auto-generation configuration
 - [Reference](./reference/keyInventory) - Key inventory and complete field list
+
+## Developer Reference
+
+- [Maintainability and Extension Guide](./reference/maintainability) - High-level engineering rules for template changes
+- [Development Workflow](./reference/developmentWorkflow) - Contract-first change order and verification steps
+- [Extension Architecture](./reference/extensionArchitecture) - Placement guide for components, runtime, config, plugins, and styles
+- [Hero Extension Playbook](./reference/heroExtension) - Extend typography, floating items, shaders, backgrounds, and nav/search visuals

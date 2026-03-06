@@ -12,8 +12,9 @@
 </template>
 
 <script setup lang="ts">
-    import { computed, ref, onMounted, onUnmounted, nextTick } from "vue";
-    import { resolveAssetWithBase } from "@utils/assets";
+    import { computed, ref, onMounted, nextTick } from "vue";
+    import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
+    import { createElementResizeState } from "@utils/vitepress/runtime/viewport";
 
     /**
      * Path to the PDF file (relative to public folder).
@@ -51,53 +52,14 @@
         }
     };
 
-    /**
-     * Creates a debounced version of a function.
-     * @param func - Function to debounce
-     * @param wait - Wait time in milliseconds
-     * @returns Debounced function
-     */
-    function debounce(func: (...args: any[]) => void, wait: number) {
-        let timeout: NodeJS.Timeout | null = null;
-        return function executedFunction(...args: any[]) {
-            const later = () => {
-                clearTimeout(timeout as NodeJS.Timeout);
-                func(...args);
-            };
-            clearTimeout(timeout as NodeJS.Timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-    const debouncedUpdateDimensions = debounce(updateViewerDimensions, 100);
-
-    let resizeObserver = null;
-    if (typeof ResizeObserver !== "undefined") {
-        resizeObserver = new ResizeObserver(debouncedUpdateDimensions);
-    }
+    createElementResizeState(pdfContainer, () => {
+        updateViewerDimensions();
+    });
 
     onMounted(() => {
         nextTick(() => {
-            if (pdfContainer.value && resizeObserver) {
-                resizeObserver.observe(pdfContainer.value);
-            }
             updateViewerDimensions();
         });
-        if (typeof window !== 'undefined') {
-            window.addEventListener("resize", debouncedUpdateDimensions);
-        }
-    });
-
-    onUnmounted(() => {
-        if (pdfContainer.value && resizeObserver) {
-            resizeObserver.unobserve(pdfContainer.value);
-        }
-        if (resizeObserver) {
-            resizeObserver.disconnect();
-        }
-        if (typeof window !== 'undefined') {
-            window.removeEventListener("resize", debouncedUpdateDimensions);
-        }
     });
 </script>
 

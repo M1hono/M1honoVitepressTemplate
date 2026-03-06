@@ -1,0 +1,4 @@
+interface:
+  display_name: "VitePress Template Extender"
+  short_description: "Extend this VitePress template with consistent patterns"
+  default_prompt: "Extend this VitePress template by adding components, markdown plugins, or config in the existing project style."

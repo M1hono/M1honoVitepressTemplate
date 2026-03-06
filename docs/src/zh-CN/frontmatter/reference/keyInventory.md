@@ -41,7 +41,7 @@ priority: 60
 | `hero.colors.navBackground` | hero 颜色 | 未设置 | 导航栏背景颜色。 |
 | `hero.colors.searchBackground` | hero 颜色 | 未设置 | 搜索按钮背景颜色。 |
 | `hero.background.color.gradient.animation` | hero 背景 | 未设置 | 渐变动画：`flow`、`rotate`、`pulse`。 |
-| `hero.actions[*].linkKey` | hero 行动 | 未设置 | 行动按钮链接的命名路由键。 |
+| `hero.actions[*].linkKey` | hero 行动 | 未设置 | 行动按钮链接的命名路由键，包含 `maintainabilityGuide`、`developmentWorkflow`、`extensionArchitecture`、`heroExtension` 等开发文档路由。 |
 | `hero.actions[*].style` | hero 行动 | 未设置 | 行动按钮视觉覆盖。 |
 | `hero.snippets` | hero | 未设置 | 浮动元素消费的片段数据。 |
 | `hero.floating` | hero | 未设置 | 浮动装饰元素配置。 |

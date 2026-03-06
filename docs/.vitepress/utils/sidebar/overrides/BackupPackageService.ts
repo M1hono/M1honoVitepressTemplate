@@ -29,7 +29,7 @@ import path from "node:path";
 import { normalizePathSeparators } from "../shared/objectUtils";
 import { JsonFileHandler, JsonOverrideFileType } from "./JsonFileHandler";
 import { MetadataManager } from "./MetadataManager";
-import { FileSystem } from "../shared/FileSystem";
+import { FileSystem } from "@utils/vitepress/system/FileSystem";
 
 /**
  * @class BackupPackageService

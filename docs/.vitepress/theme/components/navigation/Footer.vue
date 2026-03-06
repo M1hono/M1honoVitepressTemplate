@@ -7,12 +7,18 @@
         getLanguages,
         getDefaultLanguage,
     } from "@config/project-config";
-    import type { FooterConfig } from "../../../utils/content/footer";
+    import type { FooterConfig } from "@utils/content/footer";
     import { Icon } from "@iconify/vue";
-    import utils from "../../../utils";
-    import { useSafeI18n } from "../../../utils/i18n/locale";
+    import { useSafeI18n } from "@utils/i18n/locale";
+    import { createViewportState, Breakpoints } from "@utils/vitepress/runtime/viewport";
+    import {
+        resolveThemeColorByMode,
+        resolveThemeValueByMode,
+        useThemeRuntime,
+    } from "@utils/vitepress/runtime/theme";
 
     const { frontmatter, lang, isDark } = useData();
+    const { effectiveDark } = useThemeRuntime(isDark);
     const projectInfo = getProjectInfo();
 
     /**
@@ -73,23 +79,12 @@
         }
     };
 
-    /**
-     * Updates the current screen width.
-     */
-    const updateScreenWidth = () => {
-        screenWidth.value = window.innerWidth;
-    };
+    const viewport = createViewportState();
 
     watch(() => lang.value, loadFooterData, { immediate: true });
 
     onMounted(() => {
         currentYear.value = new Date().getFullYear().toString();
-        updateScreenWidth();
-        window.addEventListener("resize", updateScreenWidth);
-
-        return () => {
-            window.removeEventListener("resize", updateScreenWidth);
-        };
     });
 
     /**
@@ -105,17 +100,14 @@
         }
     });
 
-    const screenWidth = ref(0);
-
     /**
-     * Gets the current screen size category.
-     * @returns Screen size category (xs, sm, md, lg)
+     * Gets the current screen size category from shared viewport state.
      */
     const getScreenSize = () => {
-        const width = screenWidth.value;
-        if (width <= 360) return "xs";
-        if (width <= 768) return "sm";
-        if (width <= 1024) return "md";
+        const width = viewport.width.value;
+        if (width <= Breakpoints.xs) return "xs";
+        if (width <= Breakpoints.md) return "sm";
+        if (width <= Breakpoints.xl) return "md";
         return "lg";
     };
 
@@ -209,9 +201,10 @@
             typeof icon === "object" &&
             (icon.light || icon.dark || icon.value)
         ) {
-            return isDark.value
-                ? (icon.dark ?? icon.light ?? icon.value ?? "")
-                : (icon.light ?? icon.dark ?? icon.value ?? "");
+            return resolveThemeValueByMode(
+                icon,
+                effectiveDark.value,
+            ) ?? "";
         }
         return icon.icon || "";
     };
@@ -257,9 +250,7 @@
     const getIconColor = (icon: any, isDark: boolean): string | undefined => {
         if (!icon?.color) return undefined;
         if (typeof icon.color !== "object") return icon.color;
-        return isDark
-            ? (icon.color.dark ?? icon.color.light ?? icon.color.value)
-            : (icon.color.light ?? icon.color.dark ?? icon.color.value);
+        return resolveThemeColorByMode(icon.color, isDark, "");
     };
 </script>
 
@@ -292,7 +283,7 @@
                             group.icon && isIconifyIcon(getIconSrc(group.icon))
                         "
                         :icon="getIconSrc(group.icon)"
-                        :style="{ color: getIconColor(group.icon, isDark) }"
+                        :style="{ color: getIconColor(group.icon, effectiveDark) }"
                         class="title-icon"
                     />
                     <img
@@ -328,7 +319,7 @@
                                 isIconifyIcon(getIconSrc(link.icon))
                             "
                             :icon="getIconSrc(link.icon)"
-                            :style="{ color: getIconColor(link.icon, isDark) }"
+                            :style="{ color: getIconColor(link.icon, effectiveDark) }"
                             class="link-icon"
                         />
                         <img
@@ -394,7 +385,7 @@
                         :style="{
                             color: getIconColor(
                                 footerData.beian.icp.icon,
-                                isDark
+                                effectiveDark
                             ),
                         }"
                         class="info-icon"
@@ -459,7 +450,7 @@
                         :style="{
                             color: getIconColor(
                                 footerData.beian.police.icon,
-                                isDark
+                                effectiveDark
                             ),
                         }"
                         class="info-icon"

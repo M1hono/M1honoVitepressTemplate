@@ -2,14 +2,14 @@
     import { computed, onBeforeUnmount, ref } from "vue";
     import { onClickOutside } from "@vueuse/core";
     import VPLink from "vitepress/dist/client/theme-default/components/VPLink.vue";
-    import type { NavItem, NavLink } from "../../../../utils/config/nav-types";
-    import { resolveAccessibleNavHref } from "@utils/vitepress/nav-link-access";
+    import type { NavItem, NavLink } from "@utils/config/nav-types";
+    import { resolveAccessibleNavHref } from "@utils/vitepress/api/navigation/NavLinkAccessService";
     import NavHoverPreviewSheet from "./NavHoverPreviewSheet.vue";
     import {
-        useNavHoverPreview,
-        setActiveMenu,
-        clearActiveMenu,
-    } from "./useNavHoverPreview";
+        createNavHoverPreviewState,
+        activateNavHoverMenu,
+        deactivateNavHoverMenu,
+    } from "@utils/vitepress/runtime/navigation/navHoverPreviewState";
 
     const props = defineProps<{
         item: NavItem;
@@ -55,7 +55,7 @@
         onSheetEnter,
         onSheetLeave,
         resetPreview,
-    } = useNavHoverPreview(menuId.value);
+    } = createNavHoverPreviewState(menuId.value);
 
     function clearCloseTimer() {
         if (closeTimer === null) return;
@@ -67,7 +67,7 @@
         clearCloseTimer();
         // Tell the global singleton this menu is now active — instantly
         // clears any preview from a previously active sibling menu.
-        setActiveMenu(menuId.value);
+        activateNavHoverMenu(menuId.value);
         isOpen.value = true;
     }
 
@@ -91,7 +91,7 @@
         clearCloseTimer();
         isOpen.value = false;
         resetPreview();
-        clearActiveMenu(menuId.value);
+        deactivateNavHoverMenu(menuId.value);
     };
 
     onClickOutside(rootRef, closeMenu);

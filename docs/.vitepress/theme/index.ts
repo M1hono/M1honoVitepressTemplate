@@ -24,10 +24,9 @@ import mdVar from "vitepress-md-var";
 
 import Layout from "./Layout.vue";
 import VPHero from "./components/VPHero.vue";
-import { bindFancybox, destroyFancybox } from "./components/media/ImgViewer";
-import { Animation, Preview, NotFound, Buttons } from "./components/ui";
-import { comment, PageTags } from "./components/content";
-import { ResponsibleEditor } from "./components/content";
+import { bindFancybox, destroyFancybox } from "@utils/vitepress/runtime/media/imageViewerRuntime";
+import { Animation, Preview, NotFound, Buttons } from "@utils/vitepress/componentRegistry/uiRegistry";
+import { comment, PageTags, ResponsibleEditor } from "@utils/vitepress/componentRegistry/contentRegistry";
 import Footer from "./components/navigation/Footer.vue";
 import VPBreadcrumb from "./components/navigation/Breadcrumb/VPBreadcrumb.vue";
 
@@ -35,6 +34,10 @@ import { setupLanguageControl } from "@utils/i18n/languageControl";
 import { initMermaidConfig } from "@utils/charts/mermaid";
 import { registerComponents } from "@utils/vitepress/components";
 import { getProjectInfo, isFeatureEnabled } from "@config/project-config";
+import {
+    resolveThemeValueByMode,
+    useThemeRuntime,
+} from "@utils/vitepress/runtime/theme";
 import { setupMultipleChoice } from "markdown-it-multiple-choice";
 import utils from "../utils";
 
@@ -92,24 +95,21 @@ export default {
     setup() {
         const route = useRoute();
         const { isDark, frontmatter } = useData();
+        const { effectiveDark } = useThemeRuntime(isDark);
         const projectInfo = getProjectInfo();
         const appliedFrontmatterCssVars = new Set<string>();
         let cssVarScopeElement: HTMLElement | null = null;
         let cssVarsApplyFrame: number | null = null;
 
         const resolveThemeValue = (value: unknown): unknown => {
-            if (value === undefined || value === null) return undefined;
-            if (typeof value !== "object" || Array.isArray(value)) return value;
-
-            const themed = value as {
-                light?: unknown;
-                dark?: unknown;
-                value?: unknown;
-            };
-
-            return isDark.value
-                ? (themed.dark ?? themed.light ?? themed.value)
-                : (themed.light ?? themed.dark ?? themed.value);
+            return resolveThemeValueByMode(
+                value as {
+                    light?: unknown;
+                    dark?: unknown;
+                    value?: unknown;
+                },
+                effectiveDark.value,
+            );
         };
 
         const toCssValue = (value: unknown): string | undefined => {
@@ -197,7 +197,7 @@ export default {
         };
 
         watch(
-            isDark,
+            effectiveDark,
             (dark) => {
                 if (inBrowser) {
                     vuetify.theme.global.name.value = dark ? "dark" : "light";
@@ -207,7 +207,7 @@ export default {
         );
 
         watch(
-            () => [route.path, isDark.value, frontmatter.value?.cssVars],
+            () => [route.path, effectiveDark.value, frontmatter.value?.cssVars],
             () => applyFrontmatterCssVars(),
             { immediate: true, deep: true, flush: "post" },
         );

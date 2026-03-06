@@ -3,5 +3,25 @@
     "valueHash": "072b030ba126b2f4b2374f342be9ed44",
     "isUserSet": false,
     "isActiveInStructure": true
+  },
+  "maintainability.md": {
+    "valueHash": "cfcd208495d565ef66e7dff9f98764da",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "developmentWorkflow.md": {
+    "valueHash": "6512bd43d9caa6e02c990b0a82652dca",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "extensionArchitecture.md": {
+    "valueHash": "c20ad4d76fe97759aa27a0c99bff6710",
+    "isUserSet": false,
+    "isActiveInStructure": true
+  },
+  "heroExtension.md": {
+    "valueHash": "c51ce410c124a10e0db5e4b97fc2af39",
+    "isUserSet": false,
+    "isActiveInStructure": true
   }
 }

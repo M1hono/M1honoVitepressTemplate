@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import { useData } from 'vitepress';
+import { useHeroTheme } from "@utils/vitepress/runtime/theme/heroThemeContext";
 
 type ThemeValue<T> = T | { value?: T; light?: T; dark?: T };
 
@@ -35,16 +35,7 @@ const props = defineProps<{
   config?: ColorConfig;
 }>();
 
-const { isDark } = useData();
-
-function resolveThemeValue<T>(value: ThemeValue<T> | undefined): T | undefined {
-  if (value === undefined || value === null) return undefined;
-  if (typeof value !== 'object') return value as T;
-
-  const valueObject = value as { value?: T; light?: T; dark?: T };
-  if (isDark.value) return valueObject.dark ?? valueObject.light ?? valueObject.value;
-  return valueObject.light ?? valueObject.dark ?? valueObject.value;
-}
+const { resolveThemeValue } = useHeroTheme();
 
 function normalizeAngle(
   value: string | number | undefined,

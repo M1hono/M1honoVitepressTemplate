@@ -1,7 +1,8 @@
 <script setup lang="ts">
     import { computed, onMounted, ref, watch } from "vue";
-    import { useData } from "vitepress";
-    import { resolveAssetWithBase } from "@utils/assets";
+    import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
+    import { useHeroTheme } from "@utils/vitepress/runtime/theme/heroThemeContext";
+    import { resolveThemeSourceByMode } from "@utils/vitepress/runtime/theme";
 
     interface VideoConfig {
         src?: string;
@@ -20,15 +21,13 @@
         config?: VideoConfig;
     }>();
 
-    const { isDark } = useData();
+    const { isDarkRef } = useHeroTheme();
     const videoRef = ref<HTMLVideoElement | null>(null);
 
     const source = computed(() => {
         if (!props.config) return "";
-        if (isDark.value && props.config.dark) return props.config.dark;
-        if (!isDark.value && props.config.light) return props.config.light;
         return resolveAssetWithBase(
-            props.config.src || props.config.light || props.config.dark || "",
+            resolveThemeSourceByMode(props.config, isDarkRef.value) || "",
         );
     });
 

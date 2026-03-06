@@ -11,7 +11,7 @@
     // @i18n
     import { ref, watch, onMounted, computed, nextTick } from "vue";
     import { useData, useRoute } from "vitepress";
-    import { useSafeI18n } from "../../../utils/i18n/locale";
+    import { useSafeI18n } from "@utils/i18n/locale";
     import {
         getLanguageByCode,
         getDefaultLanguage,

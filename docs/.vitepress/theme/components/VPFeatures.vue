@@ -5,7 +5,7 @@
     import {
         resolveHomeLink,
         type HomeLinkKey,
-    } from "@utils/vitepress/home-links";
+    } from "@utils/vitepress/services/homeLinkService";
     import VPFeatureCard from "./VPFeatureCard.vue";
 
     export interface Feature {

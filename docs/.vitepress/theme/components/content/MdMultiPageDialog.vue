@@ -169,7 +169,7 @@
 <script setup>
 // @i18n
 import { ref, computed } from "vue";
-import { useSafeI18n } from "../../../utils/i18n/locale";
+import { useSafeI18n } from "@utils/i18n/locale";
 
 const { t } = useSafeI18n("md-multipage-dialog", {
     defaultTitle: "Multi-Page Dialog",

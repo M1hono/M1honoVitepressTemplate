@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { FileSystem } from '../shared/FileSystem';
+import { FileSystem } from "@utils/vitepress/system/FileSystem";
 import { normalizePathSeparators } from '../shared/objectUtils';
 import { SidebarItem } from '../types';
 

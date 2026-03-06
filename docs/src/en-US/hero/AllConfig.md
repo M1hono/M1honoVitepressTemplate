@@ -46,12 +46,25 @@ Every configurable field in the hero system, organized by domain. All fields are
 | `heroMatrix` | Hero matrix index |
 | `heroAllConfig` | All hero config reference |
 | `frontmatterApi` | Frontmatter API reference |
+| `maintainabilityGuide` | Maintainability and extension guide |
+| `developmentWorkflow` | Development workflow guide |
+| `extensionArchitecture` | Extension architecture guide |
+| `heroExtension` | Hero extension playbook |
 | `stylesPlugins` | Styles and plugins page |
 | `allPages` | All pages index |
 | `backgroundModes` | Background modes page |
 | `wavesMatrix` | Waves matrix page |
 | `floatingElements` | Floating elements page |
 | `imageTypes` | Image types page |
+| `basicHero` | Basic hero matrix |
+| `colorBackground` | Color background examples |
+| `imageBackground` | Image background examples |
+| `videoBackground` | Video background examples |
+| `shaderBackground` | Shader background examples |
+| `particlesBackground` | Particles background examples |
+| `layersBackground` | Layered background examples |
+| `buttonThemes` | Buttons and features matrix |
+| `featuresConfig` | Full features configuration page |
 
 ---
 

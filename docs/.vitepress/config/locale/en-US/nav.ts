@@ -6,7 +6,7 @@
  * Defines the top-level navigation structure for English users.
  *
  * - `link` fields are root-relative **without** locale prefix (e.g. `/hero/matrix/`).
- *   `prefixNavLinks` in `nav-link-access.ts` automatically prepends `/en-US/` at runtime.
+ *   `prefixNavLinks` in `api/navigation/NavLinkAccessService.ts` automatically prepends `/en-US/` at runtime.
  * - `href` is used for external URLs (opens in new tab).
  * - `body` in preview supports full Markdown rendered via `markdown-it`
  *   (bold, italic, code, links, images, HTML colour spans, fenced blocks, etc.).
@@ -14,16 +14,13 @@
  * Real page routes verified against `docs/src/en-US/**` source tree.
  */
 
-import type { NavItem } from "../../../utils/config/nav-types";
+import type { NavItem } from "../../../utils/config/navTypes";
 
 const enNav: NavItem[] = [
-    // ─── Home ──────────────────────────────────────────────────────────────
     {
         text: "Home",
         link: "/",
     },
-
-    // ─── Docs ─ spotlight layout ───────────────────────────────────────────
     {
         text: "Docs",
         dropdown: {
@@ -118,13 +115,52 @@ const enNav: NavItem[] = [
                                 },
                             ],
                         },
+                        {
+                            label: "Developer Guides",
+                            items: [
+                                {
+                                    text: "Maintainability Guide",
+                                    link: "/frontmatter/reference/maintainability",
+                                    desc: "High-level extension standards and ownership rules",
+                                    preview: {
+                                        title: "Maintainability Guide",
+                                        body: "Start here when changing the template itself.\n\nCovers contract-first implementation, runtime ownership, and cross-repo sync expectations.",
+                                    },
+                                },
+                                {
+                                    text: "Development Workflow",
+                                    link: "/frontmatter/reference/developmentWorkflow",
+                                    desc: "Change order and verification flow",
+                                    preview: {
+                                        title: "Development Workflow",
+                                        body: "Follow the expected sequence:\n- API contract\n- Shared runtime\n- Rendering layer\n- Docs/examples\n- Verification commands",
+                                    },
+                                },
+                                {
+                                    text: "Extension Architecture",
+                                    link: "/frontmatter/reference/extensionArchitecture",
+                                    desc: "Where components, runtime, config, and styles belong",
+                                    preview: {
+                                        title: "Extension Architecture",
+                                        body: "Use the architecture map to decide whether a change belongs in `api`, `runtime`, `theme/components`, `config`, or `docs/src`.",
+                                    },
+                                },
+                                {
+                                    text: "Hero Extension",
+                                    link: "/frontmatter/reference/heroExtension",
+                                    desc: "Typography, floating, shader, and background extension playbook",
+                                    preview: {
+                                        title: "Hero Extension",
+                                        body: "Use the hero playbook to add typography styles, floating item types, shader presets, and background renderers without breaking the shared contract.",
+                                    },
+                                },
+                            ],
+                        },
                     ],
                 },
             ],
         },
     },
-
-    // ─── Components ─ columns layout ──────────────────────────────────────
     {
         text: "Components",
         dropdown: {
@@ -205,8 +241,6 @@ const enNav: NavItem[] = [
             ],
         },
     },
-
-    // ─── Community ─ columns layout with Lottie media ──────────────────────
     {
         text: "Community",
         dropdown: {

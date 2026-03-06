@@ -161,13 +161,14 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, watch, computed } from "vue";
 import { useData, useRouter } from "vitepress";
-import { useSafeI18n } from "../../../utils/i18n/locale";
+import { useSafeI18n } from "@utils/i18n/locale";
 import {
     getSocialButtons,
     getSpecialBackPaths,
     getCopyLinkConfig,
     getLanguageCodes,
 } from "@config/project-config";
+import { createViewportState } from "@utils/vitepress/runtime/viewport";
 const { t } = useSafeI18n("buttons-component", {
     backToTop: "Back to Top",
     copyLink: "Copy Link",
@@ -178,9 +179,10 @@ const { t } = useSafeI18n("buttons-component", {
 });
 const { isDark, frontmatter } = useData();
 const router = useRouter();
+const viewport = createViewportState();
 const showBackTop = ref(false);
 const copied = ref(false);
-const isMobile = ref(false);
+const isMobile = computed(() => viewport.isMobile.value);
 const isScrolling = ref(false);
 const mobileExpanded = ref(false);
 const socialButtons = getSocialButtons();
@@ -242,15 +244,12 @@ const handleScroll = (event?: Event) => {
         }
     }
 };
-const syncMobileState = () => {
-    if (typeof window === "undefined") return;
-    const nextIsMobile = window.matchMedia("(max-width: 768px)").matches;
-    isMobile.value = nextIsMobile;
-    if (!nextIsMobile) {
+watch(isMobile, (val) => {
+    if (!val) {
         isScrolling.value = false;
         mobileExpanded.value = false;
     }
-};
+});
 const expandMobileButtons = () => {
     if (!isMobile.value || typeof window === "undefined") return;
     mobileExpanded.value = true;
@@ -310,8 +309,6 @@ const updateTheme = (isDarkMode: boolean) => {
 onMounted(() => {
     if (typeof window !== "undefined") {
         window.addEventListener("scroll", handleScroll, { passive: true });
-        window.addEventListener("resize", syncMobileState);
-        syncMobileState();
         handleScroll();
     }
     updateTheme(isDark.value);
@@ -366,7 +363,6 @@ const goBack = () => {
 onBeforeUnmount(() => {
     if (typeof window !== "undefined") {
         window.removeEventListener("scroll", handleScroll);
-        window.removeEventListener("resize", syncMobileState);
         if (scrollIdleTimer !== null) {
             window.clearTimeout(scrollIdleTimer);
         }

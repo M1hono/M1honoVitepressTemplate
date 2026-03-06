@@ -14,7 +14,7 @@
 
 import path from 'node:path';
 import crypto from 'node:crypto';
-import { FileSystem } from '../shared/FileSystem';
+import { FileSystem } from "@utils/vitepress/system/FileSystem";
 import { normalizePathSeparators } from '../shared/objectUtils';
 import { JsonFileMetadata, MetadataEntry } from '../types';
 import { JsonOverrideFileType } from './JsonFileHandler';
