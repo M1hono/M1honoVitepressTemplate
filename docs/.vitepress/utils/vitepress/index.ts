@@ -1,6 +1,5 @@
 /**
  * VitePress utilities for CryChicDoc
- * Sidebar generation and VitePress-specific functionality
  */
 
 import * as metadata from "./services/metadataService";

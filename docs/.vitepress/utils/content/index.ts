@@ -1,6 +1,5 @@
 /**
  * Content utilities for CryChicDoc
- * Word counting, text processing, and content parsing
  */
 
 import { countWord } from "./functions";
@@ -8,9 +7,6 @@ import * as navLinkType from "./navLinkType";
 
 export * from "./billing";
 
-/**
- * Text processing utilities
- */
 export const text = {
     countWord,
     getReadingTime: (text: string, wordsPerMinute: number = 200): number => {
@@ -19,9 +15,6 @@ export const text = {
     },
 };
 
-/**
- * Main content utilities export (client-safe only)
- */
 export const contentUtils = {
     text,
     countWord,

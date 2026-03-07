@@ -10,7 +10,7 @@ import {
 } from "../utils/config/project-config";
 import { templateCompilerOptions } from "@tresjs/core";
 
-import { sidebarPlugin } from "../utils/sidebar/";
+import { DEFAULT_SIDEBAR_CACHE_DIR, sidebarPlugin } from "../utils/sidebar/";
 import { markdown } from "./markdown-plugins";
 import {
     groupIconVitePlugin,
@@ -294,7 +294,7 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                           ),
                           debug: process.env.NODE_ENV === "development",
                           docsDir: projectPaths.docs,
-                          cacheDir: projectPaths.cache,
+                          cacheDir: DEFAULT_SIDEBAR_CACHE_DIR,
                       }),
                   ]
                 : []),

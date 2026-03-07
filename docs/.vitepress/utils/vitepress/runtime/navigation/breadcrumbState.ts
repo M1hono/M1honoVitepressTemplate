@@ -11,31 +11,6 @@ export interface BreadcrumbItem {
     link?: string;
 }
 
-interface NavItemBase {
-    text?: string;
-    link?: string;
-    href?: string;
-    dropdown?: {
-        panels?: NavPanel[];
-    };
-}
-
-interface NavPanel {
-    featured?: {
-        title?: string;
-        link?: string;
-        href?: string;
-    };
-    groups?: Array<{
-        items?: NavItemBase[];
-    }>;
-}
-
-interface SiteData {
-    base?: string;
-    pages?: string[];
-}
-
 class BreadcrumbPathTools {
     static isExternalUrl(url: string) {
         return /^(https?:)?\/\//.test(url);
@@ -95,10 +70,9 @@ export function createBreadcrumbState() {
     const { lang, site, page } = useData();
 
     const knownPagePaths = computed<Set<string>>(() => {
-        const siteData = site.value as SiteData;
-        const pages: string[] = siteData.pages ?? [];
+        const pages: string[] = (site.value as any).pages ?? [];
         const set = new Set<string>();
-        for (const p of pages) {
+        pages.forEach((p) => {
             const urlLike = BreadcrumbPathTools.normalizeInternalPath(
                 BreadcrumbPathTools.ensureLeadingSlash(
                     p.replace(/\.(md|html)$/i, "").replace(/\/index$/i, "/"),
@@ -112,7 +86,7 @@ export function createBreadcrumbState() {
                     ),
                 ),
             );
-        }
+        });
         return set;
     });
 
@@ -131,21 +105,21 @@ export function createBreadcrumbState() {
             [];
         const linkMap = new Map<string, string>();
 
-        function walk(nodes: NavItemBase[]): void {
-            for (const node of nodes) {
+        const walk = (nodes: any[]) => {
+            nodes.forEach((node) => {
                 if (node.text && (node.link || node.href)) {
                     const href = node.link || node.href;
                     if (
                         typeof href === "string" &&
                         !BreadcrumbPathTools.isExternalUrl(href)
                     ) {
-                        for (const variant of BreadcrumbPathTools.getPathVariants(href)) {
-                            linkMap.set(variant, node.text);
-                        }
+                        BreadcrumbPathTools.getPathVariants(href).forEach(
+                            (variant) => linkMap.set(variant, node.text),
+                        );
                     }
                 }
                 if (node.dropdown?.panels) {
-                    for (const panel of node.dropdown.panels) {
+                    node.dropdown.panels.forEach((panel) => {
                         if (
                             panel.featured?.title &&
                             (panel.featured.link || panel.featured.href)
@@ -156,21 +130,21 @@ export function createBreadcrumbState() {
                                 typeof href === "string" &&
                                 !BreadcrumbPathTools.isExternalUrl(href)
                             ) {
-                                for (const variant of BreadcrumbPathTools.getPathVariants(href)) {
-                                    linkMap.set(variant, panel.featured.title);
-                                }
+                                BreadcrumbPathTools.getPathVariants(
+                                    href,
+                                ).forEach((variant) =>
+                                    linkMap.set(variant, panel.featured.title),
+                                );
                             }
                         }
-                        if (panel.groups) {
-                            for (const group of panel.groups) {
-                                if (group.items) walk(group.items);
-                            }
-                        }
-                    }
+                        panel.groups?.forEach((group) => {
+                            if (group.items) walk(group.items);
+                        });
+                    });
                 }
-            }
-        }
-        walk(navTree as NavItemBase[]);
+            });
+        };
+        walk(navTree as any[]);
 
         const knownLangSegments = new Set([
             ...Object.keys(navConfig.locales),

@@ -1,0 +1,4 @@
+interface:
+  display_name: "VitePress Nav Format Writer Editor"
+  short_description: "Write and refactor locale nav.ts files with typed builders"
+  default_prompt: "Write or refactor a VitePress locale nav.ts file into readable typed sections and builder-based dropdown content."

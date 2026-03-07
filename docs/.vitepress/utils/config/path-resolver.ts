@@ -1,4 +1,4 @@
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import { projectConfig } from "../../config/project-config";
 
 /**

@@ -44,10 +44,7 @@ export function deactivateNavHoverMenu(menuId: string): void {
 
 export function createNavHoverPreviewState(menuId: string) {
     const activePreviewLink = computed<NavLink | null>(() =>
-        globalActiveMenuId.value === menuId &&
-        hasPreview(globalHoveredLink.value)
-            ? globalHoveredLink.value
-            : null,
+        globalActiveMenuId.value === menuId && hasPreview(globalHoveredLink.value) ? globalHoveredLink.value : null,
     );
 
     function onItemEnter(link: NavLink) {

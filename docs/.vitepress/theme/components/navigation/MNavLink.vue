@@ -4,13 +4,13 @@
     import { slugify } from "@mdit-vue/shared";
     import {
         resolveThemeValueByMode,
-        useThemeRuntime,
+        getThemeRuntime,
     } from "@utils/vitepress/runtime/theme";
 
     import type { NavLink, NavIcon, NavThemeIcon } from "@utils/content/navLinkType";
 
     const { isDark } = useData();
-    const { effectiveDark } = useThemeRuntime(isDark);
+    const { effectiveDark } = getThemeRuntime(isDark);
 
     const props = defineProps<{
         noIcon?: boolean;

@@ -1,21 +1,5 @@
 const markdownPages = import.meta.glob("/src/**/*.md");
 
-interface NavItem {
-    link?: string;
-    dropdown?: {
-        panels: NavPanel[];
-    };
-}
-
-interface NavPanel {
-    featured?: {
-        link?: string;
-    };
-    groups?: Array<{
-        items?: NavItem[];
-    }>;
-}
-
 class NavMarkdownRouteIndex {
     private readonly accessibleInternalRoutes: Set<string>;
 
@@ -80,20 +64,20 @@ export class NavLinkAccessService {
     }
 
     private prefixSingleNavItem<T>(item: T, basePath: string): T {
-        const cloned = { ...item } as T & NavItem;
+        const cloned = { ...item } as any;
         cloned.link = this.prefixInternalLink(cloned.link, basePath);
 
         if (Array.isArray(cloned.dropdown?.panels)) {
             cloned.dropdown = { ...cloned.dropdown };
-            cloned.dropdown.panels = cloned.dropdown.panels.map((panel) =>
+            cloned.dropdown.panels = cloned.dropdown.panels.map((panel: any) =>
                 this.prefixPanelLinks(panel, basePath),
             );
         }
-        return cloned as T;
+        return cloned;
     }
 
-    private prefixPanelLinks(panel: NavPanel, basePath: string): NavPanel {
-        const nextPanel: NavPanel = { ...panel };
+    private prefixPanelLinks(panel: any, basePath: string) {
+        const nextPanel = { ...panel };
         if (nextPanel.featured?.link) {
             nextPanel.featured = {
                 ...nextPanel.featured,
@@ -101,9 +85,9 @@ export class NavLinkAccessService {
             };
         }
         if (Array.isArray(nextPanel.groups)) {
-            nextPanel.groups = nextPanel.groups.map((group) => ({
+            nextPanel.groups = nextPanel.groups.map((group: any) => ({
                 ...group,
-                items: group.items ? this.prefixNavLinks(group.items, basePath) : undefined,
+                items: this.prefixNavLinks(group.items, basePath),
             }));
         }
         return nextPanel;

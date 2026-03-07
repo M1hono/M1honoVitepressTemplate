@@ -39,3 +39,13 @@ declare module "@localSearchIndex" {
     const data: Record<string, () => Promise<any>>;
     export default data;
 }
+
+declare global {
+    interface Window {
+        busuanzi?: {
+            fetch: () => void;
+        };
+    }
+}
+
+export {};

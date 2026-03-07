@@ -46,4 +46,3 @@ export class GitBookService {
         return summaryFiles.map(file => normalizePathSeparators(path.dirname(file)));
     }
 } 
-

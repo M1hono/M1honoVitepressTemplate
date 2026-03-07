@@ -3,9 +3,10 @@ import {
     getConfiguredLanguages,
     _internalConfigureSidebar,
     clearCache,
+    DEFAULT_SIDEBAR_CACHE_DIR,
 } from "../utils/sidebar/index.ts";
 import { getLanguageLinks } from "../utils/config/project-config.ts";
-import { getSrcPath, getVitepressPath } from "../utils/config/path-resolver.js";
+import { getSrcPath } from "../utils/config/path-resolver.js";
 
 async function buildSidebars() {
     console.log("🚀 Starting sidebar generation...");
@@ -14,14 +15,12 @@ async function buildSidebars() {
     // Convert links like '/zh/', '/en/' to language codes like 'zh', 'en'
     const languages = languageLinks.map(link => link.replace(/^\/|\/$/g, ''));
     const srcPath = getSrcPath();
-    const cachePath = getVitepressPath("cache/sidebar");
-    
     _internalConfigureSidebar({
         languages: languages,
         debug: process.env.NODE_ENV === 'development',
         rootDir: process.cwd(),
         docsDir: srcPath,
-        cacheDir: cachePath,
+        cacheDir: DEFAULT_SIDEBAR_CACHE_DIR,
     });
 
     clearCache();

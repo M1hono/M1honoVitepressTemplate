@@ -1,42 +1,40 @@
-import type { Component } from "vue";
-
 interface NavDropdownLayoutRegistration {
     layout: string;
-    component: Component;
+    component: any;
 }
 
-function normalizeNavLayout(value: unknown): string {
+function normalizeNavLayout(value: unknown) {
     if (typeof value !== "string") return "";
     return value.trim().toLowerCase();
 }
 
 class NavDropdownLayoutRegistryApi {
-    private readonly layoutMap = new Map<string, Component>();
+    private readonly layoutMap = new Map<string, any>();
 
-    registerLayout(layout: string, component: Component): void {
+    registerLayout(layout: string, component: any) {
         const normalizedLayout = normalizeNavLayout(layout);
         if (!normalizedLayout || !component) return;
         this.layoutMap.set(normalizedLayout, component);
     }
 
-    registerLayouts(registrations: NavDropdownLayoutRegistration[]): void {
-        for (const registration of registrations) {
-            this.registerLayout(registration.layout, registration.component);
-        }
+    registerLayouts(registrations: NavDropdownLayoutRegistration[]) {
+        registrations.forEach((registration) =>
+            this.registerLayout(registration.layout, registration.component),
+        );
     }
 
-    hasLayout(layout: string): boolean {
+    hasLayout(layout: string) {
         return this.layoutMap.has(normalizeNavLayout(layout));
     }
 
-    resolveLayoutComponent(layout: unknown, explicitComponent?: Component): Component | undefined {
+    resolveLayoutComponent(layout: unknown, explicitComponent?: any) {
         if (explicitComponent) return explicitComponent;
         const normalizedLayout = normalizeNavLayout(layout);
         if (!normalizedLayout) return undefined;
         return this.layoutMap.get(normalizedLayout);
     }
 
-    listLayouts(): string[] {
+    listLayouts() {
         return Array.from(this.layoutMap.keys()).sort();
     }
 }

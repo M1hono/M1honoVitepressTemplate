@@ -2,7 +2,7 @@
     import { computed, onBeforeUnmount, ref } from "vue";
     import { onClickOutside } from "@vueuse/core";
     import VPLink from "vitepress/dist/client/theme-default/components/VPLink.vue";
-    import type { NavItem, NavLink } from "@utils/config/nav-types";
+    import type { NavItem, NavLink } from "@utils/config/navTypes";
     import { resolveAccessibleNavHref } from "@utils/vitepress/api/navigation/NavLinkAccessService";
     import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
     import NavHoverPreviewSheet from "./NavHoverPreviewSheet.vue";
@@ -22,6 +22,15 @@
 
     const columns = computed(() => props.item.dropdown?.panels || []);
     const spotlight = computed(() => columns.value[0]?.featured || null);
+    const hasSpotlight = computed(() => Boolean(spotlight.value?.title));
+    const spotlightCard = computed(() => ({
+        title: spotlight.value?.title || "",
+        desc: spotlight.value?.desc || "",
+        link: spotlight.value?.link,
+        href: spotlight.value?.href,
+        media: spotlight.value?.media,
+        badge: spotlight.value?.badge,
+    }));
     const alignment = computed(() => props.item.dropdown?.align || "center");
     const previewLinks = computed<NavLink[]>(() => {
         const links: NavLink[] = [];
@@ -35,6 +44,7 @@
         return links;
     });
     const hasPreviewColumn = computed(() => previewLinks.value.length > 0);
+    const defaultPreview = computed(() => props.item.dropdown?.preview || null);
 
     const menuId = computed(() => {
         const slug = props.item.text
@@ -60,10 +70,13 @@
     } = createNavHoverPreviewState(menuId.value);
 
     const spotlightHref = computed(() =>
-        resolveAccessibleNavHref(spotlight.value?.link, spotlight.value?.href),
+        resolveAccessibleNavHref(spotlightCard.value.link, spotlightCard.value.href),
     );
     const spotlightIsExternal = computed(() =>
-        Boolean(spotlight.value?.href && !spotlight.value?.link),
+        Boolean(spotlightCard.value.href && !spotlightCard.value.link),
+    );
+    const spotlightMediaVariant = computed(
+        () => spotlightCard.value.media?.variant || "plain",
     );
 
     function clearCloseTimer() {
@@ -142,7 +155,7 @@
             :aria-hidden="!isOpen"
         >
             <div class="mega-menu-content">
-                <section v-if="spotlight" class="spotlight-section">
+                <section v-if="hasSpotlight" class="spotlight-section">
                     <VPLink
                         v-if="spotlightHref"
                         class="spotlight-card"
@@ -151,72 +164,144 @@
                         :rel="spotlightIsExternal ? 'noreferrer' : undefined"
                         @click="closeMenu"
                     >
-                        <div v-if="spotlight.media" class="spotlight-media">
+                        <div
+                            v-if="spotlightCard.media"
+                            class="spotlight-media"
+                            :class="{
+                                'spotlight-media--screenshot':
+                                    spotlightCard.media?.type === 'screenshot',
+                                'spotlight-media--framed':
+                                    spotlightMediaVariant === 'framed',
+                                'spotlight-media--plain':
+                                    spotlightMediaVariant === 'plain',
+                            }"
+                        >
+                            <div
+                                v-if="
+                                    spotlightCard.media?.type === 'screenshot' &&
+                                    spotlightMediaVariant === 'framed'
+                                "
+                                class="spotlight-browser-chrome"
+                            >
+                                <span class="spotlight-browser-dots">
+                                    <i />
+                                    <i />
+                                    <i />
+                                </span>
+                                <span class="spotlight-browser-label">{{
+                                    spotlightCard.media?.alt || spotlightCard.title
+                                }}</span>
+                            </div>
                             <img
                                 v-if="
-                                    (spotlight.media.type === 'image' ||
-                                        spotlight.media.type === 'svg') &&
-                                    spotlight.media.src
+                                    (spotlightCard.media?.type === 'image' ||
+                                        spotlightCard.media?.type === 'svg' ||
+                                        spotlightCard.media?.type ===
+                                            'screenshot') &&
+                                    spotlightCard.media?.src
                                 "
-                                :src="resolveAssetWithBase(spotlight.media.src)"
-                                :alt="spotlight.media.alt || spotlight.title"
+                                :src="
+                                    resolveAssetWithBase(
+                                        spotlightCard.media?.src,
+                                    )
+                                "
+                                :alt="
+                                    spotlightCard.media?.alt ||
+                                    spotlightCard.title
+                                "
                             />
                             <div
-                                v-else-if="spotlight.media.background"
+                                v-else-if="spotlightCard.media?.background"
                                 class="spotlight-bg"
                                 :style="{
-                                    background: spotlight.media.background,
+                                    background: spotlightCard.media?.background,
                                 }"
                             />
                         </div>
                         <div class="spotlight-content">
                             <span
-                                v-if="spotlight.badge"
+                                v-if="spotlightCard.badge"
                                 class="badge"
-                                :class="spotlight.badge.type"
+                                :class="spotlightCard.badge?.type"
                             >
-                                {{ spotlight.badge.text }}
+                                {{ spotlightCard.badge?.text }}
                             </span>
                             <h3 class="spotlight-title">
-                                {{ spotlight.title }}
+                                {{ spotlightCard.title }}
                             </h3>
-                            <p class="spotlight-desc">{{ spotlight.desc }}</p>
+                            <p class="spotlight-desc">{{ spotlightCard.desc }}</p>
                         </div>
                     </VPLink>
                     <article
                         v-else
                         class="spotlight-card spotlight-card--static"
                     >
-                        <div v-if="spotlight.media" class="spotlight-media">
+                        <div
+                            v-if="spotlightCard.media"
+                            class="spotlight-media"
+                            :class="{
+                                'spotlight-media--screenshot':
+                                    spotlightCard.media?.type === 'screenshot',
+                                'spotlight-media--framed':
+                                    spotlightMediaVariant === 'framed',
+                                'spotlight-media--plain':
+                                    spotlightMediaVariant === 'plain',
+                            }"
+                        >
+                            <div
+                                v-if="
+                                    spotlightCard.media?.type === 'screenshot' &&
+                                    spotlightMediaVariant === 'framed'
+                                "
+                                class="spotlight-browser-chrome"
+                            >
+                                <span class="spotlight-browser-dots">
+                                    <i />
+                                    <i />
+                                    <i />
+                                </span>
+                                <span class="spotlight-browser-label">{{
+                                    spotlightCard.media?.alt || spotlightCard.title
+                                }}</span>
+                            </div>
                             <img
                                 v-if="
-                                    (spotlight.media.type === 'image' ||
-                                        spotlight.media.type === 'svg') &&
-                                    spotlight.media.src
+                                    (spotlightCard.media?.type === 'image' ||
+                                        spotlightCard.media?.type === 'svg' ||
+                                        spotlightCard.media?.type ===
+                                            'screenshot') &&
+                                    spotlightCard.media?.src
                                 "
-                                :src="resolveAssetWithBase(spotlight.media.src)"
-                                :alt="spotlight.media.alt || spotlight.title"
+                                :src="
+                                    resolveAssetWithBase(
+                                        spotlightCard.media?.src,
+                                    )
+                                "
+                                :alt="
+                                    spotlightCard.media?.alt ||
+                                    spotlightCard.title
+                                "
                             />
                             <div
-                                v-else-if="spotlight.media.background"
+                                v-else-if="spotlightCard.media?.background"
                                 class="spotlight-bg"
                                 :style="{
-                                    background: spotlight.media.background,
+                                    background: spotlightCard.media?.background,
                                 }"
                             />
                         </div>
                         <div class="spotlight-content">
                             <span
-                                v-if="spotlight.badge"
+                                v-if="spotlightCard.badge"
                                 class="badge"
-                                :class="spotlight.badge.type"
+                                :class="spotlightCard.badge?.type"
                             >
-                                {{ spotlight.badge.text }}
+                                {{ spotlightCard.badge?.text }}
                             </span>
                             <h3 class="spotlight-title">
-                                {{ spotlight.title }}
+                                {{ spotlightCard.title }}
                             </h3>
-                            <p class="spotlight-desc">{{ spotlight.desc }}</p>
+                            <p class="spotlight-desc">{{ spotlightCard.desc }}</p>
                         </div>
                     </article>
                 </section>
@@ -343,9 +428,10 @@
                     >
                         <Transition name="item-preview-sheet" mode="out-in">
                             <NavHoverPreviewSheet
-                                v-if="activePreviewLink"
-                                :key="activePreviewLink.text"
+                                v-if="activePreviewLink || defaultPreview"
+                                :key="activePreviewLink?.text || `${menuId}-default`"
                                 :link="activePreviewLink"
+                                :preview="defaultPreview"
                             />
                             <div
                                 v-else
@@ -482,27 +568,105 @@
     }
 
     .spotlight-media {
+        position: relative;
         margin-bottom: 16px;
-        border-radius: 12px;
+        border-radius: 16px;
         overflow: hidden;
-        background: var(--vp-c-default-soft);
         aspect-ratio: 16 / 9;
-        isolation: isolate; /* Create stacking context for rounded corners + transform */
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .spotlight-media--framed {
+        display: flex;
+        flex-direction: column;
+        border: 1px solid
+            color-mix(in srgb, var(--vp-c-divider) 60%, transparent);
+        background: color-mix(in srgb, var(--vp-c-default-soft) 92%, transparent);
+        isolation: isolate;
+        box-shadow:
+            0 24px 48px -24px rgba(0, 0, 0, 0.3),
+            inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    }
+
+    .spotlight-media--screenshot.spotlight-media--framed {
+        background:
+            linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.06) 0%,
+                rgba(255, 255, 255, 0.02) 100%
+            ),
+            color-mix(in srgb, var(--vp-c-bg-soft) 96%, transparent);
+    }
+
+    .spotlight-browser-chrome {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 34px;
+        padding: 0 12px;
+        border-bottom: 1px solid
+            color-mix(in srgb, var(--vp-c-divider) 56%, transparent);
+        background: color-mix(in srgb, var(--vp-c-bg-elv) 82%, transparent);
+    }
+
+    .spotlight-browser-dots {
+        display: inline-flex;
+        gap: 6px;
+        flex: 0 0 auto;
+    }
+
+    .spotlight-browser-dots i {
+        display: block;
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--vp-c-text-3) 52%, transparent);
+    }
+
+    .spotlight-browser-dots i:nth-child(1) {
+        background: rgba(255, 95, 86, 0.78);
+    }
+
+    .spotlight-browser-dots i:nth-child(2) {
+        background: rgba(255, 189, 46, 0.78);
+    }
+
+    .spotlight-browser-dots i:nth-child(3) {
+        background: rgba(39, 201, 63, 0.78);
+    }
+
+    .spotlight-browser-label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--vp-c-text-2);
+        font-size: 11px;
+        letter-spacing: 0.02em;
     }
 
     .spotlight-media img {
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.2, 1);
+    }
+
+    .spotlight-media--screenshot.spotlight-media--framed img {
+        height: calc(100% - 34px);
     }
 
     /* ONLY allowed to transform the spotlight graphic inside the card layout */
-    .spotlight-card:hover .spotlight-media img {
+    .spotlight-media--framed img {
+        transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.2, 1);
+    }
+
+    .spotlight-card:hover .spotlight-media--framed img {
         transform: scale(1.05);
     }
 
-    .spotlight-card--static:hover .spotlight-media img {
+    .spotlight-card--static:hover .spotlight-media--framed img {
         transform: none;
     }
 

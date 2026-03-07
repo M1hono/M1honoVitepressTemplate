@@ -1,2 +1,2 @@
-export type { FileSystem } from "./FileSystem";
+export * from "./FileSystem";
 export { NodeFileSystem } from "./NodeFileSystem";

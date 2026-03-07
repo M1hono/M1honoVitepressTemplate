@@ -18,20 +18,15 @@ export function getActiveDeploymentType():
     return projectConfig.deployment.type;
 }
 
-export function getServerDeploymentConfig(): DeploymentConfig["server"] {
+export function getServerDeploymentConfig() {
     return projectConfig.deployment.server;
 }
 
-export function getCustomDeploymentConfig(): DeploymentConfig["custom"] {
+export function getCustomDeploymentConfig() {
     return projectConfig.deployment.custom;
 }
 
-export function validateDeploymentConfig(): {
-    isValid: boolean;
-    deploymentType: DeploymentConfig["type"];
-    errors: string[];
-    warnings: string[];
-} {
+export function validateDeploymentConfig() {
     const deployment = projectConfig.deployment;
     const errors: string[] = [];
     const warnings: string[] = [];

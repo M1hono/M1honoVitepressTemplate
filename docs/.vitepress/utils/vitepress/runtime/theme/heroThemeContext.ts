@@ -18,7 +18,7 @@ import {
 } from "vue";
 import { useData } from "vitepress";
 import { resolveThemeColorByMode, resolveThemeValueByMode } from "./themeValueResolver";
-import { useThemeRuntime } from "./useThemeRuntime";
+import { getThemeRuntime } from "./themeRuntime";
 
 /**
  * Injection key for the first-paint-safe dark mode ref.
@@ -38,7 +38,7 @@ export const heroEffectiveDarkKey: InjectionKey<
 export function useHeroTheme() {
     const scopedEffectiveDark = inject(heroEffectiveDarkKey, undefined);
     const { isDark } = useData();
-    const themeRuntime = useThemeRuntime(isDark);
+    const themeRuntime = getThemeRuntime(isDark);
 
     /**
      * Reactive boolean ref: `true` when the current theme is dark.

@@ -1,13 +1,13 @@
 import { nextTick } from "vue";
 import "@fancyapps/ui/dist/fancybox/fancybox.css";
 
-const findNearestHeading = (imgElement: HTMLElement): string => {
-    let currentElement: Element | null = imgElement;
+const findNearestHeading = (imgElement) => {
+    let currentElement = imgElement;
     while (currentElement && currentElement !== document.body) {
-        let previousSibling: Element | null = currentElement.previousElementSibling;
+        let previousSibling = currentElement.previousElementSibling;
         while (previousSibling) {
-            if (/^H[1-6]$/i.test(previousSibling.tagName)) {
-                return (previousSibling.textContent || "")
+            if (previousSibling.tagName.match(/^H[1-6]$/)) {
+                return previousSibling.textContent
                     .replace(/\u200B/g, "")
                     .trim();
             }

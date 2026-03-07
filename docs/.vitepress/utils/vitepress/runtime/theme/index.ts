@@ -4,4 +4,6 @@ export {
     resolveThemeSourceByMode,
     resolveThemeValueByMode,
 } from "./themeValueResolver";
-export { useThemeRuntime } from "./useThemeRuntime";
+export { applyThemePageStyles } from "./themePageStyles";
+export { installThemeSiteBootstraps } from "./themeSiteBootstraps";
+export { getThemeRuntime } from "./themeRuntime";

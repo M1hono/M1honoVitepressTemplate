@@ -14,6 +14,7 @@
 
 import path from 'node:path';
 import { normalizePathSeparators } from '../shared/objectUtils';
+import { SIDEBAR_CONFIG_FILE_CANDIDATES } from "../shared/sidebarFileConventions";
 
 /**
  * @function getPathHierarchy
@@ -47,7 +48,9 @@ export function getPathHierarchy(
     let currentPath = normalizedTargetDirPath;
 
     while (true) {
-        hierarchyIndexMdPaths.push(path.join(currentPath, 'index.md'));
+        for (const configFileName of SIDEBAR_CONFIG_FILE_CANDIDATES) {
+            hierarchyIndexMdPaths.push(path.join(currentPath, configFileName));
+        }
         
         if (currentPath === normalizedLangRootAbsPath) {
             break;
@@ -62,4 +65,3 @@ export function getPathHierarchy(
     }
     return hierarchyIndexMdPaths.reverse();
 } 
-

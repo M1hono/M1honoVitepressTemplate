@@ -1,11 +1,11 @@
 /**
  * @fileoverview JSON-based sorting utilities for sidebar items.
- * 
+ *
  * This module provides sophisticated sorting capabilities for sidebar items
  * based on order.json configuration files. It implements priority-based
  * sorting with alphanumeric fallbacks and recursive processing for nested
  * directory structures while preserving hierarchical relationships.
- * 
+ *
  * @module JsonItemSorter
  * @version 1.0.0
  * @author M1hono
@@ -46,7 +46,17 @@ import { SidebarItem } from '../types';
  * ```
  */
 export class JsonItemSorter {
-    // Stateless utility class - all configuration passed via method parameters
+    /**
+     * Creates an instance of JsonItemSorter.
+     *
+     * Initializes the sorter with a lightweight constructor. Configuration
+     * and context are provided per-operation through method parameters for
+     * maximum flexibility and testability.
+     *
+     * @since 1.0.0
+     */
+    constructor() {
+    }
 
     /**
      * Sorts sidebar items based on order.json data with intelligent fallbacks.
@@ -62,7 +72,7 @@ export class JsonItemSorter {
      * 5. Priority values are assigned to items for downstream processing
      *
      * @param {SidebarItem[]} itemsToFinalSort - Array of sidebar items to sort
-     * @param {Record<string, unknown>} orderJsonData - Order configuration from order.json file
+     * @param {Record<string, any>} orderJsonData - Order configuration from order.json file
      * @returns {SidebarItem[]} New array of sorted sidebar items with updated priorities
      * @since 1.0.0
      * @public
@@ -78,7 +88,7 @@ export class JsonItemSorter {
      */
     public sortItems(
         itemsToFinalSort: SidebarItem[],
-        orderJsonData: Record<string, unknown>
+        orderJsonData: Record<string, any>
     ): SidebarItem[] {
         if (!itemsToFinalSort || itemsToFinalSort.length === 0) {
             return [];
@@ -87,48 +97,40 @@ export class JsonItemSorter {
         const itemsWithSortInfo = itemsToFinalSort.map(item => {
             const orderKey = item._relativePathKey || item.text;
             let order = Number.MAX_SAFE_INTEGER;
-            let newPriority = item._priority;
 
-            if (orderKey && Object.prototype.hasOwnProperty.call(orderJsonData, orderKey)) {
+            if (orderKey && orderJsonData.hasOwnProperty(orderKey)) {
                 const orderVal = orderJsonData[orderKey];
                 if (typeof orderVal === 'number' && !isNaN(orderVal)) {
                     order = orderVal;
-                    newPriority = order;
+                    item._priority = order;
                 } else if (typeof orderVal === 'string') {
                     const parsedOrder = parseFloat(orderVal);
                     if (!isNaN(parsedOrder)) {
                         order = parsedOrder;
-                        newPriority = order;
+                        item._priority = order;
                     }
                 }
             }
 
-            let sortedChildren: SidebarItem[] | undefined;
             if (item._isDirectory && item.items && item.items.length > 0) {
-                sortedChildren = this.sortItems(item.items, orderJsonData);
+                item.items = this.sortItems(item.items, orderJsonData);
 
-                if (newPriority === undefined || newPriority === Number.MAX_SAFE_INTEGER) {
-                    const childPriorities = sortedChildren
+                if (item._priority === Number.MAX_SAFE_INTEGER) {
+                    const childPriorities = item.items
                         .map(child => typeof child._priority === 'number' ? child._priority : Number.MAX_SAFE_INTEGER)
                         .filter(p => p !== Number.MAX_SAFE_INTEGER);
                     if (childPriorities.length > 0) {
                         const minChildPriority = Math.min(...childPriorities);
-                        newPriority = minChildPriority;
+                        item._priority = minChildPriority;
                         order = minChildPriority;
                     }
                 }
             }
 
-            const newItem: SidebarItem = {
-                ...item,
-                _priority: newPriority,
-                items: sortedChildren
-            };
-
             return {
-                item: newItem,
-                order: typeof newItem._priority === 'number' ? newItem._priority : Number.MAX_SAFE_INTEGER,
-                sortKey: newItem._relativePathKey || newItem.text || ''
+                item,
+                order: typeof item._priority === 'number' ? item._priority : Number.MAX_SAFE_INTEGER,
+                sortKey: item._relativePathKey || item.text || ''
             };
         });
 
@@ -141,5 +143,5 @@ export class JsonItemSorter {
 
         return itemsWithSortInfo.map(wrappedItem => wrappedItem.item);
     }
-} 
+}
 

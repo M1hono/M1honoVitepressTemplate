@@ -17,14 +17,16 @@
 
 import { Plugin } from "vite";
 import { resolve } from "path";
-import { existsSync, statSync, readdirSync } from "fs";
 import {
     _internalConfigureSidebar,
     getSidebar,
     clearCache,
     getConfig,
+    isSidebarCacheStale,
+    listSidebarConfigFiles,
     type SidebarLibConfig,
 } from "./lib";
+import { SIDEBAR_CONFIG_FILE_CANDIDATES } from "./shared/sidebarFileConventions";
 
 /**
  * Configuration options specific to the sidebar Vite plugin.
@@ -42,34 +44,24 @@ export interface SidebarPluginConfig extends SidebarLibConfig {
 }
 
 /**
- * Flag to prevent concurrent sidebar generation processes.
- * Ensures only one generation runs at a time to avoid conflicts.
- * 
- * @type {boolean}
- * @since 1.0.0
- * @private
+ * Reuses a single in-flight generation so watcher bursts don't race each other.
  */
-let isGenerating = false;
-
-/**
- * Timestamp of the last sidebar generation.
- * Used for throttling and avoiding unnecessary regenerations.
- * 
- * @type {number}
- * @since 1.0.0
- * @private
- */
-let lastGenerationTime = 0;
-
-/**
- * Debounced reload timer used to collapse rapid file events into a single restart.
- */
-let reloadTimer: ReturnType<typeof setTimeout> | null = null;
+let generationPromise: Promise<void> | null = null;
 
 /**
  * Prevents overlapping dev-server restarts, which can lead to port churn.
  */
 let isRestarting = false;
+
+/**
+ * Debounced refresh timer used to collapse rapid file events into a single sidebar rebuild.
+ */
+let refreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Suppresses watcher echoes caused by the plugin's own server restart.
+ */
+let ignoreWatcherEventsUntil = 0;
 
 export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
     if (!config.languages || config.languages.length === 0) {
@@ -89,162 +81,39 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
         finalConfig.rootDir,
         ".vitepress/config/sidebar"
     );
-    const generatedPath = resolve(
-        finalConfig.rootDir,
-        ".vitepress/config/generated"
-    );
+    const configuredLanguages = new Set(finalConfig.languages);
 
-    /**
-     * Determines if sidebar regeneration is needed for a specific language.
-     * 
-     * Checks if the cached sidebar file exists and compares modification times
-     * of source files (index.md files and JSON configurations) against the
-     * cached sidebar to determine if regeneration is necessary.
-     * 
-     * @param {string} lang - Language code to check regeneration for
-     * @returns {boolean} True if regeneration is needed, false if cache is valid
-     * @since 1.0.0
-     * @private
-     */
-    function needsRegeneration(lang: string): boolean {
-        const sidebarFile = resolve(
-            generatedPath,
-            `sidebar_${lang || "root"}.json`
-        );
-
-        if (!existsSync(sidebarFile)) {
-            return true;
-        }
-
-        const sidebarStat = statSync(sidebarFile);
-        const sidebarTime = sidebarStat.mtime.getTime();
-
-        const indexFiles = findIndexFiles(resolve(docsPath, lang));
-        for (const indexFile of indexFiles) {
-            if (existsSync(indexFile)) {
-                const indexStat = statSync(indexFile);
-                if (indexStat.mtime.getTime() > sidebarTime) {
-                    return true;
-                }
-            }
-        }
-
-        const jsonConfigDir = resolve(configPath, lang);
-        if (existsSync(jsonConfigDir)) {
-            const hasNewerConfigs = checkNewerConfigs(
-                jsonConfigDir,
-                sidebarTime
-            );
-            if (hasNewerConfigs) {
-                return true;
-            }
-        }
-
-        return false;
+    function normalizeWatchedPath(filePath: string): string {
+        return resolve(filePath).replace(/\\/g, "/").replace(/\/+$/, "");
     }
 
-    /**
-     * Recursively finds all index.md files within a directory tree.
-     * 
-     * Performs a depth-first search through the directory structure,
-     * collecting absolute paths to all index.md files found. Handles
-     * read errors gracefully by skipping inaccessible directories.
-     * 
-     * @param {string} dir - Root directory path to search from
-     * @returns {string[]} Array of absolute paths to index.md files
-     * @since 1.0.0
-     * @private
-     */
-    function findIndexFiles(dir: string): string[] {
-        const results: string[] = [];
+    function extractLanguageFromPath(filePath: string, rootPath: string): string | null {
+        const normalizedRoot = normalizeWatchedPath(rootPath);
+        const normalizedFile = normalizeWatchedPath(filePath);
+        const relativePath = normalizedFile.startsWith(`${normalizedRoot}/`)
+            ? normalizedFile.slice(normalizedRoot.length + 1)
+            : null;
 
-        if (!existsSync(dir)) return results;
-
-        try {
-            const items = readdirSync(dir);
-            for (const item of items) {
-                const fullPath = resolve(dir, item);
-                const stat = statSync(fullPath);
-
-                if (stat.isDirectory()) {
-                    results.push(...findIndexFiles(fullPath));
-                } else if (item === "index.md") {
-                    results.push(fullPath);
-                }
-            }
-        } catch (error) {
+        if (!relativePath) {
+            return null;
         }
 
-        return results;
+        const [candidate] = relativePath.split("/");
+        return candidate && configuredLanguages.has(candidate) ? candidate : null;
     }
 
-    /**
-     * Recursively checks if any JSON configuration files are newer than the sidebar.
-     * 
-     * Scans a configuration directory and all its subdirectories for JSON files,
-     * comparing their modification times against the provided sidebar timestamp.
-     * Returns true if any configuration file has been modified more recently.
-     * 
-     * @param {string} configDir - Directory path containing configuration files
-     * @param {number} sidebarTime - Sidebar modification timestamp in milliseconds
-     * @returns {boolean} True if any config file is newer than the sidebar
-     * @since 1.0.0
-     * @private
-     */
-    function checkNewerConfigs(
-        configDir: string,
-        sidebarTime: number
-    ): boolean {
-        try {
-            const items = readdirSync(configDir, { withFileTypes: true });
-
-            for (const item of items) {
-                const fullPath = resolve(configDir, item.name);
-
-                if (item.isDirectory()) {
-                    if (checkNewerConfigs(fullPath, sidebarTime)) {
-                        return true;
-                    }
-                } else if (item.name.endsWith(".json")) {
-                    const stat = statSync(fullPath);
-                    if (stat.mtime.getTime() > sidebarTime) {
-                        return true;
-                    }
-                }
-            }
-        } catch (error) {
+    function getAffectedLanguages(filePath: string): string[] {
+        const docsLanguage = extractLanguageFromPath(filePath, docsPath);
+        if (docsLanguage) {
+            return [docsLanguage];
         }
 
-        return false;
-    }
-
-    function findAllJsonConfigFiles(): string[] {
-        const results: string[] = [];
-
-        if (!existsSync(configPath)) return results;
-
-        function scanDirectory(dir: string) {
-            try {
-                const items = readdirSync(dir, { withFileTypes: true });
-
-                for (const item of items) {
-                    const fullPath = resolve(dir, item.name);
-
-                    if (item.isDirectory()) {
-                        if (item.name === ".metadata" || item.name === ".archive") {
-                            continue;
-                        }
-                        scanDirectory(fullPath);
-                    } else if (item.name.endsWith(".json")) {
-                        results.push(fullPath);
-                    }
-                }
-            } catch (error) {
-            }
+        const configLanguage = extractLanguageFromPath(filePath, configPath);
+        if (configLanguage) {
+            return [configLanguage];
         }
 
-        scanDirectory(configPath);
-        return results;
+        return finalConfig.languages;
     }
 
     function isUserSidebarJson(filePath: string): boolean {
@@ -258,81 +127,96 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
     }
 
     async function generateSidebarsForAllLanguages() {
-        if (isGenerating) {
-            return;
+        if (generationPromise) {
+            return generationPromise;
         }
 
-        isGenerating = true;
-        const currentTime = Date.now();
+        generationPromise = (async () => {
+            try {
+                for (const lang of finalConfig.languages) {
+                    if (isSidebarCacheStale(lang)) {
+                        try {
+                            await getSidebar(lang);
 
-        try {
-            for (const lang of finalConfig.languages) {
-                if (needsRegeneration(lang)) {
-                    try {
-                        await getSidebar(lang);
-
-                        if (finalConfig.debug) {
-                            console.log(
-                                `[SidebarPlugin] Generated sidebar for ${lang}`
+                            if (finalConfig.debug) {
+                                console.log(
+                                    `[SidebarPlugin] Generated sidebar for ${lang}`
+                                );
+                            }
+                        } catch (error) {
+                            console.error(
+                                `[SidebarPlugin] Failed to generate sidebar for ${lang}:`,
+                                error
                             );
                         }
-                    } catch (error) {
-                        console.error(
-                            `[SidebarPlugin] Failed to generate sidebar for ${lang}:`,
-                            error
-                        );
                     }
                 }
+            } finally {
+                generationPromise = null;
             }
+        })();
 
-            lastGenerationTime = currentTime;
-        } finally {
-            isGenerating = false;
-        }
+        return generationPromise;
     }
 
     function shouldTriggerRegeneration(filePath: string): boolean {
+        const lowerFilePath = filePath.toLowerCase();
+        const isSidebarConfigCandidate = SIDEBAR_CONFIG_FILE_CANDIDATES.some(
+            (name) => lowerFilePath.endsWith(name.toLowerCase()),
+        );
         return (
-            filePath.endsWith("index.md") ||
+            filePath.toLowerCase().endsWith(".md") ||
+            isSidebarConfigCandidate ||
             isUserSidebarJson(filePath)
+        );
+    }
+
+    function shouldQueueSidebarRefresh(filePath: string): boolean {
+        return getAffectedLanguages(filePath).some((lang) =>
+            isSidebarCacheStale(lang),
         );
     }
 
     async function triggerVitePressReload(server: any) {
         if (!hotReload) return;
 
-        if (reloadTimer) {
-            clearTimeout(reloadTimer);
+        if (isRestarting) {
+            return;
         }
 
-        await new Promise<void>((resolveReload) => {
-            reloadTimer = setTimeout(async () => {
-                reloadTimer = null;
+        try {
+            isRestarting = true;
+            ignoreWatcherEventsUntil = Date.now() + Math.max(reloadDelay * 4, 1000);
+            if (typeof server.restart === "function") {
+                await server.restart();
+            } else {
+                server.ws.send({ type: "full-reload" });
+            }
+        } catch (error) {
+            console.warn(
+                "[SidebarPlugin] Failed to restart cleanly; falling back to full reload.",
+                error,
+            );
+            server.ws.send({ type: "full-reload" });
+        } finally {
+            isRestarting = false;
+        }
+    }
 
-                if (isRestarting) {
-                    resolveReload();
-                    return;
-                }
+    function queueSidebarRefresh(server: any, filePath: string) {
+        for (const lang of getAffectedLanguages(filePath)) {
+            clearCache(lang);
+        }
 
-                try {
-                    isRestarting = true;
-                    if (typeof server.restart === "function") {
-                        await server.restart();
-                    } else {
-                        server.ws.send({ type: "full-reload" });
-                    }
-                } catch (error) {
-                    console.warn(
-                        "[SidebarPlugin] Failed to restart cleanly; falling back to full reload.",
-                        error,
-                    );
-                    server.ws.send({ type: "full-reload" });
-                } finally {
-                    isRestarting = false;
-                    resolveReload();
-                }
-            }, reloadDelay);
-        });
+        if (refreshTimer) {
+            clearTimeout(refreshTimer);
+        }
+
+        refreshTimer = setTimeout(async () => {
+            refreshTimer = null;
+            await generateSidebarsForAllLanguages();
+            await triggerVitePressReload(server);
+        }, reloadDelay);
     }
 
     return {
@@ -362,72 +246,27 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
                 );
             }
 
-            server.watcher.on("change", async (filePath) => {
-                if (shouldTriggerRegeneration(filePath)) {
-                    setTimeout(async () => {
-                        if (Date.now() - lastGenerationTime > 1000) {
-                            const lang = extractLanguageFromPath(filePath);
-                            if (
-                                lang !== null &&
-                                finalConfig.languages.includes(lang)
-                            ) {
-                                clearCache(lang);
-                            }
-
-                            await generateSidebarsForAllLanguages();
-                            await triggerVitePressReload(server);
-                        }
-                    }, reloadDelay);
+            const handleSidebarSourceEvent = (filePath: string) => {
+                if (Date.now() < ignoreWatcherEventsUntil) {
+                    return;
                 }
-            });
-
-            server.watcher.on("add", async (filePath) => {
-                if (shouldTriggerRegeneration(filePath)) {
-                    const lang = extractLanguageFromPath(filePath);
-                    if (lang !== null && finalConfig.languages.includes(lang)) {
-                        clearCache(lang);
-                    }
-
-                    await generateSidebarsForAllLanguages();
-                    await triggerVitePressReload(server);
+                if (
+                    shouldTriggerRegeneration(filePath) &&
+                    shouldQueueSidebarRefresh(filePath)
+                ) {
+                    queueSidebarRefresh(server, filePath);
                 }
-            });
+            };
 
-            server.watcher.on("unlink", async (filePath) => {
-                if (shouldTriggerRegeneration(filePath)) {
-                    const lang = extractLanguageFromPath(filePath);
-                    if (lang !== null && finalConfig.languages.includes(lang)) {
-                        clearCache(lang);
-                    }
+            server.watcher.on("change", handleSidebarSourceEvent);
 
-                    await generateSidebarsForAllLanguages();
-                    await triggerVitePressReload(server);
-                }
-            });
+            server.watcher.on("add", handleSidebarSourceEvent);
+            server.watcher.on("unlink", handleSidebarSourceEvent);
 
-            const jsonConfigFiles = findAllJsonConfigFiles();
+            const jsonConfigFiles = listSidebarConfigFiles();
             for (const jsonFile of jsonConfigFiles) {
                 server.watcher.add(jsonFile);
             }
         },
     };
-}
-
-function extractLanguageFromPath(filePath: string): string | null {
-    const docsPath = resolve(process.cwd(), "docs");
-    const relativePath = resolve(filePath).replace(docsPath, "");
-
-    const match = relativePath.match(/^[\/\\]([^\/\\]+)/);
-    if (match) {
-        const potentialLang = match[1];
-        const potentialLangPath = resolve(docsPath, potentialLang);
-        if (
-            existsSync(potentialLangPath) &&
-            statSync(potentialLangPath).isDirectory()
-        ) {
-            return potentialLang;
-        }
-    }
-
-    return null;
 }

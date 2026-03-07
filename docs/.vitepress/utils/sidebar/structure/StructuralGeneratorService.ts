@@ -20,6 +20,10 @@ import { normalizePathSeparators } from '../shared/objectUtils';
 import { ItemProcessorFunction, RecursiveViewGeneratorFunction } from './groupProcessor';
 import { processItem } from './itemProcessor';
 import { sortItems } from './itemSorter';
+import {
+    isSidebarConfigFileName,
+    resolveSidebarConfigFilePath,
+} from "../shared/sidebarFileConventions";
 
 /**
  * Service responsible for generating hierarchical sidebar item structures.
@@ -265,7 +269,7 @@ export class StructuralGeneratorService {
             }
 
             if (entry.isFile()) {
-                if (entry.name.toLowerCase() === "index.md") {
+                if (isSidebarConfigFileName(entry.name)) {
                     continue;
                 }
 
@@ -288,7 +292,10 @@ export class StructuralGeneratorService {
                     flattenedItems.push(fileItem);
                 }
             } else {
-                const dirIndexPath = path.join(itemAbsPath, "index.md");
+                const dirIndexPath = await resolveSidebarConfigFilePath(
+                    this.fs,
+                    itemAbsPath,
+                );
                 const dirEffectiveConfig = await this.configReader.getEffectiveConfig(
                     dirIndexPath,
                     lang,
@@ -338,7 +345,11 @@ export class StructuralGeneratorService {
 
                     // Check what type of content this directory has
                     for (const subEntry of subEntries) {
-                        if (subEntry.isFile() && subEntry.name.toLowerCase().endsWith('.md') && subEntry.name.toLowerCase() !== 'index.md') {
+                        if (
+                            subEntry.isFile() &&
+                            subEntry.name.toLowerCase().endsWith(".md") &&
+                            !isSidebarConfigFileName(subEntry.name)
+                        ) {
                             hasMarkdownFiles = true;
                         }
                         if (subEntry.isDirectory()) {
@@ -365,7 +376,11 @@ export class StructuralGeneratorService {
 
                     const fileItems: SidebarItem[] = [];
                     for (const subEntry of subEntries) {
-                        if (subEntry.isFile() && subEntry.name.toLowerCase().endsWith('.md') && subEntry.name.toLowerCase() !== 'index.md') {
+                        if (
+                            subEntry.isFile() &&
+                            subEntry.name.toLowerCase().endsWith(".md") &&
+                            !isSidebarConfigFileName(subEntry.name)
+                        ) {
                             const fileItem = await processItem(
                                 subEntry.name,
                                 subEntry.path,
@@ -601,4 +616,3 @@ export class StructuralGeneratorService {
         return sortedItems;
     }
 } 
-

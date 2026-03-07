@@ -75,12 +75,12 @@ export class ConfigReaderService {
      */
     private async getFrontmatter(absoluteIndexMdPath: string): Promise<Partial<DirectoryConfig>> {
         const normalizedPath = normalizePathSeparators(absoluteIndexMdPath);
-        if (this.frontmatterCache.has(normalizedPath)) {
-            return this.frontmatterCache.get(normalizedPath) ?? {};
+        if (!this.frontmatterCache.has(normalizedPath)) {
+            const fm = await loadFrontmatter(normalizedPath);
+            this.frontmatterCache.set(normalizedPath, fm);
+            return fm;
         }
-        const fm = await loadFrontmatter(normalizedPath);
-        this.frontmatterCache.set(normalizedPath, fm);
-        return fm;
+        return this.frontmatterCache.get(normalizedPath)!;
     }
 
     /**

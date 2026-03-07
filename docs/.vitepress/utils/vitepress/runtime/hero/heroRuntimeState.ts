@@ -5,7 +5,6 @@ import { useData } from "vitepress";
 import {
     HeroActionConfig,
     HeroBackgroundConfig,
-    HeroFloatingConfig,
     HeroFrontmatterConfig,
     HeroImageConfig,
     HeroImageThemeableSource,
@@ -17,7 +16,7 @@ import {
 } from "@utils/vitepress/api/frontmatter/hero";
 import { createHeroTypographyState } from "@utils/vitepress/runtime/hero/typographyState";
 import { createHeroFloatingWaveState } from "@utils/vitepress/runtime/hero/floatingWaveState";
-import { useThemeRuntime } from "@utils/vitepress/runtime/theme";
+import { getThemeRuntime } from "@utils/vitepress/runtime/theme";
 
 export interface VPHeroProps {
     name?: string;
@@ -31,7 +30,7 @@ export function createHeroRuntimeState(props: VPHeroProps) {
     const heroImageSlotExists = inject("hero-image-slot-exists", ref(false)) as Ref<boolean>;
     const { frontmatter, page, isDark } = useData();
     const heroRoot = ref<HTMLElement | null>(null);
-    const { effectiveDark, themeReady } = useThemeRuntime(isDark);
+    const { effectiveDark, themeReady } = getThemeRuntime(isDark);
 
     const heroConfig = computed<HeroFrontmatterConfig>(() => {
         const frontmatterHero = frontmatter.value?.hero;
@@ -77,9 +76,9 @@ export function createHeroRuntimeState(props: VPHeroProps) {
 
     const viewportEnabled = computed(() => resolveViewportEnabled(heroConfig.value));
     const hasWaves = computed(() => true);
-    const floatingConfig = computed<HeroFloatingConfig | undefined>(() => {
+    const floatingConfig = computed<Record<string, any> | undefined>(() => {
         const value = heroConfig.value.floating;
-        return value && typeof value === "object" ? (value as HeroFloatingConfig) : undefined;
+        return value && typeof value === "object" ? (value as Record<string, any>) : undefined;
     });
 
     const { heroTypographyType, hasColorOverrides, hasMediaBackground, heroCssVarsStyle } =

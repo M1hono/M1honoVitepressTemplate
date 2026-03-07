@@ -10,4 +10,3 @@ export interface FileSystem {
     deleteFile(path: string): Promise<void>;
     deleteDir(path: string): Promise<void>;
 }
-

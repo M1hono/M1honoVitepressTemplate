@@ -18,6 +18,7 @@ The upstream source of truth is this repository (`M1honoVitepressTemplate`).
 1. Read `references/repo-map.md`.
 2. If the change belongs to the shared developer-doc or frontmatter-doc set, update the template first.
 3. Run `scripts/sync_template_docs.py check` to inspect drift.
+   This repo-local entrypoint is only a wrapper. The source-of-truth sync logic lives outside the repos under `$CODEX_HOME/skills/vitepress-doc-sync/scripts/sync_template_docs.py` (or `~/.codex/skills/...` when `CODEX_HOME` is not set).
 4. If the cloned toolkit docs should match the template, run `scripts/sync_template_docs.py sync-toolkit`.
 5. For CrychicDoc, use the mapped checklist in `references/repo-map.md` and the script's `check-crychic` mode to verify the adapted pages and nav/home entry points.
 6. Run the verification commands listed below in each affected repo.

@@ -1,6 +1,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ComputedRef, Ref } from "vue";
-import { HeroActionConfig, HeroFloatingConfig, HeroFrontmatterConfig, HeroWavesConfig } from "@utils/vitepress/api/frontmatter/hero";
+import { HeroActionConfig, HeroFrontmatterConfig, HeroWavesConfig } from "@utils/vitepress/api/frontmatter/hero";
 
 interface SnippetCategoryConfig {
     snippets?: string[];
@@ -9,7 +9,7 @@ interface SnippetCategoryConfig {
 
 export interface HeroFloatingWaveStateOptions {
     heroConfig: ComputedRef<HeroFrontmatterConfig>;
-    floatingConfig: ComputedRef<HeroFloatingConfig | undefined>;
+    floatingConfig: ComputedRef<Record<string, any> | undefined>;
     resolvedActions: ComputedRef<HeroActionConfig[] | undefined>;
     resolvedTagline: ComputedRef<string | undefined>;
     resolvedWavesConfig: ComputedRef<HeroWavesConfig>;
@@ -23,19 +23,11 @@ class SnippetWordCollector {
     collect(source: unknown): string[] {
         if (!Array.isArray(source)) return [];
         const words: string[] = [];
-        let shouldClear = false;
-
-        for (const item of source) {
-            if (shouldClear) break;
-            this.collectItem(words, item, () => {
-                shouldClear = true;
-            });
-        }
-
-        return Array.from(new Set(shouldClear ? [] : words));
+        source.forEach((item) => this.collectItem(words, item));
+        return Array.from(new Set(words));
     }
 
-    private collectItem(words: string[], item: unknown, onClear: () => void) {
+    private collectItem(words: string[], item: unknown) {
         if (typeof item === "string") {
             const trimmed = item.trim();
             if (trimmed) words.push(trimmed);
@@ -44,15 +36,15 @@ class SnippetWordCollector {
         if (!item || typeof item !== "object") return;
         const category = item as SnippetCategoryConfig;
         if (category.enabled === false) {
-            onClear();
+            words.length = 0;
             return;
         }
         if (!Array.isArray(category.snippets)) return;
-        for (const snippet of category.snippets) {
+        category.snippets.forEach((snippet) => {
             if (typeof snippet === "string" && snippet.trim()) {
                 words.push(snippet.trim());
             }
-        }
+        });
     }
 }
 

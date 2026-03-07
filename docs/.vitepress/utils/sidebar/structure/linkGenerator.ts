@@ -16,6 +16,9 @@ import path from "node:path";
 import { GroupConfig } from "../types";
 import { FileSystem } from "@utils/vitepress/system/FileSystem";
 import { normalizePathSeparators } from "../shared/objectUtils";
+import {
+    resolveDirectoryLandingFilePath,
+} from "../shared/sidebarFileConventions";
 
 /**
  * Generates a normalized URL link for a directory path relative to the language root.
@@ -70,6 +73,49 @@ function normalizeDirPathToUrl(
     link = link.replace(/\/\/+/g, "/");
 
     return link;
+}
+
+function normalizeFilePathToUrl(
+    fileAbsPath: string,
+    docsAbsPath: string,
+    lang: string,
+) {
+    const langRootAbsPath = normalizePathSeparators(
+        path.join(docsAbsPath, lang),
+    );
+    const relativeFilePath = normalizePathSeparators(
+        path.relative(langRootAbsPath, fileAbsPath),
+    );
+
+    let link = "";
+    if (!lang || lang === "") {
+        link = `/${relativeFilePath.replace(/\.md$/i, ".html")}`;
+    } else {
+        link = `/${lang}/${relativeFilePath.replace(/\.md$/i, ".html")}`;
+    }
+
+    link = link.replace(/([^:])\/\/+/g, "$1/");
+    if (link.startsWith("//")) link = link.slice(1);
+    return link;
+}
+
+async function resolveDirectoryLink(
+    fs: FileSystem,
+    directoryAbsPath: string,
+    docsAbsPath: string,
+    lang: string,
+) {
+    const landingFilePath = await resolveDirectoryLandingFilePath(
+        fs,
+        directoryAbsPath,
+    );
+    if (!landingFilePath) return null;
+
+    const landingFileName = path.basename(landingFilePath).toLowerCase();
+    if (landingFileName === "index.md") {
+        return normalizeDirPathToUrl(directoryAbsPath, docsAbsPath, lang);
+    }
+    return normalizeFilePathToUrl(landingFilePath, docsAbsPath, lang);
 }
 
 /**
@@ -148,17 +194,13 @@ export async function generateLink(
             targetDirForGroupIndexMdAbs = normalizePathSeparators(
                 path.resolve(normalizedCurrentDirAbsPath, groupConfig.path)
             );
-            if (
-                await fs.exists(
-                    path.join(targetDirForGroupIndexMdAbs, "index.md")
-                )
-            ) {
-                return normalizeDirPathToUrl(
-                    targetDirForGroupIndexMdAbs,
-                    docsAbsPath,
-                    lang
-                );
-            }
+            const linkFromConfiguredPath = await resolveDirectoryLink(
+                fs,
+                targetDirForGroupIndexMdAbs,
+                docsAbsPath,
+                lang,
+            );
+            if (linkFromConfiguredPath) return linkFromConfiguredPath;
         }
 
         const sluggedTitle = slugify(groupConfig.title);
@@ -166,15 +208,13 @@ export async function generateLink(
             const potentialDirFromTitleAbs = normalizePathSeparators(
                 path.join(normalizedCurrentDirAbsPath, sluggedTitle)
             );
-            if (
-                await fs.exists(path.join(potentialDirFromTitleAbs, "index.md"))
-            ) {
-                return normalizeDirPathToUrl(
-                    potentialDirFromTitleAbs,
-                    docsAbsPath,
-                    lang
-                );
-            }
+            const linkFromTitlePath = await resolveDirectoryLink(
+                fs,
+                potentialDirFromTitleAbs,
+                docsAbsPath,
+                lang,
+            );
+            if (linkFromTitlePath) return linkFromTitlePath;
         }
         return null;
     }
@@ -183,20 +223,13 @@ export async function generateLink(
         const directoryFullPathAbs = normalizePathSeparators(
             path.join(currentDirAbsPath, itemName)
         );
-        const indexPath = path.join(directoryFullPathAbs, "index.md");
-        
-        const indexExists = await fs.exists(indexPath);
-        
-        if (indexExists) {
-            const link = normalizeDirPathToUrl(
-                directoryFullPathAbs,
-                docsAbsPath,
-                lang
-            );
-            return link;
-        }
+        return resolveDirectoryLink(
+            fs,
+            directoryFullPathAbs,
+            docsAbsPath,
+            lang,
+        );
     }
 
     return null;
 }
-

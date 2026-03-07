@@ -1,11 +1,11 @@
 /**
  * @fileoverview Item sorting utilities for sidebar generation.
- * 
+ *
  * This module provides functionality for sorting sidebar items based on
  * priority values, item order configurations, and fallback alphabetical
  * ordering. It handles both explicit priority assignments and order
  * configurations from JSON files.
- * 
+ *
  * @module ItemSorter
  * @version 1.0.0
  * @author M1hono
@@ -16,7 +16,6 @@ import { SidebarItem } from '../types';
 
 /**
  * Applies item order configuration to priority values for sidebar items.
- * Creates a new array with updated priority values without mutating the input.
  *
  * Converts itemOrder configuration (typically from order.json files) into
  * priority values that can be used for sorting. This ensures that explicit
@@ -25,35 +24,35 @@ import { SidebarItem } from '../types';
  *
  * @param {SidebarItem[]} items - Array of SidebarItems to process
  * @param {Record<string, number>} [itemOrderConfig={}] - The itemOrder configuration from order.json
- * @returns {SidebarItem[]} New array of items with updated priorities
  * @since 1.0.0
  * @private
  */
 function applyItemOrderToPriority(
     items: SidebarItem[],
     itemOrderConfig: Record<string, number> = {}
-): SidebarItem[] {
-    return items.map(item => {
-        const orderKey = item._relativePathKey || item.text;
-        let newPriority = item._priority;
+): void {
+    let minExplicitPriority = Number.MAX_SAFE_INTEGER;
+    let maxExplicitPriority = Number.MIN_SAFE_INTEGER;
 
-        if (orderKey && Object.prototype.hasOwnProperty.call(itemOrderConfig, orderKey)) {
-            newPriority = itemOrderConfig[orderKey];
-        } else if (newPriority === undefined) {
-            newPriority = 0;
+    for (const item of items) {
+        if (item._priority !== undefined) {
+            minExplicitPriority = Math.min(minExplicitPriority, item._priority);
+            maxExplicitPriority = Math.max(maxExplicitPriority, item._priority);
         }
+    }
 
-        const newItem: SidebarItem = {
-            ...item,
-            _priority: newPriority
-        };
+    for (const item of items) {
+        const orderKey = item._relativePathKey || item.text;
+        if (orderKey && itemOrderConfig.hasOwnProperty(orderKey)) {
+            item._priority = itemOrderConfig[orderKey];
+        } else if (item._priority === undefined) {
+            item._priority = 0;
+        }
 
         if (item.items && Array.isArray(item.items)) {
-            newItem.items = applyItemOrderToPriority(item.items, itemOrderConfig);
+            applyItemOrderToPriority(item.items, itemOrderConfig);
         }
-
-        return newItem;
-    });
+    }
 }
 
 /**
@@ -82,9 +81,9 @@ export function sortItems(
     itemsToSort: SidebarItem[],
     itemOrderConfig: Record<string, number> = {}
 ): SidebarItem[] {
-    const itemsWithAppliedPriorities = applyItemOrderToPriority(itemsToSort, itemOrderConfig);
+    applyItemOrderToPriority(itemsToSort, itemOrderConfig);
 
-    const itemsWithSortInfo = itemsWithAppliedPriorities.map(item => ({
+    const itemsWithSortInfo = itemsToSort.map(item => ({
         item,
         priority: item._priority ?? 0,
         originalText: item.text || item._relativePathKey || ''
@@ -98,6 +97,16 @@ export function sortItems(
         return a.originalText.localeCompare(b.originalText);
     });
 
-    return itemsWithSortInfo.map(wrappedItem => wrappedItem.item);
-} 
+    const sortedItems = itemsWithSortInfo.map(wrappedItem => {
+        const item = wrappedItem.item;
+
+        if (item.items && Array.isArray(item.items)) {
+            item.items = sortItems(item.items, itemOrderConfig);
+        }
+
+        return item;
+    });
+
+    return sortedItems;
+}
 

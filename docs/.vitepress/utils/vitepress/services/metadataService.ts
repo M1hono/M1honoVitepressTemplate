@@ -4,12 +4,10 @@ class ReadingTimeService {
     }
 
     calculateImageTime(imageCount: number) {
-        // First 10 images: 13s + 12s + 11s + ... + 4s (arithmetic series)
-        // Additional images: 3s each
         if (imageCount <= 10) {
-            return imageCount * 13 - (imageCount * (imageCount - 1)) / 2;
+            return imageCount * 13 + (imageCount * (imageCount - 1)) / 2;
         }
-        return 85 + (imageCount - 10) * 3;
+        return 175 + (imageCount - 10) * 3;
     }
 
     calculateTotalTime(wordCount: number, imageCount: number, wordsPerMinute = 275) {
@@ -24,9 +22,7 @@ class ContentMetadataService {
         const container = window.document.querySelector(selector);
         const imgs = container?.querySelectorAll<HTMLImageElement>(".content-container .main img");
         const imageCount = imgs?.length || 0;
-        const textContent = container?.querySelector(".content-container .main")?.textContent || "";
-        const wordCount = textContent.trim().split(/\s+/).filter(Boolean).length;
-        return { wordCount, imageCount };
+        return { wordCount: 0, imageCount };
     }
 
     cleanupMetadata() {

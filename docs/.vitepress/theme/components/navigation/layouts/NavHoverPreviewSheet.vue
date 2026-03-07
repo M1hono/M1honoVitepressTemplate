@@ -1,7 +1,7 @@
 <script lang="ts" setup>
     import { computed } from "vue";
     import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
-    import type { NavLink } from "@utils/config/nav-types";
+    import type { NavLink, NavPreviewPanel } from "@utils/config/navTypes";
     import LottieDisplay from "../../hero/image/LottieDisplay.vue";
     import MarkdownIt from "markdown-it";
 
@@ -12,12 +12,14 @@
     const md = new MarkdownIt({ html: true, linkify: true, breaks: true });
 
     const props = defineProps<{
-        /** The nav link whose preview is being displayed. `null` hides the sheet. */
-        link: NavLink | null;
+        /** The nav link whose preview is being displayed. `null` falls back to dropdown preview. */
+        link?: NavLink | null;
+        /** Optional dropdown-level preview shown when no leaf link is active. */
+        preview?: NavPreviewPanel | null;
     }>();
 
     /** Resolved preview config from the active link. */
-    const previewConfig = computed(() => props.link?.preview || null);
+    const previewConfig = computed(() => props.link?.preview || props.preview || null);
 
     /** Title shown in the preview header. Falls back to the link's `text`. */
     const previewTitle = computed(
@@ -31,12 +33,21 @@
     const previewText = computed(() => {
         const richBody = previewConfig.value?.body;
         if (typeof richBody === "string" && richBody.trim()) return richBody;
-        const desc = previewConfig.value?.desc || props.link?.desc || "";
+        const desc =
+            previewConfig.value?.desc ||
+            props.link?.desc ||
+            props.preview?.desc ||
+            "";
         return typeof desc === "string" ? desc : "";
     });
 
     /** Optional media element config. */
     const previewMedia = computed(() => previewConfig.value?.media || null);
+
+    const previewMediaType = computed(() => previewMedia.value?.type || "image");
+    const previewMediaVariant = computed(
+        () => previewMedia.value?.variant || "plain",
+    );
 
     /** Resolved (base-prefixed) media URL. */
     const previewMediaSrc = computed(() =>
@@ -110,43 +121,64 @@
         <div
             v-if="previewMedia && (previewMediaSrc || previewMedia.background)"
             class="preview-media"
+            :class="[
+                `preview-media--${previewMediaType}`,
+                `preview-media--${previewMediaVariant}`,
+            ]"
             :style="{ aspectRatio: previewAspect }"
         >
-            <img
-                v-if="
-                    (previewMedia.type === 'image' ||
-                        previewMedia.type === 'svg' ||
-                        previewMedia.type === 'screenshot') &&
-                    previewMediaSrc
-                "
-                :src="previewMediaSrc"
-                :alt="previewMediaAlt"
-                loading="lazy"
-            />
-
-            <video
-                v-else-if="previewMedia.type === 'video' && previewMediaSrc"
-                :src="previewMediaSrc"
-                autoplay
-                muted
-                loop
-                playsinline
-            />
-
-            <LottieDisplay
-                v-else-if="previewMedia.type === 'lottie' && previewMediaSrc"
-                :src="previewMediaSrc"
-                :alt="previewMediaAlt"
-                :loop="true"
-                :autoplay="true"
-                fit="cover"
-            />
-
             <div
-                v-else-if="previewMedia.background"
-                class="preview-media-bg"
-                :style="{ background: previewMedia.background }"
-            />
+                v-if="
+                    previewMedia.type === 'screenshot' &&
+                    previewMediaVariant === 'framed'
+                "
+                class="preview-browser-chrome"
+            >
+                <span class="preview-browser-dots">
+                    <i />
+                    <i />
+                    <i />
+                </span>
+                <span class="preview-browser-label">{{ previewMediaAlt }}</span>
+            </div>
+
+            <div class="preview-media-canvas">
+                <img
+                    v-if="
+                        (previewMedia.type === 'image' ||
+                            previewMedia.type === 'svg' ||
+                            previewMedia.type === 'screenshot') &&
+                        previewMediaSrc
+                    "
+                    :src="previewMediaSrc"
+                    :alt="previewMediaAlt"
+                    loading="lazy"
+                />
+
+                <video
+                    v-else-if="previewMedia.type === 'video' && previewMediaSrc"
+                    :src="previewMediaSrc"
+                    autoplay
+                    muted
+                    loop
+                    playsinline
+                />
+
+                <LottieDisplay
+                    v-else-if="previewMedia.type === 'lottie' && previewMediaSrc"
+                    :src="previewMediaSrc"
+                    :alt="previewMediaAlt"
+                    :loop="true"
+                    :autoplay="true"
+                    fit="cover"
+                />
+
+                <div
+                    v-else-if="previewMedia.background"
+                    class="preview-media-bg"
+                    :style="{ background: previewMedia.background }"
+                />
+            </div>
         </div>
 
         <!-- Header: title + optional keyboard shortcut hint -->
@@ -179,14 +211,120 @@
 
     /* ── Media block ─────────────────────────────── */
     .preview-media {
+        position: relative;
         width: 100%;
         overflow: hidden;
-        border-radius: 10px;
+        border-radius: 12px;
         background: transparent;
+        border: 0;
+        box-shadow: none;
+    }
+
+    .preview-media--framed {
+        display: flex;
+        flex-direction: column;
+        border-radius: 16px;
+        border: 1px solid
+            color-mix(in srgb, var(--vp-c-divider) 62%, transparent);
+        background:
+            radial-gradient(
+                circle at top,
+                color-mix(in srgb, var(--vp-c-brand-1) 18%, transparent),
+                transparent 54%
+            ),
+            color-mix(in srgb, var(--vp-c-bg-soft) 94%, transparent);
+        box-shadow:
+            0 18px 48px -24px rgba(0, 0, 0, 0.34),
+            inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        isolation: isolate;
+    }
+
+    .preview-media--framed::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.06) 0%,
+                transparent 28%
+            ),
+            linear-gradient(
+                180deg,
+                transparent 56%,
+                rgba(0, 0, 0, 0.22) 100%
+            );
+        pointer-events: none;
+    }
+
+    .preview-media--screenshot.preview-media--framed {
+        padding: 0;
+        background:
+            linear-gradient(
+                180deg,
+                rgba(255, 255, 255, 0.06) 0%,
+                rgba(255, 255, 255, 0.02) 100%
+            ),
+            color-mix(in srgb, var(--vp-c-bg-soft) 96%, transparent);
+    }
+
+    .preview-browser-chrome {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-height: 34px;
+        padding: 0 12px;
+        border-bottom: 1px solid
+            color-mix(in srgb, var(--vp-c-divider) 56%, transparent);
+        background: color-mix(in srgb, var(--vp-c-bg-elv) 82%, transparent);
+    }
+
+    .preview-browser-dots {
+        display: inline-flex;
+        gap: 6px;
+        flex: 0 0 auto;
+    }
+
+    .preview-browser-dots i {
+        display: block;
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--vp-c-text-3) 52%, transparent);
+    }
+
+    .preview-browser-dots i:nth-child(1) {
+        background: rgba(255, 95, 86, 0.78);
+    }
+
+    .preview-browser-dots i:nth-child(2) {
+        background: rgba(255, 189, 46, 0.78);
+    }
+
+    .preview-browser-dots i:nth-child(3) {
+        background: rgba(39, 201, 63, 0.78);
+    }
+
+    .preview-browser-label {
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: var(--vp-c-text-2);
+        font-size: 11px;
+        letter-spacing: 0.02em;
+    }
+
+    .preview-media-canvas {
+        position: relative;
+        min-height: 0;
+        width: 100%;
+        height: 100%;
     }
 
     .preview-media img,
-    .preview-media video {
+    .preview-media video,
+    .preview-media :deep(.lottie-display) {
         display: block;
         width: 100%;
         height: 100%;
@@ -319,6 +457,53 @@
     }
     .preview-rich :deep(img:last-child) {
         margin-bottom: 0;
+    }
+
+    .preview-rich :deep(blockquote) {
+        margin: 10px 0;
+        padding: 10px 12px;
+        border-left: 3px solid
+            color-mix(in srgb, var(--vp-c-brand-1) 72%, transparent);
+        border-radius: 0 10px 10px 0;
+        background: color-mix(in srgb, var(--vp-c-bg-soft) 84%, transparent);
+        color: var(--vp-c-text-2);
+    }
+
+    .preview-rich :deep(blockquote p:last-child) {
+        margin-bottom: 0;
+    }
+
+    .preview-rich :deep(table) {
+        width: 100%;
+        margin: 10px 0;
+        border-collapse: separate;
+        border-spacing: 0;
+        overflow: hidden;
+        border-radius: 10px;
+        border: 1px solid
+            color-mix(in srgb, var(--vp-c-divider) 56%, transparent);
+        background: color-mix(in srgb, var(--vp-c-bg-soft) 90%, transparent);
+    }
+
+    .preview-rich :deep(th),
+    .preview-rich :deep(td) {
+        padding: 8px 10px;
+        font-size: 11.5px;
+        line-height: 1.45;
+        text-align: left;
+        vertical-align: top;
+        border-bottom: 1px solid
+            color-mix(in srgb, var(--vp-c-divider) 42%, transparent);
+    }
+
+    .preview-rich :deep(th) {
+        font-weight: 650;
+        color: var(--vp-c-text-1);
+        background: color-mix(in srgb, var(--vp-c-brand-soft) 24%, transparent);
+    }
+
+    .preview-rich :deep(tr:last-child td) {
+        border-bottom: 0;
     }
 
     /* Links */

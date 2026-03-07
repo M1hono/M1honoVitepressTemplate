@@ -1,6 +1,10 @@
-import { _internalConfigureSidebar, getSidebar } from "../utils/sidebar/lib";
+import {
+    _internalConfigureSidebar,
+    getSidebar,
+    DEFAULT_SIDEBAR_CACHE_DIR,
+} from "../utils/sidebar/lib";
 import { getLanguageLinks } from "../utils/config/project-api/index.js";
-import { getSrcPath, getVitepressPath } from "../utils/config/path-resolver.js";
+import { getSrcPath } from "../utils/config/path-resolver.js";
 
 /**
  * Exports sidebar trees for llms.txt organization.
@@ -17,7 +21,7 @@ async function exportLlmsSidebars(): Promise<void> {
         debug: false,
         rootDir: process.cwd(),
         docsDir: getSrcPath(),
-        cacheDir: getVitepressPath("cache/sidebar"),
+        cacheDir: DEFAULT_SIDEBAR_CACHE_DIR,
     });
 
     const output: Record<string, Record<string, any[]>> = {};

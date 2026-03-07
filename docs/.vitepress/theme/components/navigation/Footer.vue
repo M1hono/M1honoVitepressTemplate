@@ -14,11 +14,11 @@
     import {
         resolveThemeColorByMode,
         resolveThemeValueByMode,
-        useThemeRuntime,
+        getThemeRuntime,
     } from "@utils/vitepress/runtime/theme";
 
     const { frontmatter, lang, isDark } = useData();
-    const { effectiveDark } = useThemeRuntime(isDark);
+    const { effectiveDark } = getThemeRuntime(isDark);
     const projectInfo = getProjectInfo();
 
     /**

@@ -27,57 +27,44 @@ export type HomeLinkKey =
     | "buttonThemes"
     | "featuresConfig";
 
-class HomeLinkService {
-    private readonly paths: Record<HomeLinkKey, string> = {
-        home: "/",
-        heroMatrix: "/hero/matrix/",
-        heroAllConfig: "/hero/AllConfig",
-        frontmatterApi: "/frontmatter/",
-        maintainabilityGuide: "/frontmatter/reference/maintainability",
-        developmentWorkflow: "/frontmatter/reference/developmentWorkflow",
-        extensionArchitecture: "/frontmatter/reference/extensionArchitecture",
-        heroExtension: "/frontmatter/reference/heroExtension",
-        stylesPlugins: "/styles-plugins",
-        allPages: "/all-pages",
-        backgroundModes: "/hero/matrix/backgroundSingle/",
-        wavesMatrix: "/hero/matrix/waves/",
-        floatingElements: "/hero/matrix/floating/",
-        imageTypes: "/hero/matrix/imageTypes/",
-        basicHero: "/hero/matrix/basic/",
-        colorBackground: "/hero/matrix/backgroundSingle/color/",
-        imageBackground: "/hero/matrix/backgroundSingle/image/",
-        videoBackground: "/hero/matrix/backgroundSingle/video/",
-        shaderBackground: "/hero/matrix/backgroundSingle/shader/",
-        particlesBackground: "/hero/matrix/backgroundSingle/particles/",
-        layersBackground: "/hero/matrix/layers/",
-        buttonThemes: "/hero/matrix/buttonsFeatures/",
-        featuresConfig: "/hero/matrix/buttonsFeatures/featuresFullConfig",
-    };
+const HOME_LINK_PATHS: Record<HomeLinkKey, string> = {
+    home: "/",
+    heroMatrix: "/hero/matrix/",
+    heroAllConfig: "/hero/AllConfig",
+    frontmatterApi: "/frontmatter/",
+    maintainabilityGuide: "/frontmatter/reference/maintainability",
+    developmentWorkflow: "/frontmatter/reference/developmentWorkflow",
+    extensionArchitecture: "/frontmatter/reference/extensionArchitecture",
+    heroExtension: "/frontmatter/reference/heroExtension",
+    stylesPlugins: "/styles-plugins",
+    allPages: "/all-pages",
+    backgroundModes: "/hero/matrix/backgroundSingle/",
+    wavesMatrix: "/hero/matrix/waves/",
+    floatingElements: "/hero/matrix/floating/",
+    imageTypes: "/hero/matrix/imageTypes/",
+    basicHero: "/hero/matrix/basic/",
+    colorBackground: "/hero/matrix/backgroundSingle/color/",
+    imageBackground: "/hero/matrix/backgroundSingle/image/",
+    videoBackground: "/hero/matrix/backgroundSingle/video/",
+    shaderBackground: "/hero/matrix/backgroundSingle/shader/",
+    particlesBackground: "/hero/matrix/backgroundSingle/particles/",
+    layersBackground: "/hero/matrix/layers/",
+    buttonThemes: "/hero/matrix/buttonsFeatures/",
+    featuresConfig: "/hero/matrix/buttonsFeatures/featuresFullConfig",
+};
 
-    resolveByKey(key: HomeLinkKey, vitepressLang: string) {
-        if (key === "home") return "/";
-        const locale = this.normalizeLocale(vitepressLang);
-        const suffix = this.paths[key].startsWith("/") ? this.paths[key] : `/${this.paths[key]}`;
-        return `/${locale}${suffix}`;
-    }
-
-    resolve(rawLink: string | undefined, linkKey: HomeLinkKey | undefined, vitepressLang: string) {
-        const link = rawLink?.trim();
-        if (link) return link;
-        if (!linkKey) return undefined;
-        return this.resolveByKey(linkKey, vitepressLang);
-    }
-
-    private normalizeLocale(vitepressLang: string): HomeLinkLocale {
-        const langCode = getLangCodeFromVitepressLang(vitepressLang);
-        return langCode === "zh-CN" ? "zh-CN" : "en-US";
-    }
+function normalizeLocale(vitepressLang: string): HomeLinkLocale {
+    const langCode = getLangCodeFromVitepressLang(vitepressLang);
+    return langCode === "zh-CN" ? "zh-CN" : "en-US";
 }
 
-const service = new HomeLinkService();
-
 export function getHomeLinkByKey(key: HomeLinkKey, vitepressLang: string): string {
-    return service.resolveByKey(key, vitepressLang);
+    if (key === "home") return "/";
+    const locale = normalizeLocale(vitepressLang);
+    const suffix = HOME_LINK_PATHS[key].startsWith("/")
+        ? HOME_LINK_PATHS[key]
+        : `/${HOME_LINK_PATHS[key]}`;
+    return `/${locale}${suffix}`;
 }
 
 export function resolveHomeLink(
@@ -85,5 +72,8 @@ export function resolveHomeLink(
     linkKey: HomeLinkKey | undefined,
     vitepressLang: string,
 ): string | undefined {
-    return service.resolve(rawLink, linkKey, vitepressLang);
+    const link = rawLink?.trim();
+    if (link) return link;
+    if (!linkKey) return undefined;
+    return getHomeLinkByKey(linkKey, vitepressLang);
 }

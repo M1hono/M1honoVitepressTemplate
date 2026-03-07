@@ -39,16 +39,16 @@ export class NodeFileSystem implements FileSystem {
     async deleteFile(filePath: string): Promise<void> {
         try {
             await fs.unlink(normalizePathSeparators(filePath));
-        } catch (error: unknown) {
-            if (error instanceof Error && (error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+        } catch (error: any) {
+            if (error.code !== "ENOENT") throw error;
         }
     }
 
     async deleteDir(dirPath: string): Promise<void> {
         try {
             await fs.rm(normalizePathSeparators(dirPath), { recursive: true, force: true });
-        } catch (error: unknown) {
-            if (error instanceof Error && (error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+        } catch (error: any) {
+            if (error.code !== "ENOENT") throw error;
         }
     }
 }

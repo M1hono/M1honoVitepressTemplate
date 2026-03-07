@@ -1,14 +1,14 @@
 <template>
     <div class="commits-counter-container" :class="{ 'is-home': isHomePage }">
         <div class="commits-counter">
-            <div class="chart-container">
-                <div
-                    class="chart-loading"
-                    v-if="!chartOptions || !contributions.length"
-                >
+            <div class="chart-container" :style="chartContainerStyle">
+                <div class="chart-loading" v-if="isLoading">
                     <div class="loading-bars">
                         <div class="bar" v-for="i in 20" :key="i"></div>
                     </div>
+                </div>
+                <div class="chart-empty" v-else-if="!hasChartData">
+                    <p>{{ emptyStateMessage }}</p>
                 </div>
                 <ClientOnly v-else>
                     <v-chart
@@ -24,10 +24,13 @@
 
 <script lang="ts" setup>
     //@ts-nocheck
-    import { ref, computed, onMounted } from "vue";
+    import { computed, defineAsyncComponent, onMounted, ref } from "vue";
     import { useData } from "vitepress";
-    import { defineAsyncComponent } from "vue";
-    import utils from "@utils";
+    import {
+        commitProcessor,
+        getRecentContributionDates,
+        githubApi,
+    } from "@utils/charts";
     import { useSafeI18n } from "@utils/i18n/locale";
     import { getProjectInfo } from "@config/project-config";
 
@@ -47,17 +50,16 @@
     });
 
     const { t } = useSafeI18n("commits-counter", {
-        repoActivity: "Repository Activity",
-        recentCommits: "Recent commits:",
-        commitsOnDate: "{count} commits on {date}"
+        commitsOnDate: "{count} commits on {date}",
+        commitDataUnavailable: "Commit data unavailable",
     });
 
     const projectInfo = getProjectInfo();
-    
+
     const getRepoInfo = () => {
         const repoUrl = projectInfo.repository.url;
         const match = repoUrl.match(
-            /github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?$/
+            /github\.com\/([^\/]+)\/([^\/]+?)(?:\.git)?\/?$/
         );
         if (match) {
             return { owner: match[1], repo: match[2] };
@@ -92,26 +94,32 @@
     const repoName = computed(() => props.repoName ?? defaultRepoName);
 
     const { isDark, lang, frontmatter } = useData();
-    
+
     const isHomePage = computed(() => {
         return !!(frontmatter.value.isHome ?? frontmatter.value.layout === "home");
     });
 
-    const contributions = ref<number[]>([]);
-
-    const totalContributions = computed(() =>
-        utils.charts.github.commitProcessor.getTotalContributions(
-            contributions.value
-        )
+    const contributions = ref<number[] | null>(null);
+    const loadError = ref<string | null>(null);
+    const isLoading = computed(() => contributions.value === null);
+    const hasChartData = computed(
+        () => Array.isArray(contributions.value) && contributions.value.length > 0,
     );
+    const emptyStateMessage = computed(
+        () => loadError.value ?? t.commitDataUnavailable,
+    );
+    const contributionDates = computed(() =>
+        getRecentContributionDates(props.daysToFetch),
+    );
+    const chartContainerStyle = computed(() => ({
+        "--commits-counter-chart-height": `${props.height}px`,
+    }));
 
     /**
      * Generate enhanced chart options with beautiful styling
      */
     const chartOptions = computed(() => {
-        if (!contributions.value.length) return {};
-
-        const maxValue = Math.max(...contributions.value);
+        if (!hasChartData.value || !contributions.value) return null;
 
         return {
             grid: {
@@ -119,18 +127,13 @@
                 right: 40,
                 top: 30,
                 bottom: 30,
+                containLabel: true,
             },
             xAxis: {
                 type: "category",
+                boundaryGap: false,
                 data: contributions.value.map((_, index) =>
-                    new Date(
-                        Date.now() -
-                            (contributions.value.length - 1 - index) *
-                                24 *
-                                60 *
-                                60 *
-                                1000
-                    ).toLocaleDateString(lang.value, {
+                    contributionDates.value[index].toLocaleDateString(lang.value, {
                         month: "short",
                         day: "numeric",
                     })
@@ -156,6 +159,8 @@
             },
             yAxis: {
                 type: "value",
+                minInterval: 1,
+                splitNumber: 4,
                 axisLine: { show: false },
                 axisTick: { show: false },
                 axisLabel: {
@@ -222,12 +227,9 @@
                 },
                 formatter: (params: any) => {
                     const dataIndex = params[0].dataIndex;
-                    const date = new Date();
-                    date.setDate(
-                        date.getDate() -
-                            (contributions.value.length - 1 - dataIndex)
-                    );
-                    const dateString = date.toLocaleDateString(lang.value, {
+                    const dateString = contributionDates.value[
+                        dataIndex
+                    ].toLocaleDateString(lang.value, {
                         year: 'numeric',
                         month: 'short',
                         day: 'numeric'
@@ -245,15 +247,18 @@
      * Fetch commit data using extracted GitHub utilities
      */
     const fetchContributions = async () => {
+        loadError.value = null;
         try {
-            const result = await utils.charts.github.githubApi.fetchAllCommits(
+            const result = await githubApi.fetchAllCommits(
                 username.value,
-                repoName.value
+                repoName.value,
+                { daysToFetch: props.daysToFetch },
             );
 
             if (!result.success) {
                 console.warn("Failed to fetch commits:", result.error);
                 contributions.value = [];
+                loadError.value = result.error ?? t.commitDataUnavailable;
                 return;
             }
 
@@ -262,13 +267,15 @@
             }
 
             contributions.value =
-                utils.charts.github.commitProcessor.processContributions(
+                commitProcessor.processContributions(
                     result.commits,
                     props.daysToFetch
                 );
         } catch (error) {
             console.error("Error fetching commit data:", error);
             contributions.value = [];
+            loadError.value =
+                error instanceof Error ? error.message : t.commitDataUnavailable;
         }
     };
 
@@ -348,12 +355,12 @@
         padding: 20px 16px;
         position: relative;
         overflow: hidden;
-        height: 300px;
-        width: 100%;
+        height: max(
+            var(--commits-counter-chart-height),
+            clamp(220px, 28vw, 420px)
+        );
         max-width: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        width: 100%;
         box-sizing: border-box;
     }
 
@@ -361,49 +368,62 @@
     .commits-counter-container.is-home .chart-container {
         background: var(--vp-c-bg-soft);
         border: 1px solid var(--vp-c-divider);
+        height: max(
+            var(--commits-counter-chart-height),
+            clamp(320px, 38vw, 560px)
+        );
         padding: 40px 32px;
-        height: 400px;
     }
 
     @media (min-width: 640px) {
         .chart-container {
             padding: 24px 20px;
-            height: 350px;
         }
         
         .commits-counter-container.is-home .chart-container {
             padding: 50px 40px;
-            height: 480px;
         }
     }
 
     @media (min-width: 960px) {
         .chart-container {
             padding: 32px 24px;
-            height: 400px;
         }
         
         .commits-counter-container.is-home .chart-container {
             padding: 60px 50px;
-            height: 550px;
         }
     }
 
     @media (min-width: 1200px) {
         .chart-container {
-            height: 450px;
             padding: 40px 32px;
         }
         
         .commits-counter-container.is-home .chart-container {
-            height: 600px;
             padding: 70px 60px;
         }
     }
 
     .main-chart {
         width: 100%;
-        height: 100%;
+        height: 100% !important;
+        min-height: 100%;
+        display: block;
+    }
+
+    :deep(.main-chart > div:first-child) {
+        height: 100% !important;
+        min-height: 100%;
+    }
+
+    :deep(.main-chart > div:first-child canvas) {
+        height: 100% !important;
+    }
+
+    :deep(.main-chart > div:not(:first-child)) {
+        height: auto !important;
+        min-height: 0 !important;
     }
 
     .chart-loading {
@@ -412,6 +432,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+
+    .chart-empty {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--vp-c-text-2);
+        text-align: center;
+        padding: 24px;
     }
 
     .loading-bars {

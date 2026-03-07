@@ -1,7 +1,7 @@
 import glob from "fast-glob";
 import matter from "gray-matter";
-import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeFileSync } from "fs";
-import { dirname, resolve } from "path";
+import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, mkdirSync } from "fs";
+import { resolve, dirname } from "path";
 import { getLanguages, getDefaultLanguage, getPaths } from "@config/project-config";
 import { getSrcPath } from "../config/path-resolver";
 
@@ -24,39 +24,39 @@ export interface TagData {
     [key: string]: TagInfo;
 }
 
-export function getSupportedLanguages(): string[] {
-    return getLanguages().map(lang => lang.code);
-}
-
-export function getLanguageConfig(code: string): ReturnType<typeof getLanguages>[number] | undefined {
-    return getLanguages().find(lang => lang.code === code);
-}
+const languages = getLanguages();
+const languageCodes = new Set(languages.map(lang => lang.code));
 
 function extractLanguageFromPath(filePath: string): string {
-    const languages = getLanguages();
     const pathParts = filePath.split('/');
-    
+
     if (pathParts.length > 0) {
         const firstPart = pathParts[0];
+
         const directMatch = languages.find(lang => lang.code === firstPart);
-        if (directMatch) {
-            return directMatch.code;
-        }
+        if (directMatch) return directMatch.code;
+
         const linkMatch = languages.find(lang => {
             const linkPath = lang.link || `/${lang.code}/`;
             const cleanLinkPath = linkPath.replace(/^\/|\/$/g, '');
             return cleanLinkPath === firstPart;
         });
-        if (linkMatch) {
-            return linkMatch.code;
-        }
+        if (linkMatch) return linkMatch.code;
     }
-    
+
     return getDefaultLanguage().code;
 }
 
+export function getSupportedLanguages(): string[] {
+    return Array.from(languageCodes);
+}
+
+export function getLanguageConfig(code: string) {
+    return languages.find(lang => lang.code === code);
+}
+
 export function isLanguageSupported(languageCode: string): boolean {
-    return getLanguages().some(lang => lang.code === languageCode);
+    return languageCodes.has(languageCode);
 }
 
 export function collectTags(docsDir: string = getSrcPath(), language?: string): TagData {
@@ -79,10 +79,8 @@ export function collectTags(docsDir: string = getSrcPath(), language?: string): 
             const { data: frontmatter } = matter(content);
 
             const fileLanguage = extractLanguageFromPath(file);
-            
-            if (language && fileLanguage !== language) {
-                return;
-            }
+
+            if (language && fileLanguage !== language) return;
 
             if (frontmatter.tags && Array.isArray(frontmatter.tags)) {
                 const pageInfo: PageInfo = {
@@ -124,35 +122,29 @@ export function generateTagData(docsDir: string = getSrcPath(), language?: strin
         tags: tagData,
         sortedTags,
         totalTags: Object.keys(tagData).length,
-        totalPages: Object.values(tagData).reduce(
-            (sum, tag) => sum + tag.count,
-            0
-        ),
+        totalPages: Object.values(tagData).reduce((sum, tag) => sum + tag.count, 0),
         language,
         generatedAt: new Date().toISOString(),
     };
 }
 
-function compareTagData(newData: any, existingData: any): boolean {
+function compareTagData(newData: Record<string, unknown>, existingData: Record<string, unknown> | null): boolean {
     if (!existingData) return false;
-    
-    const newDataWithoutTimestamp = { ...newData };
-    const existingDataWithoutTimestamp = { ...existingData };
-    
-    delete newDataWithoutTimestamp.generatedAt;
-    delete existingDataWithoutTimestamp.generatedAt;
-    
+
+    const newDataWithoutTimestamp = { ...newData, generatedAt: undefined };
+    const existingDataWithoutTimestamp = { ...existingData, generatedAt: undefined };
+
     return JSON.stringify(newDataWithoutTimestamp) === JSON.stringify(existingDataWithoutTimestamp);
 }
 
-function writeFileIfChanged(filePath: string, newData: any): boolean {
+function writeFileIfChanged(filePath: string, newData: Record<string, unknown>): boolean {
     const directory = dirname(filePath);
     if (!existsSync(directory)) {
         mkdirSync(directory, { recursive: true });
     }
 
-    let existingData = null;
-    
+    let existingData: Record<string, unknown> | null = null;
+
     if (existsSync(filePath)) {
         try {
             const existingContent = readFileSync(filePath, 'utf-8');
@@ -161,12 +153,12 @@ function writeFileIfChanged(filePath: string, newData: any): boolean {
             console.warn(`Failed to read existing file ${filePath}:`, error);
         }
     }
-    
+
     if (!compareTagData(newData, existingData)) {
         writeFileSync(filePath, JSON.stringify(newData, null, 2), 'utf-8');
         return true;
     }
-    
+
     return false;
 }
 
@@ -186,12 +178,11 @@ function cleanupLegacyTagDataFiles(outputDir: string): boolean {
 }
 
 export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outputDir: string = getPaths().public) {
-    const results: Record<string, any> = {};
-    const languages = getLanguages();
+    const results: Record<string, ReturnType<typeof generateTagData>> = {};
     let hasChanges = false;
-    
+
     console.log(`🏷️  Generating tag data for languages: ${getSupportedLanguages().join(', ')}`);
-    
+
     if (!existsSync(outputDir)) {
         mkdirSync(outputDir, { recursive: true });
     }
@@ -203,13 +194,13 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
     for (const langConfig of languages) {
         try {
             console.log(`   📋 Processing ${langConfig.displayName} (${langConfig.code})...`);
-            
+
             const data = generateTagData(docsDir, langConfig.code);
             results[langConfig.code] = data;
 
             const outputPath = resolve(outputDir, "data", langConfig.code, "tags.json");
             const fileChanged = writeFileIfChanged(outputPath, data);
-            
+
             if (fileChanged) {
                 hasChanges = true;
                 console.log(`   ✅ Updated ${data.totalTags} tags for ${data.totalPages} pages`);
@@ -230,9 +221,9 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
         generatedAt: new Date().toISOString(),
         summary: Object.fromEntries(
             Object.entries(results).map(([lang, data]) => [
-                lang, 
-                { 
-                    totalTags: data.totalTags, 
+                lang,
+                {
+                    totalTags: data.totalTags,
                     totalPages: data.totalPages,
                     language: data.language,
                     dataPath: `/data/${lang}/tags.json`,
@@ -241,7 +232,7 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
         ),
         version: 2,
     };
-    
+
     const indexChanged = writeFileIfChanged(indexPath, indexData);
     if (indexChanged) {
         hasChanges = true;
@@ -255,7 +246,7 @@ export function generateAllLanguageTagData(docsDir: string = getSrcPath(), outpu
     } else {
         console.log(`😊 No changes detected, files unchanged`);
     }
-    
+
     return results;
 }
 

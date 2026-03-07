@@ -3,7 +3,7 @@ import { Ref } from "vue";
 import { getThemeLifecycleManager } from "./ThemeLifecycleManager";
 import { ThemeStateStore } from "./ThemeStateStore";
 
-export function useThemeRuntime(isDark: Ref<boolean>) {
+export function getThemeRuntime(isDark: Ref<boolean>) {
     if (typeof window === "undefined") {
         const store = new ThemeStateStore(isDark);
         return {

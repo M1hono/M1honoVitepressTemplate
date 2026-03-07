@@ -19,6 +19,6 @@ export default utils;
 
 export { contentUtils as content } from "./content";
 export { vitepressUtils as vitepress } from "./vitepress";
-export { chartsUtils as charts } from "./charts";
+export { chartsUtils as charts, chartPalettes } from "./charts";
 
 export * from "./content/functions";

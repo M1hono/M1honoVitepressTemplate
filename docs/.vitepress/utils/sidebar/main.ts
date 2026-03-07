@@ -14,6 +14,10 @@ import { GitBookService } from "./external";
 import { GitBookParserService } from "./external/GitBookParserService";
 import { FileSystem, NodeFileSystem } from "@utils/vitepress/system";
 import { normalizePathSeparators } from "./shared/objectUtils";
+import {
+    SIDEBAR_CONFIG_FILE_CANDIDATES,
+    resolveSidebarConfigFilePath,
+} from "./shared/sidebarFileConventions";
 
 /**
  * Filters out grouped content from sidebar items
@@ -95,8 +99,8 @@ async function findAllRootIndexMdPaths(
     gitbookExclusionList: string[]
 ): Promise<string[]> {
     const normalizedLangPath = normalizePathSeparators(currentLanguagePath);
-    const pattern = normalizePathSeparators(
-        path.join(normalizedLangPath, "**", "index.md")
+    const patterns = SIDEBAR_CONFIG_FILE_CANDIDATES.map((fileName) =>
+        normalizePathSeparators(path.join(normalizedLangPath, "**", fileName)),
     );
 
     const ignorePatterns = gitbookExclusionList
@@ -112,7 +116,7 @@ async function findAllRootIndexMdPaths(
         })
         .filter((p) => p !== undefined) as string[];
 
-    const indexFiles = await glob(pattern, {
+    const indexFiles = await glob(patterns, {
         cwd: normalizedLangPath,
         ignore: ignorePatterns,
         onlyFiles: true,
@@ -307,7 +311,10 @@ export async function generateSidebars(
                     const groupConfigKey = `/${groupRelativePath}/`.replace(/\/\/+/g, "/");
                     
                     let groupEffectiveConfig: EffectiveDirConfig;
-                    const groupIndexPath = path.join(groupContentAbsPath, 'index.md');
+                    const groupIndexPath = await resolveSidebarConfigFilePath(
+                        nodeFs,
+                        groupContentAbsPath,
+                    );
                     
                     try {
                         const groupFrontmatter = await configReader.getLocalFrontmatter(groupIndexPath);
@@ -406,8 +413,9 @@ export async function generateSidebars(
                     const itemPathInDocs = normalizePathSeparators(
                         path.join(currentLanguagePath, itemPath)
                     );
-                    const itemIndexPath = normalizePathSeparators(
-                        path.join(itemPathInDocs, "index.md")
+                    const itemIndexPath = await resolveSidebarConfigFilePath(
+                        nodeFs,
+                        itemPathInDocs,
                     );
                     
                     try {
@@ -462,8 +470,9 @@ export async function generateSidebars(
                     const sectionPathInDocs = normalizePathSeparators(
                         path.join(absDocsPath, pathFromKey)
                     );
-                    const sectionIndexPath = normalizePathSeparators(
-                        path.join(sectionPathInDocs, "index.md")
+                    const sectionIndexPath = await resolveSidebarConfigFilePath(
+                        nodeFs,
+                        sectionPathInDocs,
                     );
                     
                     try {
@@ -501,8 +510,9 @@ export async function generateSidebars(
                             const childPathInDocs = normalizePathSeparators(
                                 path.join(currentLanguagePath, childItem._relativePathKey)
                             );
-                            const childIndexPath = normalizePathSeparators(
-                                path.join(childPathInDocs, "index.md")
+                            const childIndexPath = await resolveSidebarConfigFilePath(
+                                nodeFs,
+                                childPathInDocs,
                             );
                             
                             try {

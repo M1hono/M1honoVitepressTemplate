@@ -9,93 +9,101 @@ import type { ScrollPosition, TranslationDictionary } from '../content/types';
  * Scroll utilities
  */
 export const scroll = {
-    /** Scroll to top of page smoothly */
-    toTop: (): void => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    },
+  /** Scroll to top of page smoothly */
+  toTop: (): void => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  },
 
-    /** Scroll to bottom of page */
-    toBottom: (): void => {
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-    },
+  /** Scroll to bottom of page */
+  toBottom: (): void => {
+    window.scrollTo({
+      top: document.body.scrollHeight,
+      behavior: 'smooth'
+    });
+  },
 
-    /** Get current scroll position */
-    getCurrentPosition: (): ScrollPosition => ({
-        x: window.scrollX,
-        y: window.scrollY
-    }),
+  /** Get current scroll position */
+  getCurrentPosition: (): ScrollPosition => {
+    return {
+      x: window.scrollX,
+      y: window.scrollY
+    };
+  },
 
-    /** Check if should show back to top button */
-    shouldShowBackTop: (threshold: number = 300): boolean => {
-        return window.scrollY > threshold;
-    }
+  /** Check if should show back to top button */
+  shouldShowBackTop: (threshold: number = 300): boolean => {
+    return window.scrollY > threshold;
+  }
 };
 
 /**
  * Browser utilities
  */
 export const browser = {
-    /** Refresh the current page */
-    refresh: (): void => {
-        window.location.reload();
-    },
+  /** Refresh the current page */
+  refresh: (): void => {
+    window.location.reload();
+  },
 
-    /** Go back in browser history */
-    goBack: (): void => {
-        window.history.back();
-    },
+  /** Go back in browser history */
+  goBack: (): void => {
+    window.history.back();
+  },
 
-    /** Copy current page URL to clipboard */
-    copyCurrentUrl: async (): Promise<boolean> => {
-        try {
-            await navigator.clipboard.writeText(window.location.href);
-            return true;
-        } catch (error) {
-            console.error('Failed to copy URL:', error);
-            return false;
-        }
-    },
-
-    /** Open URL in new tab */
-    openInNewTab: (url: string): void => {
-        window.open(url, '_blank', 'noopener,noreferrer');
+  /** Copy current page URL to clipboard */
+  copyCurrentUrl: async (): Promise<boolean> => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      return true;
+    } catch (error) {
+      console.error('Failed to copy URL:', error);
+      return false;
     }
+  },
+
+  /** Open URL in new tab */
+  openInNewTab: (url: string): void => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
 };
 
 /**
  * Path navigation utilities
  */
 export const pathNavigation = {
-    /** Special path configurations for different routes */
-    specialPaths: [
-        {
-            regex: /^\/(zh|en|jp)\/modpack\/kubejs\/1\.20\.1\/KubeJSCourse\//,
-            getTargetPath: (match: RegExpMatchArray) => `/${match[1]}/modpack/kubejs/1.20.1/`,
-        },
-        {
-            regex: /^\/(zh|en|jp)\/modpack\/kubejs\/?$/,
-            getTargetPath: (match: RegExpMatchArray) => `/${match[1]}/`,
-        },
-        {
-            regex: /^\/(zh|en|jp)\/modpack\/kubejs\/1\.20\.1\/Introduction\/Catalogue$/,
-            getTargetPath: (match: RegExpMatchArray) => `/${match[1]}/modpack/kubejs/1.20.1/`,
-        },
-        {
-            regex: /^\/(zh|en|jp)\/modpack\/kubejs\/1\.20\.1\/(?!KubeJSCourse)/,
-            getTargetPath: (match: RegExpMatchArray) => `/${match[1]}/modpack/kubejs/1.20.1/`,
-        },
-    ],
+  /** Special path configurations for different routes */
+  specialPaths: [
+    {
+      regex: /^\/(zh|en|jp)\/modpack\/kubejs\/1\.20\.1\/KubeJSCourse\//,
+      getTargetPath: (match: RegExpMatchArray) => `/${match[1]}/modpack/kubejs/1.20.1/`,
+    },
+    {
+      regex: /^\/(zh|en|jp)\/modpack\/kubejs\/?$/,
+      getTargetPath: (match: RegExpMatchArray) => `/${match[1]}/`,
+    },
+    {
+      regex: /^\/(zh|en|jp)\/modpack\/kubejs\/1\.20\.1\/Introduction\/Catalogue$/,
+      getTargetPath: (match: RegExpMatchArray) => `/${match[1]}/modpack/kubejs/1.20.1/`,
+    },
+    {
+      regex: /^\/(zh|en|jp)\/modpack\/kubejs\/1\.20\.1\/(?!KubeJSCourse)/,
+      getTargetPath: (match: RegExpMatchArray) => `/${match[1]}/modpack/kubejs/1.20.1/`,
+    },
+  ],
 
-    /** Get target path for current route */
-    getTargetPath: (currentPath: string): string | null => {
-        for (const { regex, getTargetPath } of pathNavigation.specialPaths) {
-            const match = currentPath.match(regex);
-            if (match) {
-                return getTargetPath(match);
-            }
-        }
-        return null;
+  /** Get target path for current route */
+  getTargetPath: (currentPath: string): string | null => {
+    for (const pathConfig of pathNavigation.specialPaths) {
+      const match = currentPath.match(pathConfig.regex);
+      if (match) {
+        return pathConfig.getTargetPath(match);
+      }
     }
+    return null;
+  }
 };
 
 /**
@@ -114,7 +122,6 @@ export const navigationTranslations: TranslationDictionary = {
 /**
  * Get translation for navigation element
  */
-export function getNavigationText(key: string, lang: string): string {
-    const translations = navigationTranslations[key];
-    return translations?.[lang] ?? translations?.["en-US"] ?? key;
-} 
+export const getNavigationText = (key: string, lang: string): string => {
+  return navigationTranslations[key]?.[lang] || navigationTranslations[key]?.["en-US"] || key;
+};

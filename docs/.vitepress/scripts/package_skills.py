@@ -57,10 +57,15 @@ def package_skill(skill_dir: Path, output_dir: Path) -> Path:
     return zip_path
 
 
-def build_manifest(skill_dirs: list[Path], output_dir: Path, zip_paths: list[Path]) -> dict:
+def build_manifest(
+    skill_dirs: list[Path],
+    skills_root: Path,
+    output_dir: Path,
+    zip_paths: list[Path],
+) -> dict:
     zip_lookup = {zip_path.stem: zip_path for zip_path in zip_paths}
     return {
-        "skills_root": str(output_dir.parent),
+        "skills_root": str(skills_root),
         "artifacts_dir": str(output_dir),
         "skills": [
             {
@@ -112,7 +117,12 @@ def main() -> int:
     if args.manifest:
         manifest_path = args.manifest.expanduser().resolve()
         manifest_path.parent.mkdir(parents=True, exist_ok=True)
-        manifest = build_manifest(selected_skill_dirs, output_dir, zip_paths)
+        manifest = build_manifest(
+            selected_skill_dirs,
+            skills_root,
+            output_dir,
+            zip_paths,
+        )
         manifest_path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
 
     for zip_path in zip_paths:

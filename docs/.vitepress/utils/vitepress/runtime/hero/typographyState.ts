@@ -6,7 +6,6 @@ import {
     HeroTypographyStyleType,
     heroTypographyRegistry,
     resolveHeroTypographyStyleType,
-    ThemeValue,
 } from "@utils/vitepress/api/frontmatter/hero";
 import {
     createHeroNavAdaptiveState,
@@ -172,17 +171,17 @@ class TypographyCssComposer {
     private mergeColorVars(style: Record<string, string>) {
         const colors = this.heroColors.value;
         if (!colors) return;
-        const map: Array<[string, ThemeValue<string> | undefined]> = [
+        const map: Array<[string, unknown]> = [
             ["--hero-media-title-color", colors.title],
             ["--hero-media-muted-color", colors.tagline || colors.text],
             ["--hero-media-text-color", colors.text],
         ];
-        for (const [varName, value] of map) {
-            if (!value) continue;
-            const resolved = this.colorToolkit.resolveThemeValue(value);
+        map.forEach(([varName, value]) => {
+            if (!value) return;
+            const resolved = this.colorToolkit.resolveThemeValue(value as any);
             const cssValue = this.colorToolkit.toCssValue(resolved);
             if (cssValue !== undefined) style[varName] = cssValue;
-        }
+        });
     }
 
     private mergeMotionVars(style: Record<string, string>) {

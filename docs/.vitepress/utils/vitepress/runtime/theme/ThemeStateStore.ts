@@ -10,8 +10,7 @@ export class ThemeStateStore {
     private readonly reactiveDarkSource = shallowRef<Ref<boolean>>();
 
     readonly reactiveDark = computed(() => {
-        const source = this.reactiveDarkSource.value;
-        return source ? source.value : false;
+        return this.reactiveDarkSource.value.value;
     });
 
     readonly effectiveDark = computed(() => {

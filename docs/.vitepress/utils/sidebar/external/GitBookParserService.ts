@@ -20,7 +20,7 @@ export class GitBookParserService {
     /**
      * Parses a SUMMARY.md file from a GitBook directory and generates SidebarItem[].
      * Enhanced with proper hierarchical nesting and robust link processing.
-     * 
+     *
      * @param gitbookDirAbsPath Absolute path to the GitBook directory (containing SUMMARY.md).
      * @param lang The current language code (e.g., 'en').
      * @returns A promise resolving to an array of SidebarItem objects for the GitBook root.
@@ -35,12 +35,12 @@ export class GitBookParserService {
             }
 
             const content = await this.fs.readFile(summaryFilePath);
-            
+
             // Parse frontmatter if present
             const { content: cleanContent } = this.parseFrontmatter(content);
-            
+
             const lines = cleanContent.split(/\r?\n/);
-            
+
             // Stack to track nesting: each entry contains { items: SidebarItem[], level: number, parent?: SidebarItem }
             const itemStack: Array<{ items: SidebarItem[]; level: number; parent?: SidebarItem }> = [
                 { items: generatedItems, level: -1 }
@@ -76,7 +76,7 @@ export class GitBookParserService {
 
             return [];
         }
-        
+
         // Post-process to clean up empty items and finalize structure
         this.finalizeStructure(generatedItems);
 
@@ -91,9 +91,9 @@ export class GitBookParserService {
         for (let i = nextLineIndex; i < Math.min(nextLineIndex + 5, lines.length); i++) {
             const originalLine = lines[i];
             const trimmedLine = originalLine.trim();
-            
+
             // Skip empty lines and comments
-            if (!trimmedLine || trimmedLine.startsWith('#') || 
+            if (!trimmedLine || trimmedLine.startsWith('#') ||
                 (!trimmedLine.startsWith('*') && !trimmedLine.startsWith('-'))) {
                 continue;
             }
@@ -102,7 +102,7 @@ export class GitBookParserService {
             const linkMatch = originalLine.match(/^(\s*)(?:\*|\-)\s+\[(.+?)\]\((.+?)\)/);
             if (linkMatch) {
                 const nextLevel = this.calculateLevel(linkMatch[1]);
-                
+
                 if (nextLevel > currentLevel) {
                     return true; // Found a child item
                 } else {
@@ -110,7 +110,7 @@ export class GitBookParserService {
                 }
             }
         }
-        
+
         return false; // No children found in lookahead
     }
 
@@ -120,14 +120,14 @@ export class GitBookParserService {
     private parseFrontmatter(content: string): { frontmatter: Record<string, any>; content: string } {
         const frontmatterRegex = /^---\s*\r?\n([\s\S]*?)\r?\n---\s*\r?\n/;
         const match = content.match(frontmatterRegex);
-        
+
         if (match) {
             try {
                 // Basic YAML parsing for simple cases
                 const frontmatter: Record<string, any> = {};
                 const yamlContent = match[1];
                 const yamlLines = yamlContent.split(/\r?\n/);
-                
+
                 for (const line of yamlLines) {
                     const colonIndex = line.indexOf(':');
                     if (colonIndex > 0) {
@@ -136,7 +136,7 @@ export class GitBookParserService {
                         frontmatter[key] = value.replace(/^['"]|['"]$/g, ''); // Remove quotes
                     }
                 }
-                
+
                 return {
                     frontmatter,
                     content: content.substring(match[0].length)
@@ -145,7 +145,7 @@ export class GitBookParserService {
 
             }
         }
-        
+
         return { frontmatter: {}, content };
     }
 
@@ -154,9 +154,9 @@ export class GitBookParserService {
      */
     private processLine(line: string, gitbookDirAbsPath: string, lang: string): { item: SidebarItem; level: number } | null {
         const trimmedLine = line.trim();
-        
+
         // Skip empty lines, comments, and non-list items
-        if (!trimmedLine || trimmedLine.startsWith('#') || 
+        if (!trimmedLine || trimmedLine.startsWith('#') ||
             (!trimmedLine.startsWith('*') && !trimmedLine.startsWith('-'))) {
             return null;
         }
@@ -172,7 +172,7 @@ export class GitBookParserService {
 
         // Process the link path
         const processedLink = this.processLinkPath(linkPath, gitbookDirAbsPath, lang);
-        
+
         const item: SidebarItem = {
             text: title.trim(),
             link: processedLink.url,
@@ -205,14 +205,18 @@ export class GitBookParserService {
     } {
         // Normalize the link path
         let cleanPath = linkPath.trim();
-        
+
         // Remove leading slash if present (GitBook paths are relative to SUMMARY.md)
         if (cleanPath.startsWith('/')) {
             cleanPath = cleanPath.substring(1);
         }
 
-        // Determine if this is a directory (ends with README.md or index.md)
-        const isDirectory = cleanPath.endsWith('README.md') || cleanPath.endsWith('index.md') || cleanPath.endsWith('/');
+        // Determine if this is a directory (ends with README.md, index.md, or sidebarIndex.md)
+        const isDirectory =
+            cleanPath.endsWith("README.md") ||
+            cleanPath.endsWith("index.md") ||
+            cleanPath.endsWith("sidebarIndex.md") ||
+            cleanPath.endsWith("/");
 
         // Generate the site-absolute URL
         const relativePathFromDocs = normalizePathSeparators(path.relative(this.docsAbsPath, gitbookDirAbsPath));
@@ -264,5 +268,26 @@ export class GitBookParserService {
             }
         }
     }
-} 
 
+    /**
+     * Enhanced error handling and validation
+     */
+    private validateStructure(items: SidebarItem[]): boolean {
+        try {
+            for (const item of items) {
+                if (!item.text || !item.link) {
+
+                    return false;
+                }
+
+                if (item.items && !this.validateStructure(item.items)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (error) {
+
+            return false;
+        }
+    }
+}

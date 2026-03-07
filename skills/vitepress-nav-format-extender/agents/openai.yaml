@@ -1,0 +1,4 @@
+interface:
+  display_name: "VitePress Nav Format Extender"
+  short_description: "Extend the typed nav system and shared preview/rendering contract"
+  default_prompt: "Extend the shared VitePress nav format, builders, validation, or preview layouts without breaking per-repo local registries."

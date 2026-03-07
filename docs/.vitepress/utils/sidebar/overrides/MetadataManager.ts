@@ -360,4 +360,3 @@ export class MetadataManager {
         return currentHash !== metadataEntry.valueHash;
     }
 } 
-

@@ -6,6 +6,10 @@ import { ConfigReaderService } from "../config";
 import { generateLink } from "./linkGenerator";
 import { generatePathKey } from "./pathKeyGenerator";
 import { normalizePathSeparators } from "../shared/objectUtils";
+import {
+    isSidebarConfigFileName,
+    resolveSidebarConfigFilePath,
+} from "../shared/sidebarFileConventions";
 
 /**
  * @fileoverview Core processor for individual file system entries in sidebar generation.
@@ -75,7 +79,7 @@ async function processFileEntry(
         return null;
     }
 
-    if (entryName.toLowerCase() === "index.md") {
+    if (isSidebarConfigFileName(entryName)) {
         return null;
     }
 
@@ -204,7 +208,11 @@ async function hasNestedMarkdownContent(
         for (const entry of entries) {
             const entryPath = path.join(dirPath, entry.name);
             
-            if (entry.isFile() && entry.name.toLowerCase().endsWith('.md') && entry.name.toLowerCase() !== 'index.md') {
+            if (
+                entry.isFile() &&
+                entry.name.toLowerCase().endsWith(".md") &&
+                !isSidebarConfigFileName(entry.name)
+            ) {
                 return true;
             }
             
@@ -339,7 +347,10 @@ async function getDirectoryTitle(
     let directoryTitle = entryName;
     
     try {
-        const dirIndexPath = path.join(normalizedItemAbsPath, "index.md");
+        const dirIndexPath = await resolveSidebarConfigFilePath(
+            fs,
+            normalizedItemAbsPath,
+        );
         if (await fs.exists(dirIndexPath)) {
             const dirIndexContent = await fs.readFile(dirIndexPath);
             const dirFrontmatter = matter(dirIndexContent).data;
@@ -439,7 +450,10 @@ export async function processItem(
         );
     }
 
-    const dirIndexPath = path.join(normalizedItemAbsPath, "index.md");
+    const dirIndexPath = await resolveSidebarConfigFilePath(
+        fs,
+        normalizedItemAbsPath,
+    );
     const dirEffectiveConfig = await configReader.getEffectiveConfig(
         dirIndexPath,
         lang,

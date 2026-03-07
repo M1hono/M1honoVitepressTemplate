@@ -18,12 +18,12 @@
 import { resolve } from "path";
 import {
     existsSync,
+    unlinkSync,
     readFileSync,
     writeFileSync,
     mkdirSync,
     statSync,
     readdirSync,
-    unlinkSync,
 } from "fs";
 import { generateSidebars } from "./main";
 
@@ -39,7 +39,7 @@ export interface SidebarLibConfig {
     rootDir?: string;
     /** Relative path to the docs directory from rootDir. Defaults to "./docs" */
     docsDir?: string;
-    /** Relative path to the cache directory from rootDir. Defaults to "./.vitepress/cache/sidebar" */
+    /** Relative path to the cache directory from rootDir. Defaults to "./.cache/sidebar" */
     cacheDir?: string;
     /** Enable debug logging for troubleshooting. Defaults to false */
     debug?: boolean;
@@ -57,10 +57,13 @@ export interface SidebarLibConfig {
  * @since 1.0.0
  * @private
  */
+export const DEFAULT_SIDEBAR_CACHE_DIR = "./.cache/sidebar";
+const SIDEBAR_CONFIG_IGNORED_DIRECTORIES = new Set([".metadata", ".archive"]);
+
 const defaultConfig: Omit<Required<SidebarLibConfig>, "languages"> = {
     rootDir: process.cwd(),
     docsDir: "./docs",
-    cacheDir: "./.vitepress/cache/sidebar",
+    cacheDir: DEFAULT_SIDEBAR_CACHE_DIR,
     debug: false,
     devMode: process.env.NODE_ENV === "development",
 };
@@ -211,7 +214,7 @@ function getCacheKey(lang: string): string {
  * @private
  * @example
  * ```typescript
- * getFileCachePath('en'); // "/project/.vitepress/cache/sidebar/sidebar_en.json"
+ * getFileCachePath('en'); // "/project/.cache/sidebar/sidebar_en.json"
  * ```
  */
 function getFileCachePath(lang: string): string {
@@ -268,7 +271,7 @@ function getNewestDocsMtime(lang: string): number {
     const config = getConfig();
     const docsPath = resolve(config.rootDir, config.docsDir, lang);
     return getNewestMatchingMtime(docsPath, (name) =>
-        name.toLowerCase() === "index.md"
+        name.toLowerCase().endsWith(".md")
     );
 }
 
@@ -282,6 +285,55 @@ function getNewestSidebarConfigMtime(lang: string): number {
     return getNewestMatchingMtime(sidebarConfigPath, (name) =>
         name.toLowerCase().endsWith(".json")
     );
+}
+
+export function isSidebarCacheStale(lang: string): boolean {
+    validateLanguage(lang);
+    return !isFileCacheValid(lang);
+}
+
+export function listSidebarConfigFiles(): string[] {
+    const config = getConfig();
+    const sidebarConfigPath = resolve(
+        config.rootDir,
+        ".vitepress/config/sidebar"
+    );
+    const results: string[] = [];
+
+    if (!existsSync(sidebarConfigPath)) {
+        return results;
+    }
+
+    const queue: string[] = [sidebarConfigPath];
+    while (queue.length > 0) {
+        const currentPath = queue.pop() as string;
+        let entries: any[] = [];
+
+        try {
+            entries = readdirSync(currentPath, { withFileTypes: true }) as any[];
+        } catch {
+            continue;
+        }
+
+        for (const entry of entries) {
+            const entryName = String(entry.name);
+            const entryPath = resolve(currentPath, entryName);
+
+            if (entry.isDirectory()) {
+                if (SIDEBAR_CONFIG_IGNORED_DIRECTORIES.has(entryName)) {
+                    continue;
+                }
+                queue.push(entryPath);
+                continue;
+            }
+
+            if (entry.isFile() && entryName.endsWith(".json")) {
+                results.push(entryPath);
+            }
+        }
+    }
+
+    return results;
 }
 
 function isFileCacheValid(lang: string): boolean {

@@ -14,7 +14,7 @@
  * 2. Iterates over the languages declared in `projectConfig.languages` to
  *    build the `locales` map keyed by locale code (e.g. `"en-US"`).
  * 3. Re-exports the assembled `navConfig` object and all types from
- *    `navTypes.ts` so importers only need a single import.
+ *    `nav-types.ts` so importers only need a single import.
  *
  * @example
  * ```ts
@@ -23,10 +23,9 @@
  * ```
  */
 
-/// <reference types="vite/client" />
-
 import { projectConfig } from "./project-config";
 import type { NavConfig, NavItem } from "./navTypes";
+import { assertNavItemsUseBuilders, normalizeNavItems } from "./navFactory";
 
 /**
  * Eagerly-loaded locale nav modules discovered at build time.
@@ -34,7 +33,8 @@ import type { NavConfig, NavItem } from "./navTypes";
  *
  * @internal
  */
-const navModules = import.meta.glob< { default?: NavItem[] } >("../../config/locale/*/nav.ts", {
+// @ts-ignore — Vite's `import.meta.glob` types require the "vite/client" reference
+const navModules = import.meta.glob("../../config/locale/*/nav.ts", {
     eager: true,
 });
 
@@ -50,16 +50,16 @@ const locales: Record<string, NavItem[]> = {};
 for (const lang of projectConfig.languages) {
     const code = lang.code;
     const path = `../../config/locale/${code}/nav.ts`;
-    const mod = navModules[path];
-
+    const mod = navModules[path] as
+        | { default?: NavItem[]; [key: string]: unknown }
+        | undefined;
     if (mod) {
         // Prefer named default export; fall back to first value for CJS interop
-        const navItems = mod.default ?? (Object.values(mod)[0] as NavItem[] | undefined);
-        if (Array.isArray(navItems)) {
-            locales[code] = navItems;
-        } else {
-            console.warn(`[navConfig] Navigation module for "${code}" does not export a valid NavItem array`);
-        }
+        const localeNav = normalizeNavItems(
+            mod.default ?? (Object.values(mod)[0] as NavItem[]),
+        );
+        assertNavItemsUseBuilders(localeNav, code);
+        locales[code] = localeNav;
     }
 }
 

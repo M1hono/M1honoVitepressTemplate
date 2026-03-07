@@ -1,7 +1,7 @@
 /**
  * Navigation system type definitions.
  *
- * @module utils/config/navTypes
+ * @module utils/config/nav-types
  * @description
  * Centralised TypeScript contracts for the navigation system.
  * All components, composables, and locale config files import from here.
@@ -86,6 +86,14 @@ export interface NavMedia {
      * Convenient for placeholder or brand-coloured hero cards.
      */
     background?: string;
+    /**
+     * Visual treatment applied by nav preview and showcase renderers.
+     * - `"plain"` — full-bleed media with no chrome, frame, or shadow
+     * - `"framed"` — decorative browser-style shell for showcase-heavy menus
+     *
+     * Default: `"plain"`.
+     */
+    variant?: "plain" | "framed";
 }
 
 /**
@@ -288,6 +296,48 @@ export interface NavPreviewPanel {
     livePreview?: boolean;
 }
 
+/**
+ * Dropdown configuration for a top-level navigation item.
+ */
+export interface NavDropdown {
+    /**
+     * Visual layout of the dropdown panel:
+     * - `"columns"`   — panels side-by-side (default)
+     * - `"spotlight"` — large featured hero on the left, links on the right
+     * - any custom string registered via `navDropdownLayoutRegistry.registerLayout(...)`
+     */
+    layout?: string;
+    /**
+     * Optional explicit Vue component name for this dropdown.
+     * When present, it overrides `layout` registry resolution.
+     *
+     * This allows projects to ship custom dropdown implementations
+     * without changing core navbar system code.
+     */
+    layoutComponent?: string;
+    /** Ordered list of panel columns inside the dropdown. */
+    panels?: NavPanel[];
+    /** Optional right-side preview pane (shown beside the last column). */
+    preview?: NavPreviewPanel;
+    /**
+     * Maximum CSS width of the dropdown container.
+     * Default: `"860px"`.
+     */
+    maxWidth?: string;
+    /**
+     * Horizontal alignment of the dropdown relative to its trigger:
+     * - `"start"` — left-aligns dropdown to the trigger's left edge
+     * - `"center"` — centres the dropdown below the trigger
+     * - `"end"` — right-aligns dropdown to the trigger's right edge
+     */
+    align?: "start" | "center" | "end";
+    /**
+     * Global keyboard shortcut to open this dropdown
+     * (e.g. `"⌘P"`, `"Ctrl+Shift+K"`).
+     */
+    shortcut?: string;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Top-level nav item
 // ─────────────────────────────────────────────────────────────────────────────
@@ -331,44 +381,7 @@ export interface NavItem {
      * When provided, this item renders as a dropdown trigger button.
      * Mutually exclusive with `link` / `href`.
      */
-    dropdown?: {
-        /**
-         * Visual layout of the dropdown panel:
-         * - `"columns"`   — panels side-by-side (default)
-         * - `"spotlight"` — large featured hero on the left, links on the right
-         * - any custom string registered via `navDropdownLayoutRegistry.registerLayout(...)`
-         */
-        layout?: string;
-        /**
-         * Optional explicit Vue component name for this dropdown.
-         * When present, it overrides `layout` registry resolution.
-         *
-         * This allows projects to ship custom dropdown implementations
-         * without changing core navbar system code.
-         */
-        layoutComponent?: string;
-        /** Ordered list of panel columns inside the dropdown. */
-        panels?: NavPanel[];
-        /** Optional right-side preview pane (shown beside the last column). */
-        preview?: NavPreviewPanel;
-        /**
-         * Maximum CSS width of the dropdown container.
-         * Default: `"860px"`.
-         */
-        maxWidth?: string;
-        /**
-         * Horizontal alignment of the dropdown relative to its trigger:
-         * - `"start"` — left-aligns dropdown to the trigger's left edge
-         * - `"center"` — centres the dropdown below the trigger
-         * - `"end"` — right-aligns dropdown to the trigger's right edge
-         */
-        align?: "start" | "center" | "end";
-        /**
-         * Global keyboard shortcut to open this dropdown
-         * (e.g. `"⌘P"`, `"Ctrl+Shift+K"`).
-         */
-        shortcut?: string;
-    };
+    dropdown?: NavDropdown;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

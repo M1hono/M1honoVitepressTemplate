@@ -6,7 +6,7 @@
     import { resolveAssetWithBase } from "@utils/vitepress/api/assetApi";
     import {
         resolveThemeSourceByMode,
-        useThemeRuntime,
+        getThemeRuntime,
     } from "@utils/vitepress/runtime/theme";
 
     interface Feature {
@@ -27,7 +27,7 @@
         theme?: "brand" | "info" | "tip" | "warning" | "danger";
     }>();
     const { isDark } = useData();
-    const { effectiveDark } = useThemeRuntime(isDark);
+    const { effectiveDark } = getThemeRuntime(isDark);
 
     const isExternal = computed(() =>
         Boolean(

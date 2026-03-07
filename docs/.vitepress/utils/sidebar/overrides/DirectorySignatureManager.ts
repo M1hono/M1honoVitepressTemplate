@@ -379,4 +379,3 @@ export class DirectorySignatureManager {
         return normalizePathSeparators(path.join(this.docsPath, lang, dirSignature));
     }
 } 
-

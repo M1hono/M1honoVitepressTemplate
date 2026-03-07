@@ -51,6 +51,7 @@
 <script setup>
     import { onMounted } from "vue";
     import { useSafeI18n } from "@utils/i18n/locale";
+    import { resolveDirectoryLandingCanonicalPath } from "@utils/sidebar/shared/directoryLandingRouteResolver";
 
     /**
      * Component ID for i18n translations.
@@ -70,7 +71,16 @@
         }
     };
 
+    const tryRedirectToLandingPage = () => {
+        if (typeof window === "undefined") return;
+        const candidate = resolveDirectoryLandingCanonicalPath(window.location.pathname);
+        if (!candidate) return;
+        const { search, hash } = window.location;
+        window.location.replace(`${candidate}${search}${hash}`);
+    };
+
     onMounted(() => {
+        tryRedirectToLandingPage();
         if (typeof document !== 'undefined') {
             const circles = document.querySelectorAll(".circle");
             circles.forEach((circle, index) => {

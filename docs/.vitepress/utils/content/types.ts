@@ -2,46 +2,35 @@
  * TypeScript types and interfaces for CryChicDoc utilities
  */
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Core utility types
-// ─────────────────────────────────────────────────────────────────────────────
-
 // Enhanced utility types
 export interface UtilsConfig {
-    /** Content utilities configuration */
     content?: {
         defaultWordsPerMinute?: number;
         enableReadingTime?: boolean;
     };
-    /** VitePress utilities configuration */
     vitepress?: {
         enableSidebarGeneration?: boolean;
         defaultCollapsed?: boolean;
     };
-    /** Charts utilities configuration */
     charts?: {
         defaultTheme?: "light" | "dark";
         enableInteractivity?: boolean;
     };
 }
 
-// Function utility types
 export interface WordCountResult {
     characters: number;
     words: number;
     lines: number;
-    readingTime: number; // in minutes
+    readingTime: number;
 }
 
-// Enhanced sidebar types
 export interface EnhancedFileItem {
     text: string;
     link: string;
     collapsed?: boolean;
     items?: EnhancedFileItem[];
-    badge?:
-        | string
-        | { text: string; type: "info" | "tip" | "warning" | "danger" };
+    badge?: string | { text: string; type: "info" | "tip" | "warning" | "danger" };
     icon?: string;
 }
 
@@ -53,15 +42,13 @@ export interface EnhancedSidebar {
     badge?: string;
 }
 
-// Plugin-related types
 export interface UtilsPluginConfig {
     name: string;
     version?: string;
     enabled?: boolean;
-    options?: Record<string, any>;
+    options?: Record<string, unknown>;
 }
 
-// Component-related types
 export interface MetadataConfig {
     update: (text: string) => string;
     wordCount: (text: number) => string;

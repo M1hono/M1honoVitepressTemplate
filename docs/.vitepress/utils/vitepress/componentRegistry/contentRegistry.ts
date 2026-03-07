@@ -4,8 +4,6 @@ export { default as Linkcard } from "@components/content/Linkcard.vue";
 export { default as PageTags } from "@components/content/PageTags.vue";
 export { default as TagsPage } from "@components/content/TagsPage.vue";
 export { default as Bills } from "@components/content/Bills.vue";
-export { default as Contributors } from "@components/content/Contributors.vue";
-export { default as CommitsCounter } from "@components/content/CommitsCounter.vue";
 export { default as MdDialog } from "@components/content/MdDialog.vue";
 export { default as MdMultiPageDialog } from "@components/content/MdMultiPageDialog.vue";
 export { default as ChatMessage } from "@components/content/ChatMessage.vue";
@@ -15,4 +13,3 @@ export { default as ResponsibleEditor } from "@components/content/ResponsibleEdi
 export { default as MarkMapView } from "@components/content/MarkMapView.vue";
 export { default as VChart } from "@components/content/VChart.vue";
 export { default as ShaderEffectBlock } from "@components/content/ShaderEffectBlock.vue";
-

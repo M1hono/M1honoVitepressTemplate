@@ -1,35 +1,66 @@
 import { projectConfig } from "../../../config/project-config";
-import type { SearchLocalesByProvider } from "../project-types";
-import { mergeLocales } from "../shared-utils";
+import type { LanguageConfig, SearchLocalesByProvider } from "../project-types";
 import { getLangCodeFromLink } from "./language";
+import { mergeLocales } from "../shared-utils";
 
-/**
- * Base locale configuration structure for VitePress.
- */
-interface LocaleConfigBase {
-    label: string;
-    lang?: string;
-    title?: string;
-    description?: string;
-    [key: string]: unknown;
+type LanguageModule = Record<string, unknown>;
+type LanguageConfigRecord = Record<string, unknown>;
+
+function getModuleKey(languageCode: string): string {
+    return languageCode.replace(/-/g, "_");
 }
 
-export async function generateLocalesConfig(useRootForDefault: boolean = false): Promise<Record<string, LocaleConfigBase>> {
-    const locales: Record<string, LocaleConfigBase> = {};
+async function loadLanguageModule(fileName: string): Promise<LanguageModule> {
+    return import(/* @vite-ignore */ `../../../config/lang/${fileName}`);
+}
+
+function resolveLanguageModuleConfig(
+    lang: LanguageConfig,
+    langModule: LanguageModule,
+): LanguageConfigRecord | undefined {
+    const possibleKeys = [
+        getModuleKey(lang.code),
+        lang.fileName?.replace(".ts", "").replace(/-/g, "_"),
+        lang.code,
+        lang.name.replace(/-/g, "_"),
+    ].filter(Boolean) as string[];
+
+    for (const key of possibleKeys) {
+        const config = langModule[key];
+        if (config && typeof config === "object") {
+            return config as LanguageConfigRecord;
+        }
+    }
+
+    return undefined;
+}
+
+function resolveLocaleKey(
+    lang: LanguageConfig,
+    useRootForDefault: boolean,
+): string {
+    if (useRootForDefault && lang.isDefault) return "root";
+    if (useRootForDefault) return getLangCodeFromLink(lang.link);
+    return lang.code;
+}
+
+export async function generateLocalesConfig(useRootForDefault: boolean = false) {
+    const locales: Record<string, LanguageConfigRecord> = {};
 
     for (const lang of projectConfig.languages) {
-        try {
-            const langModule = await import(
-                /* @vite-ignore */ `../../../config/lang/${lang.fileName}`
+        if (!lang.fileName) {
+            console.warn(
+                `No fileName specified for language ${lang.code}, skipping`,
             );
+            continue;
+        }
 
-            const moduleKey = lang.code.replace("-", "_");
-            const langConfig = langModule[moduleKey as keyof typeof langModule] as LocaleConfigBase | undefined;
+        try {
+            const langModule = await loadLanguageModule(lang.fileName);
+            const langConfig = resolveLanguageModuleConfig(lang, langModule);
 
             if (langConfig) {
-                const localeKey =
-                    useRootForDefault && lang.isDefault ? "root" : lang.code;
-                locales[localeKey] = {
+                locales[resolveLocaleKey(lang, useRootForDefault)] = {
                     label: lang.displayName,
                     ...langConfig,
                 };
@@ -52,10 +83,10 @@ export async function generateLocalesConfig(useRootForDefault: boolean = false):
 }
 
 export async function autoDiscoverLanguageModules(): Promise<{
-    langModules: Record<string, LocaleConfigBase>;
+    langModules: Record<string, LanguageConfigRecord>;
     searchLocales: SearchLocalesByProvider;
 }> {
-    const langModules: Record<string, LocaleConfigBase> = {};
+    const langModules: Record<string, LanguageConfigRecord> = {};
     const searchLocales: SearchLocalesByProvider = {};
 
     for (const lang of projectConfig.languages) {
@@ -67,25 +98,8 @@ export async function autoDiscoverLanguageModules(): Promise<{
         }
 
         try {
-            const langModule = await import(
-                /* @vite-ignore */ `../../../config/lang/${lang.fileName}`
-            );
-
-            const possibleKeys = [
-                lang.code.replace("-", "_"),
-                lang.fileName.replace(".ts", "").replace("-", "_"),
-                lang.code,
-                lang.name.replace("-", "_"),
-            ];
-
-            let foundConfig: LocaleConfigBase | null = null;
-            for (const key of possibleKeys) {
-                if (langModule[key]) {
-                    foundConfig = langModule[key] as LocaleConfigBase;
-                    langModules[lang.code.replace("-", "_")] = foundConfig;
-                    break;
-                }
-            }
+            const langModule = await loadLanguageModule(lang.fileName);
+            const foundConfig = resolveLanguageModuleConfig(lang, langModule);
 
             if (!foundConfig) {
                 console.warn(
@@ -93,6 +107,8 @@ export async function autoDiscoverLanguageModules(): Promise<{
                         lang.code
                     }. Available exports: ${Object.keys(langModule).join(", ")}`,
                 );
+            } else {
+                langModules[getModuleKey(lang.code)] = foundConfig;
             }
 
             if (
@@ -126,10 +142,7 @@ export async function autoDiscoverLanguageModules(): Promise<{
 
 export async function generateLocalesConfigAuto(
     useRootForDefault: boolean = false,
-): Promise<{
-    locales: Record<string, LocaleConfigBase>;
-    searchLocales: SearchLocalesByProvider;
-}> {
+) {
     const { langModules, searchLocales } = await autoDiscoverLanguageModules();
     const locales = generateLocalesConfigFromModules(
         langModules,
@@ -139,26 +152,17 @@ export async function generateLocalesConfigAuto(
 }
 
 export function generateLocalesConfigFromModules(
-    langModules: Record<string, LocaleConfigBase>,
+    langModules: Record<string, LanguageConfigRecord>,
     useRootForDefault: boolean = false,
-): Record<string, LocaleConfigBase> {
-    const locales: Record<string, LocaleConfigBase> = {};
+) {
+    const locales: Record<string, LanguageConfigRecord> = {};
 
     for (const lang of projectConfig.languages) {
-        const moduleKey = lang.code.replace("-", "_");
-        const langConfig = langModules[moduleKey as keyof typeof langModules];
+        const moduleKey = getModuleKey(lang.code);
+        const langConfig = langModules[moduleKey];
 
         if (langConfig) {
-            let localeKey: string;
-            if (useRootForDefault && lang.isDefault) {
-                localeKey = "root";
-            } else if (useRootForDefault) {
-                localeKey = getLangCodeFromLink(lang.link);
-            } else {
-                localeKey = lang.code;
-            }
-
-            locales[localeKey] = {
+            locales[resolveLocaleKey(lang, useRootForDefault)] = {
                 label: lang.displayName,
                 ...langConfig,
             };
@@ -175,19 +179,14 @@ export function generateLocalesConfigFromModules(
     return locales;
 }
 
-export function createAutoImportHelper(): {
-    imports: string;
-    langModulesCode: string;
-    moduleMapping: string[];
-    getRequiredImports: () => Record<string, never>;
-} {
+export function createAutoImportHelper() {
     const imports: string[] = [];
     const moduleMapping: string[] = [];
 
     for (const lang of projectConfig.languages) {
         if (!lang.fileName) continue;
 
-        const moduleVarName = lang.code.replace("-", "_");
+        const moduleVarName = getModuleKey(lang.code);
         const filePath = `./config/lang/${lang.fileName.replace(".ts", "")}`;
         imports.push(`import { ${moduleVarName} } from "${filePath}"`);
         moduleMapping.push(`    ${moduleVarName}`);
@@ -201,15 +200,14 @@ export function createAutoImportHelper(): {
         imports: imports.join("\n"),
         langModulesCode,
         moduleMapping,
-        getRequiredImports: () => ({}),
+        getRequiredImports: () => ({} as Record<string, unknown>),
     };
 }
 
-/** @deprecated Use generateLocalesConfigFromModules or generateLocalesConfigAuto instead. */
 export function generateLocalesConfigSync(
-    langModules: Record<string, LocaleConfigBase>,
+    langModules: Record<string, LanguageConfigRecord>,
     useRootForDefault: boolean = false,
-): Record<string, LocaleConfigBase> {
+) {
     console.warn(
         "generateLocalesConfigSync is deprecated. Use generateLocalesConfigFromModules or generateLocalesConfigAuto instead.",
     );
