@@ -3,6 +3,9 @@
     "description": "A feature-rich VitePress template with advanced plugins and configurations",
     "version": "2.0.1",
     "type": "module",
+    "engines": {
+        "node": ">=20.19.0"
+    },
     "keywords": [
         "vitepress",
         "template",
