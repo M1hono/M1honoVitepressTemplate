@@ -1,5 +1,4 @@
 {
   "_self_": "Hero 演示场",
-  "matrix/": "Hero 配置矩阵",
-  "AllConfig.md": "Hero 全配置总览"
+  "heroRuntime.md": "Hero 运行时 Frontmatter"
 }

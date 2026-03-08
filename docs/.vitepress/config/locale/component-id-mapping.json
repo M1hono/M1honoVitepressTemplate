@@ -1,13 +1,7 @@
 {
     "description": "Maps component IDs used in useSafeI18n() to their corresponding translation file paths",
-    "generatedAt": "2026-03-08T15:27:04.752Z",
+    "generatedAt": "2026-03-08T16:05:39.307Z",
     "mappings": {
-        "footer": "navigation/Footer",
-        "buttons-component": "ui/Buttons",
-        "magic-move-container": "ui/MagicMoveContainer",
-        "not-found": "ui/NotFound",
-        "progress-linear": "ui/ProgressLinear",
-        "state-component": "ui/State",
         "article-metadata": "content/ArticleMetadata",
         "bills-component": "content/Bills",
         "commits-counter": "content/CommitsCounter",
@@ -17,6 +11,12 @@
         "responsible-editor": "content/ResponsibleEditor",
         "tags-page": "content/TagsPage",
         "comment-component": "content/comment",
+        "footer": "navigation/Footer",
+        "buttons-component": "ui/Buttons",
+        "magic-move-container": "ui/MagicMoveContainer",
+        "not-found": "ui/NotFound",
+        "progress-linear": "ui/ProgressLinear",
+        "state-component": "ui/State",
         "hero-model3d": "hero/image/Model3D"
     }
 }
