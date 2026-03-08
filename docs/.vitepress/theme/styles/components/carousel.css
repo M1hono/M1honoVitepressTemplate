@@ -4,25 +4,23 @@
  */
 
 :root {
-    --vp-carousel-overlay: #00000073;
+    --vp-carousel-overlay: rgba(15, 23, 42, 0.58);
 }
 
-.carousel .v-btn--variant-elevated {
-    background: var(--vp-carousel-overlay);
-    color: rgba(var(--v-theme-on-surface), var(--v-high-emphasis-opacity));
+.dark {
+    --vp-carousel-overlay: rgba(15, 23, 42, 0.72);
 }
 
-.carousel .mdi-chevron-right,
-.carousel .mdi-chevron-left {
-    color: #ffffffa6;
-}
-
-.carousel .v-carousel {
-    border-radius: 8px;
+.carousel .carousel-frame {
+    margin: 1rem 0;
+    border: 1px solid var(--vp-c-border);
+    border-radius: var(--border-radius-lg, 12px);
+    background: var(--vp-c-bg-soft);
+    overflow: hidden;
 }
 
 .carousel img {
     width: 100%;
-    height: 100%;
-    object-fit: cover;
+    height: auto;
+    object-fit: contain;
 }

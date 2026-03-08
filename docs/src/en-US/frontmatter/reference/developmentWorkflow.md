@@ -110,3 +110,10 @@ Before considering the change done, verify these questions:
 - Introducing a new global style rule when a CSS variable contract would be cleaner
 - Adding a new extension point without documenting the intended path in `docs/src`
 - Implementing template changes downstream first and trying to back-port them later
+
+## Related Pages
+
+- [Extension Architecture](./extensionArchitecture) — Where framework code belongs and layer-by-layer extension checklists
+- [Hero Extension Playbook](./heroExtension) — Step-by-step guide for extending the hero system
+- [Frontmatter Key Inventory](./keyInventory) — Complete listing of available frontmatter keys
+- [Maintainability and Extension Guide](./maintainability) — Deep technical reference for all extension APIs

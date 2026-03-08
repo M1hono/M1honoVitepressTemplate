@@ -163,14 +163,14 @@ Use this standard for every component that has theme-sensitive visuals (hero bac
 
 1. Do not read DOM theme classes directly in feature components.
 2. Do not use raw `useData().isDark` as the sole source for first-paint visuals.
-3. Use `useThemeRuntime(isDark)` and consume `effectiveDark`, `themeReady`, and `version` for visual decisions that must be stable on first enter, reload, and runtime toggle.
-4. Inside hero descendants, use `useHeroTheme()` and prefer `isDarkRef.value` plus `resolveThemeValue(...)`.
+3. Use `getThemeRuntime(isDark)` and consume `effectiveDark`, `themeReady`, and `version` for visual decisions that must be stable on first enter, reload, and runtime toggle.
+4. Inside hero descendants, use `useHeroTheme()` and prefer `isDarkRef.value` plus `resolveThemeValueByMode(...)`.
 5. For first-paint-sensitive hero parts, gate rendering with `themeReady` in `VPHero` to avoid light/dark flash.
 6. Never fallback from dark to light or light to dark automatically. Shared resolvers must follow `dark ?? value` and `light ?? value`.
 7. Component folders stay view-only. If theme sync needs observers, scheduling, or shared lifecycle, move that logic into `docs/.vitepress/utils/vitepress/runtime/theme/**`.
 
 Reference APIs:
-- `@utils/vitepress/runtime/theme/useThemeRuntime`
+- `@utils/vitepress/runtime/theme/themeRuntime`
 - `@utils/vitepress/runtime/theme/heroThemeContext`
 - `@utils/vitepress/runtime/theme/themeValueResolver`
 
@@ -178,10 +178,10 @@ Minimal pattern:
 
 ```ts
 import { useData } from "vitepress";
-import { useThemeRuntime } from "@utils/vitepress/runtime/theme";
+import { getThemeRuntime } from "@utils/vitepress/runtime/theme";
 
 const { isDark } = useData();
-const { effectiveDark, themeReady, version } = useThemeRuntime(isDark);
+const { effectiveDark, themeReady, version } = getThemeRuntime(isDark);
 ```
 
 ## Resize Sync Standard
@@ -389,8 +389,13 @@ Shader templates are registered in `docs/.vitepress/config/shaders/index.ts` and
 Minimal pattern:
 
 ```ts
-import { registerShaderTemplate } from "@config/shaders";
-import { baseVertexShader, buildTemplate } from "@config/shaders/templates/base-shader";
+// No @ alias covers .vitepress/config/ — use a relative import from your file location.
+// Example: if your file is in .vitepress/config/shaders/, use:
+import { registerShaderTemplate } from "./index";
+import { baseVertexShader, buildTemplate } from "./templates/base-shader";
+// From elsewhere (e.g. a component in .vitepress/theme/components/), adjust the path:
+// import { registerShaderTemplate } from "../../../config/shaders";
+// import { baseVertexShader, buildTemplate } from "../../../config/shaders/templates/base-shader";
 
 registerShaderTemplate("aurora", buildTemplate({
   key: "aurora",
@@ -448,4 +453,11 @@ Minimum verification for framework work:
 - Use `@` aliases for all internal imports.
 - Expose new behavior through registration APIs instead of system patching.
 - Validate with:
-  - `pnpm -s tsc --noEmit`
+  - `npx tsc --noEmit`
+
+## Related Pages
+
+- [Extension Architecture](./extensionArchitecture) — Where framework code belongs and layer-by-layer extension checklists
+- [Development Workflow](./developmentWorkflow) — Day-to-day development commands and processes
+- [Hero Extension Playbook](./heroExtension) — Step-by-step guide for extending the hero system
+- [Frontmatter Key Inventory](./keyInventory) — Complete listing of available frontmatter keys

@@ -163,14 +163,14 @@ const { t } = useSafeI18n("my-component", {
 
 1. 不要在业务组件中直接读取 DOM 主题类名作为唯一来源。
 2. 不要只依赖原始 `useData().isDark` 处理首屏视觉切换。
-3. 使用 `useThemeRuntime(isDark)`，并基于 `effectiveDark`、`themeReady`、`version` 做主题分支，保证首次进入、刷新与运行时切换都一致。
-4. Hero 子组件中统一使用 `useHeroTheme()`，优先读取 `isDarkRef.value` 与 `resolveThemeValue(...)`。
+3. 使用 `getThemeRuntime(isDark)`，并基于 `effectiveDark`、`themeReady`、`version` 做主题分支，保证首次进入、刷新与运行时切换都一致。
+4. Hero 子组件中统一使用 `useHeroTheme()`，优先读取 `isDarkRef.value` 与 `resolveThemeValueByMode(...)`。
 5. 对首屏敏感的 Hero 视觉层，必须通过 `themeReady` 控制渲染，避免 light/dark 闪烁。
 6. 禁止自动从 dark 回退到 light，或从 light 回退到 dark。共享解析器必须遵循 `dark ?? value` 与 `light ?? value`。
 7. 组件目录只保留视图渲染。若主题同步需要 observer、调度或共享生命周期，必须移动到 `docs/.vitepress/utils/vitepress/runtime/theme/**`。
 
 相关 API：
-- `@utils/vitepress/runtime/theme/useThemeRuntime`
+- `@utils/vitepress/runtime/theme/themeRuntime`
 - `@utils/vitepress/runtime/theme/heroThemeContext`
 - `@utils/vitepress/runtime/theme/themeValueResolver`
 
@@ -178,10 +178,10 @@ const { t } = useSafeI18n("my-component", {
 
 ```ts
 import { useData } from "vitepress";
-import { useThemeRuntime } from "@utils/vitepress/runtime/theme";
+import { getThemeRuntime } from "@utils/vitepress/runtime/theme";
 
 const { isDark } = useData();
-const { effectiveDark, themeReady, version } = useThemeRuntime(isDark);
+const { effectiveDark, themeReady, version } = getThemeRuntime(isDark);
 ```
 
 ## 尺寸监听规范（Resize）
@@ -389,8 +389,13 @@ Shader 模板在 `docs/.vitepress/config/shaders/index.ts` 注册，模板结构
 最小写法：
 
 ```ts
-import { registerShaderTemplate } from "@config/shaders";
-import { baseVertexShader, buildTemplate } from "@config/shaders/templates/base-shader";
+// @config 别名指向 .vitepress/utils/config/，不覆盖 .vitepress/config/，需用相对路径导入。
+// 示例：若文件位于 .vitepress/config/shaders/ 下：
+import { registerShaderTemplate } from "./index";
+import { baseVertexShader, buildTemplate } from "./templates/base-shader";
+// 从其他位置（如 .vitepress/theme/components/ 下的组件）导入时调整路径：
+// import { registerShaderTemplate } from "../../../config/shaders";
+// import { baseVertexShader, buildTemplate } from "../../../config/shaders/templates/base-shader";
 
 registerShaderTemplate("aurora", buildTemplate({
   key: "aurora",
@@ -448,4 +453,11 @@ registerShaderTemplate("aurora", buildTemplate({
 - 内部导入统一使用 `@` 别名。
 - 新行为必须通过注册 API 暴露，避免修改系统内核。
 - 最低校验：
-  - `pnpm -s tsc --noEmit`
+  - `npx tsc --noEmit`
+
+## 相关页面
+
+- [扩展架构说明](./extensionArchitecture) — 框架代码的归属与分层扩展检查清单
+- [开发工作流](./developmentWorkflow) — 日常开发命令与流程
+- [Hero 扩展手册](./heroExtension) — Hero 系统扩展的分步指南
+- [Frontmatter 键值清单](./keyInventory) — 可用 frontmatter 键的完整列表

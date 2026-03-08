@@ -173,3 +173,84 @@ hero:
 - 新的 Markdown 语法：`docs/.vitepress/plugins/**` 与 `docs/.vitepress/config/markdown-plugins.ts`
 - 新的全局 Token 或共享皮肤：`docs/.vitepress/theme/styles/**`
 - 新的用法说明与开发手册：`docs/src/**`
+
+## 导入别名参考
+
+项目在 `docs/tsconfig.json` 中配置了 TypeScript 路径别名，并在 `docs/.vitepress/config/common-config.ts`（Vite `resolve.alias`）中做了镜像。请始终使用别名，避免深层相对路径。
+
+| 别名 | 解析目标 | 导入示例 |
+|---|---|---|
+| `@utils` | `docs/.vitepress/utils/` | `import { getThemeRuntime } from '@utils'` |
+| `@utils/*` | `docs/.vitepress/utils/*` | `import { resolveThemeValueByMode } from '@utils/vitepress/runtime/theme/themeValueResolver'` |
+| `@utils/vitepress` | `docs/.vitepress/utils/vitepress/index.ts` | `import { useHeroTheme } from '@utils/vitepress'` |
+| `@config` | `docs/.vitepress/utils/config/` | `import { someConfigUtil } from '@config'` |
+| `@config/*` | `docs/.vitepress/utils/config/*` | `import { someHelper } from '@config/helpers'` |
+| `@components` | `docs/.vitepress/theme/components/` | `import MyComponent from '@components/content/MyComponent.vue'` |
+| `@components/*` | `docs/.vitepress/theme/components/*` | `import Footer from '@components/navigation/Footer.vue'` |
+
+::: warning @config 并不指向 docs/.vitepress/config/
+`@config` 解析到 `docs/.vitepress/utils/config/`，**不是** `docs/.vitepress/config/`。`docs/.vitepress/config/` 下的文件（如 shader、locale 数据、project-config）**没有别名**。请用相对路径来引用它们，例如 `import { getShaderTemplate } from '../../../../config/shaders'`。
+:::
+
+## 服务层（Services）
+
+Service 是无状态或轻状态的聚焦模块，各自负责一项具体任务。它们位于 `docs/.vitepress/utils/vitepress/services/`。
+
+模板中已有的关键 Service：
+
+- **home-link service** — 将命名的 action key（如 `"get-started"`、`"guide"`）解析为真实路由 URL。Hero action 按钮正是通过它来实现符号化链接，而非硬编码路径。
+- **i18n service**（`useSafeI18n`）— 安全的多语言字符串查找。如果翻译缺失，会返回键本身，避免 UI 空白。配合 `component-id-mapping.json` 实现按组件的命名空间管理。
+
+新增 Service 时：
+
+1. 在 `docs/.vitepress/utils/vitepress/services/` 下创建。
+2. 从最近的 barrel 导出。
+3. 保持与 Vue 组件生命周期解耦——Service 应该可以从 runtime、API 或 component 层导入。
+
+## 系统层（System）
+
+System 模块处理跨切面的接线逻辑，负责将配置、多语言和运行时粘合在一起。它们位于 `docs/.vitepress/utils/vitepress/system/`。
+
+关键 System 模块：
+
+- **component-id-mapping** — 将组件标识映射到 locale 命名空间。当组件调用 `useSafeI18n("my-component", ...)` 时，该映射告诉 i18n service 去哪个 JSON 文件取字符串。
+- **locale wiring** — 确保 `docs/.vitepress/config/locale/{en-US,zh-CN}/` 下的 locale JSON 文件被正确加载，并对 i18n service 可用。
+
+新增 System 模块时：
+
+1. 在 `docs/.vitepress/utils/vitepress/system/` 下创建。
+2. 如果涉及 i18n，同步更新 `component-id-mapping.json` 和两套 locale 目录。
+3. 从 system barrel 导出，以便其他层消费。
+
+## 组件注册 Barrel
+
+组件被组织为四个注册表，位于 `docs/.vitepress/utils/vitepress/componentRegistry/`。这些 barrel 控制**主题层内部的复用**（与控制 **markdown 全局注册**的 `components.ts` 不同）。
+
+### contentRegistry.ts（15 个组件）
+
+`CustomAlert`、`comment`、`Linkcard`、`PageTags`、`TagsPage`、`Bills`、`MdDialog`、`MdMultiPageDialog`、`ChatMessage`、`ChatPanel`、`ArticleMetadata`、`ResponsibleEditor`、`MarkMapView`、`VChart`、`ShaderEffectBlock`
+
+### mediaRegistry.ts（3 个组件）
+
+`PdfViewer`、`YoutubeVideo`、`BilibiliVideo`
+
+### navigationRegistry.ts（1 个组件）
+
+`Footer`
+
+### uiRegistry.ts（8 个组件）
+
+`ProgressLinear`、`Buttons`、`State`、`Animation`、`NotFound`、`Preview`、`Carousels`、`Steps`
+
+新增组件到注册表时：
+
+1. 在 `docs/.vitepress/theme/components/<category>/` 对应分类下放置 Vue 文件。
+2. 从上方对应的 registry barrel 导出。
+3. 如果 markdown 用户需要通过标签名使用它，还需在 `docs/.vitepress/utils/vitepress/components.ts` 中额外注册。
+
+## 相关页面
+
+- [开发工作流](./developmentWorkflow) — 日常开发命令与流程
+- [Hero 扩展手册](./heroExtension) — Hero 系统扩展的分步指南
+- [Frontmatter 键值清单](./keyInventory) — 可用 frontmatter 键的完整列表
+- [可维护性与扩展指南](./maintainability) — 所有扩展 API 的深度技术参考

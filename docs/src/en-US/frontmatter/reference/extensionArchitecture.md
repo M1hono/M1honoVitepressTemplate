@@ -173,3 +173,84 @@ Use this quick lookup when deciding where to edit:
 - New markdown syntax: `docs/.vitepress/plugins/**` plus `docs/.vitepress/config/markdown-plugins.ts`
 - New global token or shared skin: `docs/.vitepress/theme/styles/**`
 - New usage guide or extension manual: `docs/src/**`
+
+## Import Alias Reference
+
+The project uses TypeScript path aliases configured in `docs/tsconfig.json` and mirrored in `docs/.vitepress/config/common-config.ts` (Vite `resolve.alias`). Always use aliases instead of deep relative paths.
+
+| Alias | Resolves to | Example import |
+|---|---|---|
+| `@utils` | `docs/.vitepress/utils/` | `import { getThemeRuntime } from '@utils'` |
+| `@utils/*` | `docs/.vitepress/utils/*` | `import { resolveThemeValueByMode } from '@utils/vitepress/runtime/theme/themeValueResolver'` |
+| `@utils/vitepress` | `docs/.vitepress/utils/vitepress/index.ts` | `import { useHeroTheme } from '@utils/vitepress'` |
+| `@config` | `docs/.vitepress/utils/config/` | `import { someConfigUtil } from '@config'` |
+| `@config/*` | `docs/.vitepress/utils/config/*` | `import { someHelper } from '@config/helpers'` |
+| `@components` | `docs/.vitepress/theme/components/` | `import MyComponent from '@components/content/MyComponent.vue'` |
+| `@components/*` | `docs/.vitepress/theme/components/*` | `import Footer from '@components/navigation/Footer.vue'` |
+
+::: warning @config does NOT point to docs/.vitepress/config/
+`@config` resolves to `docs/.vitepress/utils/config/`, **not** `docs/.vitepress/config/`. Files in `docs/.vitepress/config/` (such as shaders, locale data, and project-config) have **no alias**. Use relative imports to reach them, e.g. `import { getShaderTemplate } from '../../../../config/shaders'`.
+:::
+
+## Services Layer
+
+Services are stateless or lightly-stateful modules that perform a focused task. They live under `docs/.vitepress/utils/vitepress/services/`.
+
+Key services already in the template:
+
+- **home-link service** — Resolves named action keys (e.g. `"get-started"`, `"guide"`) into actual route URLs. Used by hero action buttons so links can be authored as symbolic keys rather than hardcoded paths.
+- **i18n service** (`useSafeI18n`) — Provides safe locale string lookup. Returns the key itself when a translation is missing, preventing blank UI. Paired with `component-id-mapping.json` for per-component namespacing.
+
+When adding a new service:
+
+1. Create it in `docs/.vitepress/utils/vitepress/services/`.
+2. Export from the nearest barrel.
+3. Keep it decoupled from Vue component lifecycle — services should be importable from runtime, API, or component layers.
+
+## System Layer
+
+System modules handle cross-cutting wiring that glues configuration, locale, and runtime together. They live under `docs/.vitepress/utils/vitepress/system/`.
+
+Key system modules:
+
+- **component-id-mapping** — Maps component identifiers to locale namespaces. When a component calls `useSafeI18n("my-component", ...)`, this mapping tells the i18n service which JSON file holds the strings.
+- **locale wiring** — Ensures locale JSON files under `docs/.vitepress/config/locale/{en-US,zh-CN}/` are correctly loaded and made available to the i18n service.
+
+When adding a new system module:
+
+1. Create it in `docs/.vitepress/utils/vitepress/system/`.
+2. If it affects i18n, update `component-id-mapping.json` and both locale directories.
+3. Export from the system barrel so other layers can consume it.
+
+## Component Registry Barrels
+
+Components are organized into four registries under `docs/.vitepress/utils/vitepress/componentRegistry/`. These barrels control **internal reuse** across the theme layer (distinct from `components.ts` which controls **markdown-facing global registration**).
+
+### contentRegistry.ts (15 components)
+
+`CustomAlert`, `comment`, `Linkcard`, `PageTags`, `TagsPage`, `Bills`, `MdDialog`, `MdMultiPageDialog`, `ChatMessage`, `ChatPanel`, `ArticleMetadata`, `ResponsibleEditor`, `MarkMapView`, `VChart`, `ShaderEffectBlock`
+
+### mediaRegistry.ts (3 components)
+
+`PdfViewer`, `YoutubeVideo`, `BilibiliVideo`
+
+### navigationRegistry.ts (1 component)
+
+`Footer`
+
+### uiRegistry.ts (8 components)
+
+`ProgressLinear`, `Buttons`, `State`, `Animation`, `NotFound`, `Preview`, `Carousels`, `Steps`
+
+When adding a new component to the registry:
+
+1. Place the Vue file in the appropriate category under `docs/.vitepress/theme/components/<category>/`.
+2. Export it from the matching registry barrel above.
+3. If markdown users should also use it by tag name, additionally register in `docs/.vitepress/utils/vitepress/components.ts`.
+
+## Related Pages
+
+- [Development Workflow](./developmentWorkflow) — Day-to-day development commands and processes
+- [Hero Extension Playbook](./heroExtension) — Step-by-step guide for extending the hero system
+- [Frontmatter Key Inventory](./keyInventory) — Complete listing of available frontmatter keys
+- [Maintainability and Extension Guide](./maintainability) — Deep technical reference for all extension APIs

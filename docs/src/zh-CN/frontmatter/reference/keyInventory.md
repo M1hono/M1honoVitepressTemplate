@@ -72,3 +72,10 @@ priority: 60
 - `hero.floating.motion.style: legacy-a | legacy-b`
 - `hero.customSnippet`
 - `hero.floating.text`、`hero.floating.card`、`hero.floating.image`、`hero.floating.badge`、`hero.floating.icon`、`hero.floating.stat`、`hero.floating.code`、`hero.floating.shape`
+
+## 相关页面
+
+- [扩展架构说明](./extensionArchitecture) — 框架代码的归属与分层扩展检查清单
+- [开发工作流](./developmentWorkflow) — 日常开发命令与流程
+- [Hero 扩展手册](./heroExtension) — Hero 系统扩展的分步指南
+- [可维护性与扩展指南](./maintainability) — 所有扩展 API 的深度技术参考

@@ -102,7 +102,13 @@
         nickname?: string;
         color?: string;
         avatar?: string;
-        avatarType?: "avatarmap" | "github" | "icon" | "custom" | "text";
+        avatarType?:
+            | "avatarmap"
+            | "github"
+            | "icon"
+            | "custom"
+            | "text"
+            | "ai";
         avatarLink?: string;
         location?: "left" | "right";
         bubbleColor?: string;
@@ -185,10 +191,16 @@
 
     const messageBubbleStyle = computed(() => {
         const style: Record<string, string> = {};
-        if (props.bubbleColor) style.backgroundColor = props.bubbleColor;
-        if (props.textColor) style.color = props.textColor;
-        if (props.location === "right" && props.bubbleColor)
+        if (props.bubbleColor) {
+            style.backgroundColor = props.bubbleColor;
             style.borderColor = props.bubbleColor;
+            style["--chat-bubble-bg"] = props.bubbleColor;
+            style["--chat-bubble-border"] = props.bubbleColor;
+        }
+        if (props.textColor) {
+            style.color = props.textColor;
+            style["--chat-bubble-text"] = props.textColor;
+        }
         return style;
     });
 
@@ -316,7 +328,7 @@
         max-width: 100%;
         width: 100%;
         box-sizing: border-box;
-        overflow: hidden;
+        overflow: visible;
         opacity: 0;
         transform: translateX(-20%);
         transition:
@@ -353,32 +365,6 @@
                 align-items: flex-end;
                 padding-right: 0;
                 padding-left: 0.5rem;
-            }
-
-            /* Right bubble: arrow points right toward avatar */
-            &::before {
-                content: "";
-                position: absolute;
-                left: 100%; /* flush with right edge of bubble */
-                right: auto;
-                top: 10px;
-                width: 0;
-                height: 0;
-                border: $arrow-size solid transparent;
-                border-left-color: var(--vp-c-border);
-                border-right: 0;
-            }
-            &::after {
-                content: "";
-                position: absolute;
-                left: 100%;
-                right: auto;
-                top: 11px;
-                width: 0;
-                height: 0;
-                border: ($arrow-size - 1px) solid transparent;
-                border-left-color: var(--vp-c-bg);
-                border-right: 0;
             }
         }
 
@@ -437,7 +423,7 @@
             max-width: calc(100% - #{$avatar-size} - 0.8rem);
             min-width: 0;
             flex: 1;
-            overflow: hidden;
+            overflow: visible;
             padding-right: 0.5rem;
             box-sizing: border-box;
         }
@@ -455,11 +441,13 @@
             max-width: 100%;
             min-width: 0;
             border-radius: 0.2rem 0.5rem 0.5rem 0.5rem;
-            background-color: var(--vp-c-bg);
+            background-color: var(--chat-bubble-bg, var(--vp-c-bg));
+            color: var(--chat-bubble-text, inherit);
             word-break: break-word;
             overflow-wrap: break-word;
             hyphens: auto;
-            border: 1px solid var(--vp-c-border);
+            border: 1px solid
+                var(--chat-bubble-border, var(--vp-c-border));
             padding: 0.5rem 0.8rem;
             font-size: 14px;
             line-height: 1.6;
@@ -479,7 +467,10 @@
                 width: 0;
                 height: 0;
                 border: $arrow-size solid transparent;
-                border-right-color: var(--vp-c-border);
+                border-right-color: var(
+                    --chat-bubble-border,
+                    var(--vp-c-border)
+                );
                 border-left: 0;
             }
             &::after {
@@ -490,7 +481,7 @@
                 width: 0;
                 height: 0;
                 border: ($arrow-size - 1px) solid transparent;
-                border-right-color: var(--vp-c-bg);
+                border-right-color: var(--chat-bubble-bg, var(--vp-c-bg));
                 border-left: 0;
             }
 
@@ -528,6 +519,41 @@
             :deep(div[class*="language-"] pre) {
                 margin: 0 !important;
                 overflow-x: auto;
+            }
+        }
+
+        &.location-right .nickname {
+            margin-left: 0;
+            margin-right: 0.5rem;
+        }
+
+        &.location-right .message-box {
+            border-radius: 0.5rem 0.2rem 0.5rem 0.5rem;
+
+            &::before {
+                left: 100%;
+                right: auto;
+                border: $arrow-size solid transparent;
+                border-left-color: var(
+                    --chat-bubble-border,
+                    var(--vp-c-border)
+                );
+                border-right: 0;
+            }
+
+            &::after {
+                left: 100%;
+                right: auto;
+                border: ($arrow-size - 1px) solid transparent;
+                border-left-color: var(--chat-bubble-bg, var(--vp-c-bg));
+                border-right: 0;
+            }
+        }
+
+        &.is-grouped .message-box {
+            &::before,
+            &::after {
+                content: none;
             }
         }
     }

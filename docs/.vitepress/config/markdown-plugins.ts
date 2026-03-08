@@ -11,6 +11,7 @@ import mdFootnote from "markdown-it-footnote";
 import mdTaskLists from "markdown-it-task-lists";
 import mdDeflist from "markdown-it-deflist";
 import mdAbbr from "markdown-it-abbr";
+import markdownItAttrs from "markdown-it-attrs";
 import { imgSize } from "@mdit/plugin-img-size";
 import { align } from "@mdit/plugin-align";
 import { spoiler } from "@mdit/plugin-spoiler";
@@ -86,6 +87,7 @@ export const markdown: MarkdownOptions = {
         md.use(mdTaskLists);
         md.use(mdDeflist);
         md.use(mdAbbr);
+        md.use(markdownItAttrs);
         md.use(imgSize);
         md.use(align);
         md.use(spoiler);
@@ -102,7 +104,7 @@ export const markdown: MarkdownOptions = {
 
         md.use(tab, stepper);
         md.use(tab, steps);
-        md.use(tab, carousels);
+        md.use(carousels);
         md.use(tab, iframes);
 
         md.use(card);

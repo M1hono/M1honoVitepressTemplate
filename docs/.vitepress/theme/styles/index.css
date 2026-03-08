@@ -56,6 +56,15 @@
 @import "shiki-magic-move/style.css";
 @import "./components/fancybox.css";
 
+/* ===== THEME IMAGE SUPPORT ===== */
+html.dark .light-only {
+    display: none !important;
+}
+
+html:not(.dark) .dark-only {
+    display: none !important;
+}
+
 /* ===== SSR SUPPORT STYLES ===== */
 .ssr-placeholder {
     min-height: 48px;

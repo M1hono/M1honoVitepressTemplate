@@ -72,3 +72,10 @@ priority: 60
 - `hero.floating.motion.style: legacy-a | legacy-b`
 - `hero.customSnippet`
 - `hero.floating.text`, `hero.floating.card`, `hero.floating.image`, `hero.floating.badge`, `hero.floating.icon`, `hero.floating.stat`, `hero.floating.code`, `hero.floating.shape`
+
+## Related Pages
+
+- [Extension Architecture](./extensionArchitecture) — Where framework code belongs and layer-by-layer extension checklists
+- [Development Workflow](./developmentWorkflow) — Day-to-day development commands and processes
+- [Hero Extension Playbook](./heroExtension) — Step-by-step guide for extending the hero system
+- [Maintainability and Extension Guide](./maintainability) — Deep technical reference for all extension APIs

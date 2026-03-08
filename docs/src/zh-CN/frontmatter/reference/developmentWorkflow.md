@@ -110,3 +110,10 @@ yarn frontmatter
 - 明明可以用 CSS 变量契约，却先写一条临时全局样式
 - 新增扩展点却没有同步文档与示例
 - 先在下游仓库实现，再反向尝试回填模板
+
+## 相关页面
+
+- [扩展架构说明](./extensionArchitecture) — 框架代码的归属与分层扩展检查清单
+- [Hero 扩展手册](./heroExtension) — Hero 系统扩展的分步指南
+- [Frontmatter 键值清单](./keyInventory) — 可用 frontmatter 键的完整列表
+- [可维护性与扩展指南](./maintainability) — 所有扩展 API 的深度技术参考
