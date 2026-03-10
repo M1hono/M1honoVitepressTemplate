@@ -93,9 +93,6 @@ async function processFileEntry(
     }
 
     const hidden = fileFrontmatter.hidden ?? false;
-    if (hidden) {
-        return null;
-    }
 
     const title = fileFrontmatter.title || entryName.replace(/\.md$/i, "");
     
@@ -459,10 +456,6 @@ export async function processItem(
         lang,
         isDevMode
     );
-
-    if (dirEffectiveConfig.hidden) {
-        return null;
-    }
 
     const isProcessingWithinExistingRoot = currentLevelDepth > 0;
     

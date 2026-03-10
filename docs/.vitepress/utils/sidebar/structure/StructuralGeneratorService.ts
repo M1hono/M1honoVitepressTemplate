@@ -302,10 +302,6 @@ export class StructuralGeneratorService {
                     isDevMode
                 );
 
-                if (dirEffectiveConfig.hidden) {
-                    continue;
-                }
-
                 if (dirEffectiveConfig.root && currentDepth > 0) {
                     const rootLinkItem = await processItem(
                         entry.name,
