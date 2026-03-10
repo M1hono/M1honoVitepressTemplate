@@ -108,7 +108,7 @@ export const projectConfig: ProjectConfig = {
      * - custom string: resolve via search.providers[provider].resolver
      */
     search: {
-        enabled: true,
+        enabled: false,
         provider: "local",
         algolia: {
             // Optional: keep empty when not using Algolia.

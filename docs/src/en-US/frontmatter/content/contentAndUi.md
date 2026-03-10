@@ -4,7 +4,7 @@ description: Frontmatter keys used by metadata, state, comments, floating button
 priority: 40
 ---
 
-# Content And UI
+# Content And UI {#content-and-ui-frontmatter}
 
 ## Key Map
 

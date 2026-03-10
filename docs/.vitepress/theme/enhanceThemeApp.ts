@@ -4,7 +4,7 @@ import vitepressNprogress from "vitepress-plugin-nprogress";
 import { enhanceAppWithTabs } from "vitepress-plugin-tabs/client";
 import TresPlugin from "@tresjs/core";
 import { NolebaseInlineLinkPreviewPlugin } from "@nolebase/vitepress-plugin-inline-link-preview/client";
-import { NolebaseGitChangelogPlugin } from "@nolebase/vitepress-plugin-git-changelog/client";
+declare const __GIT_CHANGELOG_ENABLED__: boolean;
 import vuetify from "./vuetify";
 import { registerComponents } from "@utils/vitepress/components";
 
@@ -29,7 +29,14 @@ export function enhanceThemeApp(ctx: EnhanceAppContext) {
         ensureClientStylesheet();
         ctx.app.use(vuetify);
         ctx.app.use(NolebaseInlineLinkPreviewPlugin);
-        ctx.app.use(NolebaseGitChangelogPlugin);
+        if (__GIT_CHANGELOG_ENABLED__) {
+            Promise.all([
+                import("@nolebase/vitepress-plugin-git-changelog/client"),
+                import("@nolebase/vitepress-plugin-git-changelog/client/style.css"),
+            ]).then(([{ NolebaseGitChangelogPlugin }]) => {
+                ctx.app.use(NolebaseGitChangelogPlugin);
+            });
+        }
     }
 
     ctx.app.use(TresPlugin);

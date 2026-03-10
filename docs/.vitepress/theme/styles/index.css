@@ -49,7 +49,7 @@
 @import "@nolebase/vitepress-plugin-inline-link-preview/client/style.css";
 @import "@nolebase/vitepress-plugin-enhanced-readabilities/client/style.css";
 @import "@nolebase/vitepress-plugin-enhanced-mark/client/style.css";
-@import "@nolebase/vitepress-plugin-git-changelog/client/style.css";
+/* git-changelog style is loaded conditionally in enhanceThemeApp.ts */
 
 /* Other plugin styles */
 @import "@mdit/plugin-spoiler/style";

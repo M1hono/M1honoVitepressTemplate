@@ -136,13 +136,36 @@ export class SyncEngine {
             }
 
             const existingEntry = existingMetadata[itemKey];
+            const hasExistingJsonValue = Object.prototype.hasOwnProperty.call(
+                existingJsonData,
+                itemKey,
+            );
             const existingJsonValue = existingJsonData[itemKey];
 
-            if (existingEntry && existingJsonData.hasOwnProperty(itemKey)) {
+            if (hasExistingJsonValue && existingEntry) {
+                const isUserModified = metadataManager.isEntryUserModified(
+                    existingJsonValue,
+                    existingEntry,
+                );
                 updatedMetadata[itemKey] = {
                     ...existingEntry,
+                    valueHash: metadataManager.generateValueHash(existingJsonValue),
+                    isUserSet: existingEntry.isUserSet || isUserModified,
                     isActiveInStructure: true,
                 };
+
+                if (overrideType === 'order' && typeof existingJsonValue === 'number') {
+                    item._priority = existingJsonValue;
+                }
+                
+                existingEntriesUpdated++;
+            } else if (hasExistingJsonValue) {
+                updatedJsonData[itemKey] = existingJsonValue;
+                updatedMetadata[itemKey] = metadataManager.createNewMetadataEntry(
+                    existingJsonValue,
+                    true,
+                    true,
+                );
 
                 if (overrideType === 'order' && typeof existingJsonValue === 'number') {
                     item._priority = existingJsonValue;

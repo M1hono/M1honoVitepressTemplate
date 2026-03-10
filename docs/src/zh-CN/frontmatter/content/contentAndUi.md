@@ -3,7 +3,7 @@ title: 内容与 UI Frontmatter
 description: 用于元数据、状态、评论、浮动按钮、预览和标签的 frontmatter 键。
 priority: 40
 ---
-# 内容与 UI Frontmatter
+# 内容与 UI Frontmatter {#content-and-ui-frontmatter}
 
 ## 键映射
 

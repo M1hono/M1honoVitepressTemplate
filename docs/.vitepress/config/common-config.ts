@@ -229,11 +229,15 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
         },
         optimizeDeps: {
             exclude: [
-                "@nolebase/vitepress-plugin-git-changelog",
+                ...(isFeatureEnabled("gitChangelog")
+                    ? [
+                          "@nolebase/vitepress-plugin-git-changelog",
+                          "virtual:nolebase-git-changelog",
+                      ]
+                    : []),
                 "@nolebase/vitepress-plugin-enhanced-readabilities",
                 "@nolebase/vitepress-plugin-inline-link-preview",
                 "shiki-magic-move",
-                "virtual:nolebase-git-changelog",
             ],
             include: [
                 "vue",
@@ -272,18 +276,25 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                 process.env.NODE_ENV === "development",
             __VUE_OPTIONS_API__: true,
             __VUE_PROD_DEVTOOLS__: false,
+            __GIT_CHANGELOG_ENABLED__: isFeatureEnabled("gitChangelog"),
         },
         plugins: [
-            // @ts-ignore
-            GitChangelog({
-                repoURL: () => projectInfo.repository.url,
-                mapAuthors: (contributors as Contributor[]).map((author) => ({
-                    ...author,
-                    avatar: generateAvatarUrl(author.avatar),
-                })),
-            }),
-            // @ts-ignore
-            GitChangelogMarkdownSection(),
+            ...(isFeatureEnabled("gitChangelog")
+                ? [
+                      // @ts-ignore
+                      GitChangelog({
+                          repoURL: () => projectInfo.repository.url,
+                          mapAuthors: (contributors as Contributor[]).map(
+                              (author) => ({
+                                  ...author,
+                                  avatar: generateAvatarUrl(author.avatar),
+                              }),
+                          ),
+                      }),
+                      // @ts-ignore
+                      GitChangelogMarkdownSection(),
+                  ]
+                : []),
             // Conditionally load sidebar plugin based on autoSidebar feature flag
             ...(isFeatureEnabled("autoSidebar")
                 ? [
