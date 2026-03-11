@@ -58,7 +58,10 @@
         "vite": "^5.4.21"
     },
     "resolutions": {
-        "vite": "^5.4.21"
+        "vite": "^5.4.21",
+        "framer-motion": "12.35.0",
+        "motion-dom": "12.35.0",
+        "motion-utils": "12.29.2"
     },
     "scripts": {
         "dev": "tsx --tsconfig tsconfig.json ./node_modules/vitepress/dist/node/cli.js dev",

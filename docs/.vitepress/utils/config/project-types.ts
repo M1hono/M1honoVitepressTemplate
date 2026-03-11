@@ -367,6 +367,36 @@ export interface DeploymentConfig {
 }
 
 /**
+ * Optional configuration for vitepress-plugin-llms output generation.
+ */
+export interface LlmsConfig {
+    /** Canonical site domain used for absolute URLs in llms output. Must not end with "/" */
+    domain?: string;
+    /** Generate the llms.txt section index file */
+    generateLLMsTxt?: boolean;
+    /** Generate the llms-full.txt bundle */
+    generateLLMsFullTxt?: boolean;
+    /** Generate LLM-friendly markdown for each page */
+    generateLLMFriendlyDocsForEachPage?: boolean;
+    /** Strip HTML from generated markdown output */
+    stripHTML?: boolean;
+    /** Inject hidden LLM hints into rendered pages */
+    injectLLMHint?: boolean;
+    /** Restrict generation to a specific source subdirectory */
+    workDir?: string;
+    /** Extra file globs to skip */
+    ignoreFiles?: string[];
+    /** Exclude common non-doc content presets */
+    excludeUnnecessaryFiles?: boolean;
+    /** Exclude index pages from llms output */
+    excludeIndexPage?: boolean;
+    /** Exclude blog content from llms output */
+    excludeBlog?: boolean;
+    /** Exclude team pages from llms output */
+    excludeTeam?: boolean;
+}
+
+/**
  * Complete project configuration interface containing all VitePress site settings
  *
  * @example
@@ -455,6 +485,8 @@ export interface ProjectConfig {
         search: boolean;
         /** Enable Git-based changelog generation from commit history */
         gitChangelog: boolean;
+        /** Enable llms.txt / llms-full.txt generation */
+        llms: boolean;
         /** Enable Mermaid diagram support in markdown */
         mermaid: boolean;
         /** Enable Draw.io diagram support in markdown */
@@ -485,6 +517,9 @@ export interface ProjectConfig {
 
     /** Search provider configuration (algolia/local/none/custom) */
     search?: SearchConfig;
+
+    /** Optional LLM-friendly documentation generation settings */
+    llms?: LlmsConfig;
 
     /** Deployment configuration for different deployment strategies */
     deployment: DeploymentConfig;
