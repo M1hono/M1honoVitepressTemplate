@@ -1,12 +1,7 @@
-/**
- * Demo Plugin Styles
- * Custom styling for demo containers and code examples
- */
-
 .demo .custom-block {
     font-size: 18px;
     border-color: var(--vp-custom-block-demo);
-    border-width: 0px;
+    border-width: 1px;
     color: var(--vp-custom-block-details-text);
     padding: 8px 16px 8px;
     background-image: linear-gradient(
@@ -31,5 +26,8 @@
 }
 
 .demo details {
-    box-shadow: 0 5px 20px 0 var(--vp-shadow);
+    box-shadow: none;
+    border: 1px solid var(--vp-c-divider);
+    border-radius: 10px;
+    overflow: hidden;
 }
