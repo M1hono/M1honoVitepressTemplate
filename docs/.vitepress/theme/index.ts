@@ -18,9 +18,10 @@ import {
 import "@nolebase/vitepress-plugin-highlight-targeted-heading/client/style.css";
 
 import { Animation, Preview, NotFound, Buttons } from "@utils/vitepress/componentRegistry/uiRegistry";
-import { comment, PageTags, ResponsibleEditor } from "@utils/vitepress/componentRegistry/contentRegistry";
+import { comment, PageTags, ResponsibleEditor, TagsPage } from "@utils/vitepress/componentRegistry/contentRegistry";
 import Footer from "./components/navigation/Footer.vue";
 import VPBreadcrumb from "./components/navigation/Breadcrumb/VPBreadcrumb.vue";
+import MNavLinksPage from "./components/navigation/MNavLinksPage.vue";
 
 import { getProjectInfo, isFeatureEnabled } from "@config/project-config";
 import { useDirectoryLandingRouteSync } from "@utils/sidebar/runtime";
@@ -69,9 +70,18 @@ export default {
             slot: () =>
                 h(DefaultTheme.Layout, null, {
                     "aside-outline-after": () => null,
-                    "doc-after": () => [h(Buttons), h(comment)],
+                    "doc-after": () => [
+                        ...(frontmatter.value?.tagPage ? [h(TagsPage)] : []),
+                        h(MNavLinksPage),
+                        h(Buttons),
+                        h(comment),
+                    ],
                     "doc-footer-before": () => h(ResponsibleEditor),
                     "layout-bottom": () => h(Footer),
+                    "page-bottom": () => [
+                        ...(frontmatter.value?.tagPage ? [h(TagsPage)] : []),
+                        h(MNavLinksPage),
+                    ],
                     "not-found": () => [h(NotFound)],
                     "nav-bar-content-after": () =>
                         h(NolebaseEnhancedReadabilitiesMenu),

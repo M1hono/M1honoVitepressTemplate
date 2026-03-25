@@ -144,7 +144,7 @@ export const projectConfig: ProjectConfig = {
         // Global search toggle. Set false to force-disable search.
         search: true,
         gitChangelog: true,
-        llms: true,
+        llms: false,
         mermaid: true,
         drawio: true,
         markmap: true,

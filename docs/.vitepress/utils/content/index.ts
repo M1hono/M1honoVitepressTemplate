@@ -4,8 +4,11 @@
 
 import { countWord } from "./functions";
 import * as navLinkType from "./navLinkType";
+import * as mNavLinkFactory from "./mNavLinkFactory";
 
 export * from "./billing";
+export * from "./mNavLinkFactory";
+export { navLinksData } from "./navLinksData";
 
 export const text = {
     countWord,
@@ -20,6 +23,7 @@ export const contentUtils = {
     countWord,
     getReadingTime: text.getReadingTime,
     navLinkType,
+    mNavLinkFactory,
 };
 
 export default contentUtils;

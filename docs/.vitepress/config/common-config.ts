@@ -18,10 +18,6 @@ import {
     groupIconVitePlugin,
     localIconLoader,
 } from "vitepress-plugin-group-icons";
-import {
-    GitChangelog,
-    GitChangelogMarkdownSection,
-} from "@nolebase/vitepress-plugin-git-changelog/vite";
 
 const projectInfo = getProjectInfo();
 const projectPaths = getPaths();
@@ -105,6 +101,40 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
             ? projectInfo.favicon
             : `${projectInfo.base}${projectInfo.favicon}`;
         return [["link", { rel: "icon", href: faviconHref }]];
+    },
+
+    transformPageData(pageData) {
+        const fm = pageData.frontmatter;
+        const isTagPage = fm.layout === "tags";
+        const isNavLinksLayout = fm.layout === "navlinks";
+        const hasNavLinksData = Array.isArray(fm.navLinks) && fm.navLinks.length > 0;
+
+        if (isTagPage) {
+            fm.layout = "MNavLayout";
+            fm.tagPage = true;
+        }
+        if (isNavLinksLayout) {
+            fm.layout = "MNavLayout";
+        }
+
+        if (isTagPage || isNavLinksLayout || hasNavLinksData) {
+            const defaults: Record<string, unknown> = {
+                sidebar: false,
+                prev: false,
+                next: false,
+                editLink: false,
+                editor: false,
+                gitChangelog: false,
+                showComment: false,
+                metadata: false,
+                buttons: false,
+            };
+            for (const [key, value] of Object.entries(defaults)) {
+                if (fm[key] === undefined) {
+                    fm[key] = value;
+                }
+            }
+        }
     },
 
     markdown: { ...markdown },
@@ -263,12 +293,6 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
         },
         optimizeDeps: {
             exclude: [
-                ...(isFeatureEnabled("gitChangelog")
-                    ? [
-                          "@nolebase/vitepress-plugin-git-changelog",
-                          "virtual:nolebase-git-changelog",
-                      ]
-                    : []),
                 "@nolebase/vitepress-plugin-enhanced-readabilities",
                 "@nolebase/vitepress-plugin-inline-link-preview",
                 "shiki-magic-move",
@@ -291,7 +315,10 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
         ssr: {
             noExternal: [
                 "vuetify",
-                "@nolebase/*",
+                "@nolebase/vitepress-plugin-enhanced-readabilities",
+                "@nolebase/vitepress-plugin-inline-link-preview",
+                "@nolebase/markdown-it-bi-directional-links",
+                "@nolebase/vitepress-plugin-highlight-targeted-heading",
                 "vitepress-plugin-tabs",
                 "shiki-magic-move",
                 "markdown-it-multiple-choice",
@@ -300,7 +327,13 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                 "motion-dom",
                 "motion-utils",
             ],
-            external: ["path", "fs", "fast-glob", "gray-matter"],
+            external: [
+                "path",
+                "fs",
+                "fast-glob",
+                "gray-matter",
+                "@nolebase/vitepress-plugin-git-changelog",
+            ],
         },
         css: {
             preprocessorOptions: {
@@ -319,18 +352,26 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
         plugins: [
             ...(isFeatureEnabled("gitChangelog")
                 ? [
-                      // @ts-ignore
-                      GitChangelog({
-                          repoURL: () => projectInfo.repository.url,
-                          mapAuthors: (contributors as Contributor[]).map(
-                              (author) => ({
-                                  ...author,
-                                  avatar: generateAvatarUrl(author.avatar),
+                      (async () => {
+                          const { GitChangelog, GitChangelogMarkdownSection } =
+                              await import(
+                                  "@nolebase/vitepress-plugin-git-changelog/vite"
+                              );
+                          return [
+                              // @ts-ignore
+                              GitChangelog({
+                                  repoURL: () => projectInfo.repository.url,
+                                  mapAuthors: (
+                                      contributors as Contributor[]
+                                  ).map((author) => ({
+                                      ...author,
+                                      avatar: generateAvatarUrl(author.avatar),
+                                  })),
                               }),
-                          ),
-                      }),
-                      // @ts-ignore
-                      GitChangelogMarkdownSection(),
+                              // @ts-ignore
+                              GitChangelogMarkdownSection(),
+                          ];
+                      })(),
                   ]
                 : []),
             ...(isFeatureEnabled("llms") ? [llmstxt(createLlmsSettings())] : []),
@@ -345,6 +386,7 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                           debug: process.env.NODE_ENV === "development",
                           docsDir: projectPaths.docs,
                           cacheDir: DEFAULT_SIDEBAR_CACHE_DIR,
+                          hotRestartOnIndexChange: false,
                       }),
                   ]
                 : []),

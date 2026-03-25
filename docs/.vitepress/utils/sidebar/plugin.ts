@@ -41,6 +41,12 @@ export interface SidebarPluginConfig extends SidebarLibConfig {
     hotReload?: boolean;
     /** Delay in milliseconds before triggering reload after file changes. Defaults to 100ms */
     reloadDelay?: number;
+    /**
+     * When true, adding or removing an index file (index.md / sidebarIndex.md / root.md)
+     * automatically triggers a server restart to rebuild the sidebar.
+     * When false (default), use the VS Code extension "Sync Sidebar" button instead.
+     */
+    hotRestartOnIndexChange?: boolean;
 }
 
 /**
@@ -75,6 +81,7 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
     const finalConfig = getConfig();
     const hotReload = config.hotReload !== false;
     const reloadDelay = config.reloadDelay || 100;
+    const hotRestartOnIndexChange = config.hotRestartOnIndexChange ?? false;
 
     const docsPath = resolve(finalConfig.rootDir, finalConfig.docsDir);
     const configPath = resolve(
@@ -161,13 +168,8 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
 
     function shouldTriggerRegeneration(filePath: string): boolean {
         const lowerFilePath = filePath.toLowerCase();
-        const isSidebarConfigCandidate = SIDEBAR_CONFIG_FILE_CANDIDATES.some(
+        return SIDEBAR_CONFIG_FILE_CANDIDATES.some(
             (name) => lowerFilePath.endsWith(name.toLowerCase()),
-        );
-        return (
-            filePath.toLowerCase().endsWith(".md") ||
-            isSidebarConfigCandidate ||
-            isUserSidebarJson(filePath)
         );
     }
 
@@ -246,22 +248,36 @@ export function sidebarPlugin(config: SidebarPluginConfig): Plugin {
                 );
             }
 
-            const handleSidebarSourceEvent = (filePath: string) => {
-                if (Date.now() < ignoreWatcherEventsUntil) {
-                    return;
+            server.middlewares.use(
+                "/__sidebar-sync",
+                (req: { method?: string }, res: { statusCode: number; setHeader: (k: string, v: string) => void; end: (s: string) => void }, next: () => void) => {
+                    if (req.method !== "POST") { next(); return; }
+                    res.statusCode = 202;
+                    res.setHeader("Content-Type", "application/json");
+                    res.end(JSON.stringify({ ok: true }));
+                    clearCache();
+                    generateSidebarsForAllLanguages().then(() => {
+                        triggerVitePressReload(server);
+                    });
                 }
-                if (
-                    shouldTriggerRegeneration(filePath) &&
-                    shouldQueueSidebarRefresh(filePath)
-                ) {
-                    queueSidebarRefresh(server, filePath);
-                }
-            };
+            );
 
-            server.watcher.on("change", handleSidebarSourceEvent);
+            if (hotRestartOnIndexChange) {
+                const handleSidebarSourceEvent = (filePath: string) => {
+                    if (Date.now() < ignoreWatcherEventsUntil) {
+                        return;
+                    }
+                    if (
+                        shouldTriggerRegeneration(filePath) &&
+                        shouldQueueSidebarRefresh(filePath)
+                    ) {
+                        queueSidebarRefresh(server, filePath);
+                    }
+                };
 
-            server.watcher.on("add", handleSidebarSourceEvent);
-            server.watcher.on("unlink", handleSidebarSourceEvent);
+                server.watcher.on("add", handleSidebarSourceEvent);
+                server.watcher.on("unlink", handleSidebarSourceEvent);
+            }
 
             const jsonConfigFiles = listSidebarConfigFiles();
             for (const jsonFile of jsonConfigFiles) {

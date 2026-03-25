@@ -30,9 +30,10 @@ export function enhanceThemeApp(ctx: EnhanceAppContext) {
         ctx.app.use(vuetify);
         ctx.app.use(NolebaseInlineLinkPreviewPlugin);
         if (__GIT_CHANGELOG_ENABLED__) {
+            const mod = "@nolebase/vitepress-plugin-git-changelog";
             Promise.all([
-                import("@nolebase/vitepress-plugin-git-changelog/client"),
-                import("@nolebase/vitepress-plugin-git-changelog/client/style.css"),
+                import(/* @vite-ignore */ `${mod}/client`),
+                import(/* @vite-ignore */ `${mod}/client/style.css`),
             ]).then(([{ NolebaseGitChangelogPlugin }]) => {
                 ctx.app.use(NolebaseGitChangelogPlugin);
             });
