@@ -34,6 +34,7 @@ import MNavLayout from "@components/navigation/layouts/MNavLayout.vue";
 import { defineAsyncComponent } from "vue";
 import { LiteTree } from "@lite-tree/vue";
 import { TagsPage } from "@utils/vitepress/componentRegistry/contentRegistry";
+import { VPTeamMembers, VPTeamPage, VPTeamPageTitle, VPTeamPageSection } from 'vitepress/theme'
 
 type ComponentRegistry = Record<string, Component>;
 type LocalRegistryModule = {
@@ -79,6 +80,10 @@ const baseComponents: ComponentRegistry = {
     MNavLinks,
     MNavLinksPage,
     MNavLayout,
+    VPTeamMembers,
+    VPTeamPage,
+    VPTeamPageTitle,
+    VPTeamPageSection,
 };
 
 const localRegistryModules = import.meta.glob(
