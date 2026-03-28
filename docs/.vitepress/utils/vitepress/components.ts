@@ -19,6 +19,7 @@ import {
     BilibiliVideo,
     PdfViewer,
 } from "@utils/vitepress/componentRegistry/mediaRegistry";
+import { VPTeamMembers, VPTeamPage, VPTeamPageTitle, VPTeamPageSection } from 'vitepress/theme'
 import {
     Buttons,
     Carousels,
@@ -28,13 +29,10 @@ import {
     NotFound,
 } from "@utils/vitepress/componentRegistry/uiRegistry";
 import MagicMoveContainer from "@components/ui/MagicMoveContainer.vue";
-import MNavLinks from "@components/navigation/MNavLinks.vue";
-import MNavLinksPage from "@components/navigation/MNavLinksPage.vue";
-import MNavLayout from "@components/navigation/layouts/MNavLayout.vue";
 import { defineAsyncComponent } from "vue";
 import { LiteTree } from "@lite-tree/vue";
 import { TagsPage } from "@utils/vitepress/componentRegistry/contentRegistry";
-import { VPTeamMembers, VPTeamPage, VPTeamPageTitle, VPTeamPageSection } from 'vitepress/theme'
+import MNavLinks from "@components/navigation/MNavLinks.vue";
 
 type ComponentRegistry = Record<string, Component>;
 type LocalRegistryModule = {
@@ -71,19 +69,17 @@ const baseComponents: ComponentRegistry = {
     MdMultiPageDialog,
     CustomAlert,
     TagsPage,
+    MNavLinks,
     ChatPanel,
     ChatMessage,
     Bills,
     MarkMapView,
     VChart,
     ShaderEffectBlock,
-    MNavLinks,
-    MNavLinksPage,
-    MNavLayout,
     VPTeamMembers,
     VPTeamPage,
     VPTeamPageTitle,
-    VPTeamPageSection,
+    VPTeamPageSection
 };
 
 const localRegistryModules = import.meta.glob(

@@ -10,6 +10,10 @@ import {
 	getThemeRuntime,
 	resolveThemeValueByMode,
 } from "@utils/vitepress/runtime/theme";
+import {
+	useResolvedInlineMarkdown,
+	useResolvedText,
+} from "@utils/vitepress/runtime/text/dynamicText";
 import MarkdownIt from "markdown-it";
 import { useData, withBase } from "vitepress";
 import { computed, ref, watch } from "vue";
@@ -90,28 +94,20 @@ const normalizeIconValue = (icon?: NavIcon | NavThemeIcon): string => {
 
 const iconSource = computed(() => props.logo ?? props.icon);
 
+const resolvedLinkText = useResolvedText(() => props.link);
+const resolvedTitleText = useResolvedText(() => props.title);
+const resolvedNoteText = useResolvedText(() => props.note);
+const renderedEyebrow = useResolvedInlineMarkdown(() => props.eyebrow, md);
+const renderedTitle = useResolvedInlineMarkdown(() => props.title, md);
+const renderedDesc = useResolvedInlineMarkdown(() => props.desc, md);
+const renderedTag = useResolvedInlineMarkdown(() => props.tag, md);
+
 const formatTitle = computed(() => {
-	if (!props.title) {
+	if (!resolvedTitleText.value) {
 		return "";
 	}
-	return slugify(props.title);
+	return slugify(resolvedTitleText.value);
 });
-
-const renderedEyebrow = computed(() =>
-	props.eyebrow ? md.renderInline(props.eyebrow).trim() : "",
-);
-const renderedTitle = computed(() =>
-	props.title ? md.renderInline(props.title).trim() : "",
-);
-const renderedDesc = computed(() =>
-	props.desc ? md.renderInline(props.desc).trim() : "",
-);
-const renderedTag = computed(() =>
-	props.tag ? md.renderInline(props.tag).trim() : "",
-);
-const renderedNote = computed(() =>
-	props.note ? md.renderInline(props.note).trim() : "",
-);
 
 const rawIcon = computed(() => normalizeIconValue(iconSource.value));
 const imageFailed = ref(false);
@@ -130,7 +126,7 @@ const url = computed(() =>
 );
 const showImage = computed(() => Boolean(url.value) && !imageFailed.value);
 const fallbackLabel = computed(
-	() => props.title?.trim().charAt(0).toUpperCase() || "?",
+	() => resolvedTitleText.value.trim().charAt(0).toUpperCase() || "?",
 );
 
 const badgeList = computed<NavBadge[]>(() => {
@@ -163,12 +159,12 @@ const badgeList = computed<NavBadge[]>(() => {
 
 const isExternalLink = computed(
 	() =>
-		/^(?:https?:)?\/\//.test(props.link) ||
-		props.link.startsWith("mailto:") ||
-		props.link.startsWith("tel:"),
+		/^(?:https?:)?\/\//.test(resolvedLinkText.value) ||
+		resolvedLinkText.value.startsWith("mailto:") ||
+		resolvedLinkText.value.startsWith("tel:"),
 );
 const resolvedHref = computed(() =>
-	isExternalLink.value ? props.link : withBase(props.link),
+	isExternalLink.value ? resolvedLinkText.value : withBase(resolvedLinkText.value),
 );
 const linkTarget = computed(
 	() => props.target ?? (isExternalLink.value ? "_blank" : "_self"),
@@ -184,7 +180,7 @@ const cardStyle = computed(() => ({
 		: undefined),
 }));
 
-const tooltipContent = computed(() => renderedNote.value || "");
+const tooltipContent = computed(() => resolvedNoteText.value || "");
 function handleImageError() {
 	imageFailed.value = true;
 }
@@ -286,8 +282,6 @@ function handleImageError() {
         font-weight: 520 !important;
         line-height: 1.68 !important;
         letter-spacing: 0.01em !important;
-        box-shadow:
-            0 18px 36px color-mix(in srgb, var(--vp-c-text-1) 14%, transparent) !important;
         backdrop-filter: blur(16px) !important;
         border: 1px solid color-mix(in srgb, var(--vp-c-divider) 74%, transparent) !important;
         max-width: 26rem;

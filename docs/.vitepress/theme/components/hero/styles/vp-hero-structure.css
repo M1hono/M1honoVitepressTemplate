@@ -150,6 +150,22 @@
     justify-content: center;
 }
 
+
+@media (max-width: 959px) {
+    .VPHero :deep(.hero-tagline-shell) {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+
+    .VPHero :deep(.tagline) {
+        margin-left: auto;
+        margin-right: auto;
+        text-align: center;
+        transform-origin: center top;
+    }
+}
+
 .VPHero.hero-premium--typography-grouped-float .main {
     transform: translate3d(
             calc(

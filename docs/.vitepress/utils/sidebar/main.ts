@@ -370,12 +370,12 @@ export async function generateSidebars(
                         const groupWrapper = {
                             text: groupTitle,
                             items: groupSynchronizedItems,
-                            collapsed: true,
+                            collapsed: groupConfig.collapsed ?? groupEffectiveConfig.collapsed,
                             _priority: groupConfig.priority ?? 0,
                             _relativePathKey: groupPath,
                             _isDirectory: true,
                             _isRoot: false,
-                            _hidden: false,
+                            _hidden: groupConfig.hidden ?? false,
                             _isGeneratedGroup: true
                         };
                         

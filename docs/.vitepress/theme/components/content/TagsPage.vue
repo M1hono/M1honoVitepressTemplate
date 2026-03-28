@@ -805,29 +805,45 @@ onBeforeUnmount(() => {
     transform: translateY(-0.02rem);
 }
 
-.results__clear-btn :deep(.v-btn) {
-    border-radius: 999px;
-    min-height: 34px;
-    padding-inline: 0.8rem;
-    font-weight: 620;
-    font-size: 0.76rem;
-    letter-spacing: 0;
-    text-transform: none;
-    border: 1px solid color-mix(in srgb, var(--vp-c-divider) 76%, transparent);
-    background: color-mix(in srgb, var(--vp-c-brand-soft) 12%, var(--vp-c-bg) 88%);
-    color: var(--vp-c-text-1);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--vp-c-bg) 82%, transparent);
+.results__clear-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.32rem;
+    min-height: 34px !important;
+    padding: 0.42rem 0.8rem !important;
+    border-radius: 999px !important;
+    background: color-mix(in srgb, var(--vp-c-bg) 94%, var(--vp-c-bg-soft) 6%) !important;
+    border: 1px solid color-mix(in srgb, var(--vp-c-divider) 76%, transparent) !important;
+    color: var(--vp-c-text-2) !important;
+    line-height: 1;
+    font-size: 0.76rem !important;
+    font-weight: 620 !important;
+    letter-spacing: 0 !important;
+    text-transform: none !important;
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--vp-c-bg) 78%, transparent) !important;
+    transition:
+        border-color 0.2s ease,
+        background-color 0.2s ease,
+        color 0.2s ease;
 }
 
 .results__clear-btn :deep(.v-btn__content) {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    font: inherit;
 }
 
-.results__clear-btn :deep(.v-btn:hover) {
-    border-color: color-mix(in srgb, var(--vp-c-brand-1) 24%, var(--vp-c-divider));
-    background: color-mix(in srgb, var(--vp-c-brand-soft) 22%, var(--vp-c-bg-soft) 78%);
+.results__clear-btn :deep(.v-btn__overlay),
+.results__clear-btn :deep(.v-btn__underlay) {
+    display: none;
+}
+
+.results__clear-btn:hover {
+    border-color: color-mix(in srgb, var(--vp-c-brand-1) 18%, var(--vp-c-divider)) !important;
+    background: color-mix(in srgb, var(--vp-c-brand-soft) 10%, var(--vp-c-bg-soft) 90%) !important;
+    color: var(--vp-c-text-1) !important;
 }
 
 .results__chips :deep(.v-chip) {
@@ -965,11 +981,11 @@ onBeforeUnmount(() => {
         background: transparent;
     }
     .results__meta-badge,
-    .results__clear-btn :deep(.v-btn) {
+    .results__clear-btn {
         min-height: 36px;
     }
-    .results__clear-btn :deep(.v-btn) {
-        padding-inline: 0.78rem;
+    .results__clear-btn {
+        padding-inline: 0.78rem !important;
     }
     .result-row__head { flex-direction: column; align-items: flex-start; }
     .cloud,

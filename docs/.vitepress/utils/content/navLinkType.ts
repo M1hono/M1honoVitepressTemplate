@@ -1,10 +1,13 @@
 export interface NavBadge {
     text: string
-    type?: 'info' | 'tip' | 'warning' | 'danger'
+    type?: 'info' | 'tip' | 'warning' | 'danger' | 'new' | 'beta' | 'deprecated'
 }
+
+export type NavLinkStyle = 'default' | 'soft' | 'outline' | 'solid'
 
 export interface NavLink {
     icon?: NavIcon | NavThemeIcon
+    logo?: NavIcon | NavThemeIcon
     badge?: string | NavBadge
     badges?: Array<string | NavBadge>
     title: string
@@ -13,6 +16,11 @@ export interface NavLink {
     tag?: string
     color?: string
     target?: '_blank' | '_self' | '_parent'
+    eyebrow?: string
+    note?: string
+    featured?: boolean
+    style?: NavLinkStyle
+    iconBackground?: string
 }
 
 export interface NavData {
@@ -20,8 +28,8 @@ export interface NavData {
     description?: string
     items: NavLink[]
     columns?: number
-    collapsed?: boolean
     icon?: NavIcon | NavThemeIcon
+    eyebrow?: string
 }
 
 export type NavIcon = string | NavSvg

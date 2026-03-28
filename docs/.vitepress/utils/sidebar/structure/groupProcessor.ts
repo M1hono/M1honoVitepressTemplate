@@ -200,12 +200,12 @@ export async function processGroup(
         text: groupTitle,
         link: groupLink || undefined,
         items: groupItems,
-        collapsed: true,
+        collapsed: groupConfig.collapsed ?? groupEffectiveConfig.collapsed,
         _priority: groupConfig.priority ?? 0,
         _relativePathKey: groupPath,
         _isDirectory: true,
         _isRoot: false,
-        _hidden: false
+        _hidden: groupConfig.hidden ?? false
     };
 
     return groupSidebarItem;

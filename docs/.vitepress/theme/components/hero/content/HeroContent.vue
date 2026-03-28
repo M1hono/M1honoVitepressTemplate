@@ -2,6 +2,7 @@
     import { computed } from "vue";
     import type { HomeLinkKey } from "@utils/vitepress/services/homeLinkService";
     import { heroTypographyRegistry, HeroTypographyStyleType } from "@utils/vitepress/api/frontmatter/hero";
+    import { useResolvedText } from "@utils/vitepress/runtime/text/dynamicText";
     import HeroTitle from "./HeroTitle.vue";
     import HeroTagline from "./HeroTagline.vue";
     import HeroActions from "./HeroActions.vue";
@@ -59,6 +60,7 @@
         }
         return true;
     });
+    const resolvedText = useResolvedText(() => props.text);
 </script>
 
 <template>
@@ -99,7 +101,7 @@
             </Transition>
             <Transition :name="textTransitionName" appear :css="motionEnabled">
                 <span
-                    v-if="text"
+                    v-if="resolvedText"
                     class="text"
                     :class="[
                         {
@@ -111,7 +113,7 @@
                         },
                         `text--style-${resolvedStyleType}`,
                     ]"
-                    v-html="text"
+                    v-html="resolvedText"
                 />
             </Transition>
         </h1>

@@ -17,6 +17,7 @@ import {
 import { createHeroTypographyState } from "@utils/vitepress/runtime/hero/typographyState";
 import { createHeroFloatingWaveState } from "@utils/vitepress/runtime/hero/floatingWaveState";
 import { getThemeRuntime } from "@utils/vitepress/runtime/theme";
+import { decodeEscapedText, decodeEscapedTextDeep } from "@utils/vitepress/runtime/text/dynamicText";
 
 export interface VPHeroProps {
     name?: string;
@@ -40,10 +41,12 @@ export function createHeroRuntimeState(props: VPHeroProps) {
         return {};
     });
 
-    const resolvedName = computed(() => props.name ?? heroConfig.value.name);
-    const resolvedText = computed(() => props.text ?? heroConfig.value.text);
-    const resolvedTagline = computed(() => props.tagline ?? heroConfig.value.tagline);
-    const resolvedActions = computed<HeroActionConfig[] | undefined>(() => props.actions ?? heroConfig.value.actions);
+    const resolvedName = computed(() => decodeEscapedText(props.name ?? heroConfig.value.name));
+    const resolvedText = computed(() => decodeEscapedText(props.text ?? heroConfig.value.text));
+    const resolvedTagline = computed(() => decodeEscapedText(props.tagline ?? heroConfig.value.tagline));
+    const resolvedActions = computed<HeroActionConfig[] | undefined>(() =>
+        decodeEscapedTextDeep(props.actions ?? heroConfig.value.actions),
+    );
 
     const backgroundConfig = computed<HeroBackgroundConfig | undefined>(() =>
         normalizeBackgroundConfig(heroConfig.value.background),
@@ -78,7 +81,9 @@ export function createHeroRuntimeState(props: VPHeroProps) {
     const hasWaves = computed(() => true);
     const floatingConfig = computed<Record<string, any> | undefined>(() => {
         const value = heroConfig.value.floating;
-        return value && typeof value === "object" ? (value as Record<string, any>) : undefined;
+        return value && typeof value === "object"
+            ? decodeEscapedTextDeep(value as Record<string, any>)
+            : undefined;
     });
 
     const { heroTypographyType, hasColorOverrides, hasMediaBackground, heroCssVarsStyle } =

@@ -129,7 +129,6 @@
     border-radius: 12px;
     border: 1px solid color-mix(in srgb, var(--vp-c-divider) 82%, transparent);
     background: color-mix(in srgb, var(--vp-c-bg-soft) 76%, var(--vp-c-bg) 24%);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--vp-c-bg) 70%, transparent);
 }
 
 .m-nav-group-icon svg {
@@ -193,17 +192,13 @@
     min-height: 136px;
     background: color-mix(in srgb, var(--vp-c-bg-soft) 88%, var(--vp-c-bg) 12%);
     transition:
-        border-color 0.28s ease,
-        transform 0.28s ease,
-        box-shadow 0.28s ease;
+        border-color 0.22s ease,
+        background-color 0.22s ease;
     text-decoration: none;
     color: inherit;
     overflow: hidden;
     position: relative;
     isolation: isolate;
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, var(--vp-c-bg) 68%, transparent),
-        0 8px 22px color-mix(in srgb, var(--vp-c-text-1) 4%, transparent);
 }
 
 .m-nav-link::before {
@@ -218,10 +213,6 @@
 
 .m-nav-link:hover {
     border-color: color-mix(in srgb, var(--nav-link-accent) 62%, var(--vp-c-divider));
-    transform: translateY(-2px);
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, var(--vp-c-bg) 74%, transparent),
-        0 12px 28px color-mix(in srgb, var(--vp-c-text-1) 8%, transparent);
 }
 
 .m-nav-link:hover::before {
@@ -235,16 +226,8 @@
 
 .dark .m-nav-link {
     border-color: color-mix(in srgb, var(--vp-c-divider) 76%, transparent);
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, var(--vp-c-bg) 44%, transparent),
-        0 18px 40px color-mix(in srgb, #000 34%, transparent);
 }
 
-.dark .m-nav-link:hover {
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, var(--vp-c-bg) 48%, transparent),
-        0 20px 44px color-mix(in srgb, #000 40%, transparent);
-}
 
 /* Featured card spans 2 columns */
 .m-nav-link--featured {
@@ -283,21 +266,14 @@
     );
     border-radius: 14px;
     transition:
-        transform 0.28s ease,
-        box-shadow 0.28s ease,
-        border-color 0.28s ease;
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, #fff 26%, transparent),
-        0 6px 16px color-mix(in srgb, var(--vp-c-text-1) 5%, transparent);
+        border-color 0.22s ease,
+        background-color 0.22s ease;
     border: 1px solid color-mix(in srgb, var(--vp-c-divider) 76%, transparent);
     overflow: visible;
 }
 
 .m-nav-link:hover .m-nav-link-icon {
     border-color: color-mix(in srgb, var(--nav-link-accent) 40%, var(--vp-c-divider));
-    box-shadow:
-        inset 0 1px 0 color-mix(in srgb, #fff 30%, transparent),
-        0 10px 20px color-mix(in srgb, var(--vp-c-text-1) 8%, transparent);
 }
 
 .m-nav-link-icon--fallback {
@@ -499,35 +475,37 @@
     max-width: fit-content;
     white-space: nowrap;
     cursor: help;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition:
+        border-color 0.22s ease,
+        background-color 0.22s ease,
+        color 0.22s ease;
     text-transform: uppercase;
     letter-spacing: 0.8px;
     z-index: 2;
-    backdrop-filter: blur(8px);
 }
 
 .m-nav-link-badge[data-type="info"] {
-    background: linear-gradient(135deg, var(--vp-c-brand-soft), var(--vp-c-brand-soft-up));
-    color: var(--vp-c-brand-1);
-    border: 1px solid var(--vp-c-brand-2);
+    background: color-mix(in srgb, var(--vp-badge-info-bg) 72%, var(--vp-c-bg) 28%);
+    color: color-mix(in srgb, var(--vp-badge-info-text) 86%, var(--vp-c-text-2));
+    border: 1px solid color-mix(in srgb, var(--vp-badge-info-border) 74%, transparent);
 }
 
 .m-nav-link-badge[data-type="warning"] {
-    background: linear-gradient(135deg, var(--vp-c-warning-soft), var(--vp-c-warning-soft-up));
-    color: var(--vp-c-warning-1);
-    border: 1px solid var(--vp-c-warning-2);
+    background: color-mix(in srgb, var(--vp-badge-warning-bg) 72%, var(--vp-c-bg) 28%);
+    color: color-mix(in srgb, var(--vp-badge-warning-text) 82%, var(--vp-c-text-2));
+    border: 1px solid color-mix(in srgb, var(--vp-badge-warning-border) 70%, transparent);
 }
 
 .m-nav-link-badge[data-type="danger"] {
-    background: linear-gradient(135deg, var(--vp-c-danger-soft), var(--vp-c-danger-soft-up));
-    color: var(--vp-c-danger-1);
-    border: 1px solid var(--vp-c-danger-2);
+    background: color-mix(in srgb, var(--vp-badge-danger-bg) 72%, var(--vp-c-bg) 28%);
+    color: color-mix(in srgb, var(--vp-badge-danger-text) 82%, var(--vp-c-text-2));
+    border: 1px solid color-mix(in srgb, var(--vp-badge-danger-border) 70%, transparent);
 }
 
 .m-nav-link-badge[data-type="tip"] {
-    background: linear-gradient(135deg, var(--vp-c-tip-soft), var(--vp-c-tip-soft-up));
-    color: var(--vp-c-tip-1);
-    border: 1px solid var(--vp-c-tip-2);
+    background: color-mix(in srgb, var(--vp-badge-tip-bg) 74%, var(--vp-c-bg) 26%);
+    color: color-mix(in srgb, var(--vp-badge-tip-text) 86%, var(--vp-c-text-2));
+    border: 1px solid color-mix(in srgb, var(--vp-badge-tip-border) 70%, transparent);
 }
 
 /* ── Responsive ──────────────────────────────────────────────────────── */

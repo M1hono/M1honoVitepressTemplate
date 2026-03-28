@@ -114,6 +114,10 @@ export interface GroupConfig {
     priority?: number
     /** Maximum nesting depth for items within this group */
     maxDepth?: number
+    /** Whether the generated group should start collapsed */
+    collapsed?: boolean
+    /** Whether the generated group should be hidden */
+    hidden?: boolean
 }
 
 /**

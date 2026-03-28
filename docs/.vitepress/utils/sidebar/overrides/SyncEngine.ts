@@ -125,6 +125,48 @@ export class SyncEngine {
         let newEntriesAdded = 0;
         let existingEntriesUpdated = 0;
 
+        const currentItemEntries = currentItems
+            .map((item) => ({ item, itemKey: keyExtractor(item) }))
+            .filter((entry): entry is { item: SidebarItem; itemKey: string } => Boolean(entry.itemKey));
+        const currentItemKeys = new Set(currentItemEntries.map((entry) => entry.itemKey));
+
+        for (const { item, itemKey } of currentItemEntries) {
+            if (!item._isDirectory) {
+                continue;
+            }
+
+            const alternateKey = itemKey.endsWith('/') ? itemKey.slice(0, -1) : `${itemKey}/`;
+            if (!alternateKey || alternateKey === itemKey) {
+                continue;
+            }
+
+            const hasCanonicalJson = Object.prototype.hasOwnProperty.call(updatedJsonData, itemKey);
+            const hasAlternateJson = Object.prototype.hasOwnProperty.call(updatedJsonData, alternateKey);
+            const canonicalMetadata = updatedMetadata[itemKey];
+            const alternateMetadata = updatedMetadata[alternateKey];
+
+            if (!hasCanonicalJson && hasAlternateJson) {
+                updatedJsonData[itemKey] = updatedJsonData[alternateKey];
+            }
+            if (hasAlternateJson) {
+                delete updatedJsonData[alternateKey];
+            }
+
+            if (!canonicalMetadata && alternateMetadata) {
+                updatedMetadata[itemKey] = alternateMetadata;
+            } else if (
+                canonicalMetadata &&
+                alternateMetadata &&
+                alternateMetadata.isUserSet &&
+                !canonicalMetadata.isUserSet
+            ) {
+                updatedMetadata[itemKey] = alternateMetadata;
+            }
+            if (alternateMetadata) {
+                delete updatedMetadata[alternateKey];
+            }
+        }
+
         for (const item of currentItems) {
             const itemKey = keyExtractor(item);
             if (!itemKey) {
@@ -196,7 +238,15 @@ export class SyncEngine {
 
         let inactiveEntriesMarked = 0;
         let orphanedEntriesRemoved = 0;
-        const currentItemKeys = new Set(currentItems.map(item => keyExtractor(item)).filter(key => key));
+        for (const existingKey of Object.keys(updatedJsonData)) {
+            if (existingKey === '_self_') {
+                continue;
+            }
+            if (!currentItemKeys.has(existingKey)) {
+                delete updatedJsonData[existingKey];
+                orphanedEntriesRemoved++;
+            }
+        }
 
         for (const [existingKey, existingEntry] of Object.entries(existingMetadata)) {
             if (existingKey === '_self_') {

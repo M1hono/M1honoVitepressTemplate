@@ -107,9 +107,9 @@ export function applyConfigDefaults(
     const priority = partialConfig.priority ?? 0;
     const maxDepth = partialConfig.maxDepth ?? defaults.maxDepth ?? 3;
     const collapsed = partialConfig.collapsed ?? defaults.collapsed ?? false;
-    const itemOrder = partialConfig.itemOrder ?? {};
-    const groups = partialConfig.groups ?? [];
-    const externalLinks = partialConfig.externalLinks ?? [];
+    const itemOrder = convertItemOrderToRecord(partialConfig.itemOrder ?? defaults.itemOrder);
+    const groups = Array.isArray(partialConfig.groups) ? partialConfig.groups : [];
+    const externalLinks = Array.isArray(partialConfig.externalLinks) ? partialConfig.externalLinks : [];
 
     return {
         root,

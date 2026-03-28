@@ -21,7 +21,6 @@ import { Animation, Preview, NotFound, Buttons } from "@utils/vitepress/componen
 import { comment, PageTags, ResponsibleEditor, TagsPage } from "@utils/vitepress/componentRegistry/contentRegistry";
 import Footer from "./components/navigation/Footer.vue";
 import VPBreadcrumb from "./components/navigation/Breadcrumb/VPBreadcrumb.vue";
-import MNavLinksPage from "./components/navigation/MNavLinksPage.vue";
 
 import { getProjectInfo, isFeatureEnabled } from "@config/project-config";
 import { useDirectoryLandingRouteSync } from "@utils/sidebar/runtime";
@@ -58,42 +57,28 @@ function syncVuetifyTheme(isDark: boolean) {
 
 export default {
     extends: DefaultTheme,
-    Layout: () => {
-        const props: Record<string, any> = {};
-        const { frontmatter } = useData();
+	Layout: () => {
+		const props: Record<string, unknown> = {};
+		const { frontmatter } = useData();
 
-        if (frontmatter.value?.layoutClass) {
-            props.class = frontmatter.value.layoutClass;
-        }
+		if (frontmatter.value?.layoutClass) {
+			props.class = frontmatter.value.layoutClass;
+		}
 
-        return h(Animation, props, {
-            slot: () =>
-                h(DefaultTheme.Layout, null, {
-                    "aside-outline-after": () => null,
-                    "doc-after": () => [
-                        ...(frontmatter.value?.tagPage ? [h(TagsPage)] : []),
-                        h(MNavLinksPage),
-                        h(Buttons),
-                        h(comment),
-                    ],
-                    "doc-footer-before": () => h(ResponsibleEditor),
-                    "layout-bottom": () => h(Footer),
-                    "page-bottom": () => [
-                        ...(frontmatter.value?.tagPage ? [h(TagsPage)] : []),
-                        h(MNavLinksPage),
-                    ],
-                    "not-found": () => [h(NotFound)],
-                    "nav-bar-content-after": () =>
-                        h(NolebaseEnhancedReadabilitiesMenu),
-                    "nav-screen-content-after": () =>
-                        h(NolebaseEnhancedReadabilitiesScreenMenu),
-                    "doc-before": () => [
-                        h(VPBreadcrumb),
-                        h(Preview),
-                        h(PageTags),
-                    ],
-                }),
-        });
+		return h(Animation, null, {
+			slot: () =>
+				h(DefaultTheme.Layout, props, {
+					"aside-outline-after": () => null,
+					"doc-after": () => [h(Buttons), h(comment)],
+					"doc-footer-before": () => h(ResponsibleEditor),
+					"layout-bottom": () => h(Footer),
+					"not-found": () => [h(NotFound)],
+					"nav-bar-content-after": () => h(NolebaseEnhancedReadabilitiesMenu),
+					"nav-screen-content-after": () =>
+						h(NolebaseEnhancedReadabilitiesScreenMenu),
+					"doc-before": () => [h(VPBreadcrumb), h(Preview), h(PageTags)],
+				}),
+		});
     },
 
     enhanceApp(ctx) {
@@ -101,11 +86,11 @@ export default {
     },
 
     setup() {
-        const route = useRoute();
-        const router = useRouter();
-        const { isDark, frontmatter } = useData();
-        const { effectiveDark } = getThemeRuntime(isDark);
-        const projectInfo = getProjectInfo();
+		const route = useRoute();
+		const router = useRouter();
+		const { isDark, frontmatter } = useData();
+		const { effectiveDark } = getThemeRuntime(isDark);
+		const projectInfo = getProjectInfo();
 
         watch(
             effectiveDark,

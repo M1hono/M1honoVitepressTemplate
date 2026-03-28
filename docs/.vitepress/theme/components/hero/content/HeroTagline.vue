@@ -4,6 +4,7 @@
         heroTypographyRegistry,
         HeroTypographyStyleType,
     } from "@utils/vitepress/api/frontmatter/hero";
+    import { useResolvedText } from "@utils/vitepress/runtime/text/dynamicText";
 
     const props = defineProps<{
         text?: string;
@@ -25,10 +26,11 @@
                 : "tagline--floating-tilt",
         `tagline--style-${resolvedStyleType.value}`,
     ]);
+    const resolvedText = useResolvedText(() => props.text);
 </script>
 
 <template>
-    <p v-if="text" class="tagline" :class="styleClass" v-html="text" />
+    <p v-if="resolvedText" class="tagline" :class="styleClass" v-html="resolvedText" />
 </template>
 
 <style scoped>

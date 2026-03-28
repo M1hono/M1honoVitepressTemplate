@@ -27,6 +27,16 @@ import { loadFrontmatter } from './frontmatterParser';
 import { getPathHierarchy } from './configHierarchyResolver';
 import { applyConfigDefaults } from './configDefaultsProvider';
 
+function extractInheritedDirectoryConfig(frontmatter: Partial<DirectoryConfig>): Partial<EffectiveDirConfig> {
+    const inherited: Partial<EffectiveDirConfig> = {};
+
+    if (frontmatter.maxDepth !== undefined) {
+        inherited.maxDepth = frontmatter.maxDepth;
+    }
+
+    return inherited;
+}
+
 /**
  * @class ConfigReaderService
  * @description Service responsible for loading and merging sidebar configurations
@@ -126,8 +136,10 @@ export class ConfigReaderService {
 
         for (const hIndexMdPath of hierarchyIndexMdPaths) {
             const frontmatter = await this.getFrontmatter(hIndexMdPath);
-            const { root: _, ...frontmatterWithoutRoot } = frontmatter;
-            mergedConfig = deepMerge<Partial<EffectiveDirConfig>>(mergedConfig, frontmatterWithoutRoot as Partial<EffectiveDirConfig>);
+            mergedConfig = deepMerge<Partial<EffectiveDirConfig>>(
+                mergedConfig,
+                extractInheritedDirectoryConfig(frontmatter)
+            );
         }
         
         const targetFrontmatter = await this.getFrontmatter(indexMdAbsPath); 
