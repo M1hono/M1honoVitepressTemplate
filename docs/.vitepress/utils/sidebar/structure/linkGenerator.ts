@@ -86,12 +86,13 @@ function normalizeFilePathToUrl(
     const relativeFilePath = normalizePathSeparators(
         path.relative(langRootAbsPath, fileAbsPath),
     );
+    const cleanRelativePath = relativeFilePath.replace(/\.md$/i, "");
 
     let link = "";
     if (!lang || lang === "") {
-        link = `/${relativeFilePath.replace(/\.md$/i, ".html")}`;
+        link = `/${cleanRelativePath}`;
     } else {
-        link = `/${lang}/${relativeFilePath.replace(/\.md$/i, ".html")}`;
+        link = `/${lang}/${cleanRelativePath}`;
     }
 
     link = link.replace(/([^:])\/\/+/g, "$1/");

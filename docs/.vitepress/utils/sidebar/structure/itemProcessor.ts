@@ -99,7 +99,7 @@ async function processFileEntry(
     const relativeToLangRoot = normalizePathSeparators(
         path.relative(path.join(docsAbsPath, lang), normalizedItemAbsPath)
     );
-    let link = `/${lang}/${relativeToLangRoot.replace(/\.md$/i, ".html")}`.replace(/\/+/g, "/");
+    let link = `/${lang}/${relativeToLangRoot.replace(/\.md$/i, "")}`.replace(/\/+/g, "/");
     if (link.startsWith("//")) link = link.substring(1);
 
     let priority = fileFrontmatter.priority;

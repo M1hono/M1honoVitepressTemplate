@@ -40,11 +40,7 @@
 
 /* Hover effects - softer glassmorphism */
 .VPSidebarItem .item:hover {
-    background-color: color-mix(
-        in srgb,
-        var(--vp-c-default-soft) 60%,
-        transparent
-    );
+    background-color: transparent;
 }
 
 /* Active state styling */
@@ -105,11 +101,7 @@
 
 /* Active Soft Enclosure - Bento Box */
 .VPSidebarItem.is-active > .item {
-    background-color: color-mix(
-        in srgb,
-        var(--vp-c-brand-soft) 40%,
-        transparent
-    );
+    background-color: transparent;
 }
 
 /* Improved caret styling - thinner */
@@ -129,7 +121,7 @@
 
 .VPSidebarItem .item:hover .caret {
     color: var(--vp-c-text-2);
-    background-color: var(--vp-c-default-soft);
+    background-color: transparent;
 }
 
 .VPSidebarItem.is-active .caret {
