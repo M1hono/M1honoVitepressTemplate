@@ -71,6 +71,29 @@
         }
     };
 
+    const AUTO_RELOAD_KEY = "m1hono:not-found:auto-reload";
+
+    const tryAutoReloadCurrentPage = () => {
+        if (typeof window === "undefined" || typeof sessionStorage === "undefined") {
+            return;
+        }
+
+        const { pathname, search, hash } = window.location;
+        if (!pathname || pathname === "/" || /^\/404(?:\/)?$/i.test(pathname)) {
+            return;
+        }
+
+        const reloadKey = `${pathname}${search}${hash}`;
+        const lastReloadKey = sessionStorage.getItem(AUTO_RELOAD_KEY);
+        if (lastReloadKey === reloadKey) {
+            sessionStorage.removeItem(AUTO_RELOAD_KEY);
+            return;
+        }
+
+        sessionStorage.setItem(AUTO_RELOAD_KEY, reloadKey);
+        window.location.replace(`${pathname}${search}${hash}`);
+    };
+
     const tryRedirectToLandingPage = () => {
         if (typeof window === "undefined") return;
         const candidate = resolveDirectoryLandingCanonicalPath(window.location.pathname);
@@ -81,6 +104,7 @@
 
     onMounted(() => {
         tryRedirectToLandingPage();
+        tryAutoReloadCurrentPage();
         if (typeof document !== 'undefined') {
             const circles = document.querySelectorAll(".circle");
             circles.forEach((circle, index) => {
