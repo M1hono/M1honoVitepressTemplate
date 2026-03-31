@@ -16,14 +16,11 @@ function clearGlobalHideTimer() {
     globalHideTimer = null;
 }
 
-function scheduleGlobalHide(delay = 90) {
+function hideGlobalPreview() {
     clearGlobalHideTimer();
-    globalHideTimer = setTimeout(() => {
-        globalHideTimer = null;
-        if (!globalSheetHovered.value) {
-            globalHoveredLink.value = null;
-        }
-    }, delay);
+    if (!globalSheetHovered.value) {
+        globalHoveredLink.value = null;
+    }
 }
 
 export function activateNavHoverMenu(menuId: string): void {
@@ -55,7 +52,7 @@ export function createNavHoverPreviewState(menuId: string) {
 
     function onItemLeave() {
         if (globalActiveMenuId.value !== menuId) return;
-        scheduleGlobalHide();
+        hideGlobalPreview();
     }
 
     function onSheetEnter() {
@@ -67,7 +64,7 @@ export function createNavHoverPreviewState(menuId: string) {
     function onSheetLeave() {
         if (globalActiveMenuId.value !== menuId) return;
         globalSheetHovered.value = false;
-        scheduleGlobalHide(50);
+        hideGlobalPreview();
     }
 
     function resetPreview() {

@@ -211,11 +211,10 @@ export class GitBookParserService {
             cleanPath = cleanPath.substring(1);
         }
 
-        // Determine if this is a directory (ends with README.md, index.md, or sidebarIndex.md)
+        // Determine if this is a directory (ends with README.md, index.md, or a folder slash)
         const isDirectory =
             cleanPath.endsWith("README.md") ||
             cleanPath.endsWith("index.md") ||
-            cleanPath.endsWith("sidebarIndex.md") ||
             cleanPath.endsWith("/");
 
         // Generate the site-absolute URL

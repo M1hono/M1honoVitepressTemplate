@@ -93,20 +93,12 @@
         isOpen.value = true;
     }
 
-    function scheduleClose(delay = 120) {
-        clearCloseTimer();
-        closeTimer = setTimeout(() => {
-            closeTimer = null;
-            closeMenu();
-        }, delay);
-    }
-
     const onRootEnter = () => {
         openMenu();
     };
 
     const onRootLeave = () => {
-        scheduleClose();
+        closeMenu();
     };
 
     const closeMenu = () => {
