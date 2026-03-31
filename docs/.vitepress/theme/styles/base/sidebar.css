@@ -3,68 +3,65 @@
  * Based on original VitePress component structure
  */
 
-/* Clean up group separators */
 .VPSidebarGroup .group + .group {
     border-top: none !important;
     margin-top: 6px;
     padding-top: 0;
 }
 
-/* Remove default indicator lines */
 .VPSidebarItem .indicator {
     display: none !important;
 }
 
-/* Remove nested item borders */
 .VPSidebarItem.level-1 .items,
 .VPSidebarItem.level-2 .items,
 .VPSidebarItem.level-3 .items,
 .VPSidebarItem.level-4 .items,
 .VPSidebarItem.level-5 .items {
-    border-left: none !important;
-    padding-left: 16px;
+    border-left: 1px solid color-mix(in srgb, var(--vp-c-divider) 62%, transparent) !important;
+    margin-left: 10px;
+    padding-left: 12px;
 }
 
-/* Beautiful item styling - thicker bento-box pill shape */
 .VPSidebarItem .item {
-    padding: 8px 12px;
-    margin: 2px 6px;
-    border-radius: 12px;
-    transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
-    position: relative;
     display: flex;
-    align-items: center;
-    width: calc(100% - 12px);
-    min-height: 38px;
+    align-items: flex-start;
+    gap: 0.55rem;
+    width: calc(100% - 8px);
+    min-height: 34px;
+    margin: 1px 4px;
+    padding: 6px 8px 7px;
+    border-radius: 6px;
+    background-color: transparent;
+    transition: color 0.18s ease;
+    position: relative;
 }
 
-/* Hover effects - softer glassmorphism */
-.VPSidebarItem .item:hover {
+.VPSidebarItem .item:hover,
+.VPSidebarItem.is-active > .item {
     background-color: transparent;
 }
 
-/* Active state styling */
-/* .VPSidebarItem.is-active .item {
-    background-color: var(--vp-c-brand-soft);
-    border-left: 3px solid var(--vp-c-brand-1);
-    padding-left: 5px;
-} */
-
-/* Text improvements */
 .VPSidebarItem .text {
-    font-size: 16px;
-    line-height: 1.3;
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: 100%;
     padding: 0;
-    transition: color 0.25s ease;
-    flex-grow: 1;
-    display: flex;
-    align-items: center;
+    font-size: 15px;
+    line-height: 1.4;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: normal;
+    hyphens: auto;
+    text-wrap: pretty;
+    transition: color 0.18s ease;
 }
 
 .VPSidebarItem.level-0 .text {
-    font-weight: 800 !important;
     font-family: "Playfair Display", "EB Garamond", ui-serif, Georgia, serif;
-    font-size: 19px;
+    font-size: 18px;
+    font-weight: 800 !important;
     color: var(--vp-c-text-1);
 }
 
@@ -73,22 +70,17 @@
 .VPSidebarItem.level-3 .text,
 .VPSidebarItem.level-4 .text,
 .VPSidebarItem.level-5 .text {
+    font-size: 14px;
     font-weight: 700 !important;
     color: var(--vp-c-text-2);
-    font-size: 15px;
 }
 
-/* Enhanced hover text effects */
 .VPSidebarItem.level-0.is-link > .item > .link:hover .text,
 .VPSidebarItem.level-1.is-link > .item > .link:hover .text,
 .VPSidebarItem.level-2.is-link > .item > .link:hover .text,
 .VPSidebarItem.level-3.is-link > .item > .link:hover .text,
 .VPSidebarItem.level-4.is-link > .item > .link:hover .text,
-.VPSidebarItem.level-5.is-link > .item > .link:hover .text {
-    color: var(--vp-c-brand-1);
-}
-
-/* Active text styling */
+.VPSidebarItem.level-5.is-link > .item > .link:hover .text,
 .VPSidebarItem.level-0.is-active > .item .link > .text,
 .VPSidebarItem.level-1.is-active > .item .link > .text,
 .VPSidebarItem.level-2.is-active > .item .link > .text,
@@ -96,27 +88,30 @@
 .VPSidebarItem.level-4.is-active > .item .link > .text,
 .VPSidebarItem.level-5.is-active > .item .link > .text {
     color: var(--vp-c-brand-1);
+}
+
+.VPSidebarItem.level-0.is-active > .item .link > .text,
+.VPSidebarItem.level-1.is-active > .item .link > .text,
+.VPSidebarItem.level-2.is-active > .item .link > .text,
+.VPSidebarItem.level-3.is-active > .item .link > .text,
+.VPSidebarItem.level-4.is-active > .item .link > .text,
+.VPSidebarItem.level-5.is-active > .item .link > .text {
     font-weight: 800 !important;
 }
 
-/* Active Soft Enclosure - Bento Box */
-.VPSidebarItem.is-active > .item {
-    background-color: transparent;
-}
-
-/* Improved caret styling - thinner */
 .VPSidebarItem .caret {
-    color: var(--vp-c-text-3);
-    transition: all 0.2s ease;
-    border-radius: 4px;
-    width: 24px;
-    height: 24px;
-    margin-right: 0;
-    margin-left: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    margin-left: 4px;
+    margin-right: 0;
+    border-radius: 4px;
+    color: var(--vp-c-text-3);
+    transition: color 0.18s ease;
 }
 
 .VPSidebarItem .item:hover .caret {
@@ -128,38 +123,23 @@
     color: var(--vp-c-brand-1);
 }
 
-/* Smooth caret icon rotation */
 .VPSidebarItem .caret-icon {
     font-size: 14px;
-    transition: transform 0.25s ease;
+    transition: transform 0.22s ease;
 }
 
 .VPSidebarItem.collapsed .caret-icon {
     transform: rotate(0deg);
 }
 
-/* Better nested spacing - tighter */
-.VPSidebarItem.level-1 {
-    margin-left: 2px;
-}
-
-.VPSidebarItem.level-2 {
-    margin-left: 4px;
-}
-
-.VPSidebarItem.level-3 {
-    margin-left: 6px;
-}
-
-.VPSidebarItem.level-4 {
-    margin-left: 8px;
-}
-
+.VPSidebarItem.level-1,
+.VPSidebarItem.level-2,
+.VPSidebarItem.level-3,
+.VPSidebarItem.level-4,
 .VPSidebarItem.level-5 {
-    margin-left: 10px;
+    margin-left: 0;
 }
 
-/* Improved spacing for level-0 items - thinner */
 .VPSidebarItem.level-0 {
     padding-bottom: 4px;
 }
@@ -168,23 +148,22 @@
     padding-bottom: 2px;
 }
 
-/* Link styling improvements - better alignment */
 .VPSidebarItem .link {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
+    gap: 0.5rem;
     flex-grow: 1;
-    border-radius: 4px;
-    transition: all 0.2s ease;
     width: 100%;
+    min-width: 0;
+    border-radius: 4px;
+    transition: color 0.18s ease;
 }
 
-/* Focus states for accessibility */
 .VPSidebarItem .item:focus-visible {
     outline: 2px solid var(--vp-c-brand-1);
     outline-offset: 1px;
 }
 
-/* Tighter group width */
 .VPSidebarGroup .group {
     max-width: calc(100% - 16px);
     margin: 0 8px;
