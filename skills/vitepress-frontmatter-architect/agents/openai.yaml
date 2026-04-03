@@ -1,4 +1,4 @@
 interface:
   display_name: "VitePress Frontmatter Architect"
-  short_description: "Author and audit all project frontmatter (outer and inner)"
-  default_prompt: "Design, validate, and document outer and inner frontmatter contracts for this VitePress project, including snippet-ready examples."
+  short_description: "Define author-facing frontmatter contracts with docs and editor sync"
+  default_prompt: "Define, document, or migrate frontmatter for this VitePress project. Start from author intent, produce valid YAML examples, then align docs, editor metadata, and runtime behavior."

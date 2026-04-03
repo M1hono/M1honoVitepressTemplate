@@ -1,99 +1,90 @@
 ---
 name: vitepress-nav-format-extender
-description: Extend the typed navigation system used by CrychicDoc, M1honoVitepressTemplate, and toolkit-box-page. Use when changing nav types, builder helpers, nav validation, preview media behavior, dropdown layout components, or the shared nav rendering contract, especially when the same nav infrastructure must stay synced across the repo family without breaking each repo's local component registry.
+description: Extend the shared VitePress navigation contract used across the M1hono repo family. Use whenever the task is to change nav types, builders, validation rules, preview media behavior, dropdown layouts, current-page awareness, or sync a structural nav capability across multiple repos without breaking local authoring flexibility.
 ---
 
 # VitePress Nav Format Extender
 
-Use this skill when the job is structural nav work, not just editing one locale's menu copy.
+Use this skill when the job is changing the shared nav system itself, not just editing one locale file.
 
-## Quick Workflow
+## Start Here
 
-1. Classify the task:
-- `contract`: `navTypes.ts`, builder helpers, validation rules, or data shape changes
-- `renderer`: dropdown layouts, preview rendering, or nav component behavior
-- `registry`: layout registration or global component exposure for nav surfaces
-- `sync`: propagate shared nav infrastructure to Template and Toolkit after CrychicDoc is stable
-2. Load only the reference you need:
-- Read `references/nav-source-map.md` for file ownership and repo path mapping.
-- Read `references/nav-extension-playbook.md` for change checklists.
-3. Detect the repo shape before editing:
-- If the repo root contains `.vitepress/`, use `.vitepress/**`
-- If the repo root contains `docs/.vitepress/`, use `docs/.vitepress/**`
-- Treat that resolved location as `<theme-root>`
-4. Keep the authoring surface typed:
-- Shared nav contracts live in `utils/config/navTypes.ts`
-- Builder and normalization logic live in `utils/config/navFactory.ts`
-- Locale module loading and enforcement live in `utils/config/navConfig.ts`
-5. Keep default screenshot previews plain:
-- Default media should be full-image, no macOS chrome, no hover zoom, no forced shadow frame
-- Only use framed/browser-like presentation when a renderer explicitly opts into it
-6. Preserve local extensibility:
-- Do not flatten or remove per-repo local registry loading in `utils/vitepress/components.ts`
-- Shared nav changes must keep room for repo-local components and repo-local nav layouts
-7. Sync shared infrastructure after the primary repo is stable:
-- CrychicDoc is the main proving ground
-- Mirror only the shared files to Template and Toolkit
-- Do not overwrite locale-specific content or repo-specific local registries
-8. Verify each touched repo with the narrowest meaningful command:
-- `yarn build`
-- `tsc -p tsconfig.json --noEmit` when the touched repo is currently type-checkable
-- `git diff --check`
+1. Decide what kind of change is needed:
+- `contract`: shape of nav items, dropdowns, panels, preview media, or layout keys
+- `builder`: helper APIs that authors use when writing nav.ts files
+- `validation`: normalization or enforcement rules
+- `renderer`: dropdown layout or preview behavior
+- `sync`: shared rollout to sibling repos after the primary repo is stable
+2. Read these first:
+- `references/nav-extension-playbook.md`
+- `references/nav-contract-recipes.md`
+3. Define the author-visible result before editing code:
+- what new thing an author can express
+- what the simplest example looks like
+- whether the change is default behavior or opt-in behavior
+- whether existing authored configs remain valid
+4. Only then inspect implementation ownership with `references/nav-source-map.md`.
+5. Prove the change in the primary repo first. Sync shared infrastructure to sibling repos only after the API and rendering behavior are stable.
 
 ## Core Rules
 
-1. Do not solve nav shape problems by hardcoding route-specific logic in render components.
-2. Do not allow raw mega-dropdown blobs to become the de facto API. Push structure into builders and named typed sections.
-3. Do not break simple top-level links just to enforce dropdown-builder rules.
-4. Do not move shared nav behavior into unrelated theme runtime or route utilities.
-5. Do not remove local `import.meta.glob(...)` component registry support. Shared nav infrastructure must coexist with repo-specific extras.
-6. Do not widen scope into a full theme rewrite unless the user explicitly asks for it.
+1. A nav-system change should make authoring clearer, not just more powerful.
+2. Default preview behavior stays restrained: plain screenshot, no forced browser chrome, no bounce, no decorative frame unless explicitly chosen.
+3. Do not solve structural problems by hardcoding route-specific logic in renderers.
+4. Preserve local component registries and local layout escape hatches.
+5. Keep simple links simple. Do not force dropdown machinery on content that does not need it.
+6. When introducing a stricter rule, provide a migration path or normalization step.
+7. Every contract change should come with at least one example authors can copy.
 
-## Common Tasks
+## Working Patterns
 
-### Add a new nav preview media capability
+### Add a new preview capability
 
-1. Extend `NavMedia` in `navTypes.ts`.
-2. Add or update a builder in `navFactory.ts`.
-3. Update the preview renderer components.
-4. Keep plain screenshot behavior as the default path.
-5. Add an example to a locale `nav.ts` only after the contract is stable.
+1. Define the author-facing field or builder shape.
+2. Provide the simplest valid example.
+3. Decide whether it is opt-in or the new default.
+4. Update types, builders, and renderer in that order.
+5. Verify light, dark, and narrow dropdown states.
 
-### Tighten nav validation
+### Add a new dropdown layout
 
-1. Normalize first in `navFactory.ts`.
-2. Validate in `navConfig.ts`.
-3. Enforce builders for dropdown formulas, panels, groups, and preview panels.
-4. Leave simple link-only items alone unless there is a strong reason to constrain them.
+1. Decide what content structure the new layout is for.
+2. Keep the input driven by shared nav data, not one-off renderer state.
+3. Give authors a short example showing when to choose the layout.
+4. If only one repo needs it, keep the shared contract narrow and let local registration own the custom part.
 
-### Add or change a dropdown layout
+### Tighten validation
 
-1. Update or add the layout component under `theme/components/navigation/layouts/**`.
-2. Keep the layout data-driven off `NavDropdown`, `NavPanel`, and `NavPreviewPanel`.
-3. If a repo needs a local-only layout, preserve that path through local component registration rather than forcing the shared layer to own it.
+1. Normalize historical shapes first.
+2. Reject only what is truly unsafe or ambiguous.
+3. Avoid punishing common simple patterns.
+4. Document the preferred authored form so future locale files get cleaner.
 
 ### Sync shared nav infrastructure
 
-1. Stabilize CrychicDoc first.
-2. Mirror shared nav contract and renderer files to Template and Toolkit.
-3. Rebuild both mirrors.
-4. Confirm their local component registries still load repo-specific additions.
+1. Land and verify the change in the primary repo.
+2. Copy only shared contract and renderer files.
+3. Do not overwrite repo-local nav content or local component registries.
+4. Rebuild each mirror after syncing.
 
-## Files To Inspect First
+## Deliverable Checklist
 
-- `<theme-root>/utils/config/navTypes.ts`
-- `<theme-root>/utils/config/navFactory.ts`
-- `<theme-root>/utils/config/navConfig.ts`
-- `<theme-root>/theme/components/navigation/layouts/NavHoverPreviewSheet.vue`
-- `<theme-root>/theme/components/navigation/layouts/VPNavLayoutSpotlight.vue`
-- `<theme-root>/utils/vitepress/components.ts`
-
-## Related Skills
-
-- [$vitepress-template-extender](../vitepress-template-extender/SKILL.md) for broader template component/config work
-- [$vitepress-doc-sync](../vitepress-doc-sync/SKILL.md) when shared developer docs must stay aligned
+1. The new capability is explained in author terms.
+2. A minimal example exists.
+3. Validation and rendering match the documented contract.
+4. Default styling and interaction remain restrained unless the task explicitly changes them.
+5. Local registry behavior still works.
+6. Shared sync is limited to actual shared infrastructure.
 
 ## Resources
 
-- `references/nav-source-map.md`
 - `references/nav-extension-playbook.md`
+  - Main workflow for changing the shared nav system.
+- `references/nav-contract-recipes.md`
+  - Copyable structural patterns for new nav capabilities.
+- `references/nav-source-map.md`
+  - Fallback file ownership map when you need exact implementation locations.
+- `../vitepress-nav-format-writer-editor/SKILL.md`
+  - Use when the task is locale authoring rather than system extension.
+- `../vitepress-template-extender/SKILL.md`
+  - Use when the change expands beyond nav into broader template work.

@@ -1,92 +1,122 @@
 ---
 name: vitepress-frontmatter-architect
-description: Build, audit, and document all frontmatter contracts (outer page-level and inner nested component-level) for M1honoVitepressTemplate and the PickAID VSCode extension. Use when adding or changing frontmatter keys, generating frontmatter documentation with YAML examples, syncing `.vscode/md.code-snippets` with `PickAIDDocVSCodeExtension/src/data/FrontmatterRegistry.ts`, or validating coverage for hero/background/waves/floating/features/content/plugin keys.
+description: Design, document, audit, and migrate page, hero, content, sidebar, prev-next, and plugin frontmatter for the M1hono VitePress stack. Use whenever the task is to add a key, rename or deprecate one, explain supported YAML, update editor completions or hover docs, or keep docs, extension, and runtime behavior aligned for frontmatter-driven features.
 ---
 
 # VitePress Frontmatter Architect
 
-## Quick Workflow
+Use this skill to define the author-facing frontmatter contract before you start tracing implementation files.
 
-1. Run the audit script:
-- `python3 scripts/audit_frontmatter_keys.py --repo-root <repo-path> --output /tmp/frontmatter-audit.md`
-2. Read source map:
-- `references/frontmatter-source-map.md`
-3. Choose scope:
-- `outer` keys: top-level keys such as `title`, `layout`, `hero`, `features`, `cssVars`.
-- `inner` keys: nested keys such as `hero.background.layers[*].type`, `hero.waves.layers[*].opacity`.
-4. For snippet-ready examples, read:
-- `references/outer-inner-frontmatter-snippets.md`
-5. For VSCode extension sync, read:
-- `references/vscode-extension-sync.md`
-6. For page-level authoring surfaces, use:
-- `docs/src/en-US/frontmatter/page/**`
-- `docs/src/en-US/frontmatter/content/**`
-- `docs/src/en-US/frontmatter/hero/**`
-- and their localized counterparts
-7. Apply changes and validate:
-- `cd <repo>/docs && yarn locale && yarn sidebar && yarn tags && yarn build`
+## Start Here
 
-## Execution Rules
+1. Classify the request:
+- `add-key`: introduce a new frontmatter key or nested path
+- `refine-key`: change allowed values, defaults, or behavior
+- `document-key`: explain an existing contract clearly
+- `migrate-key`: deprecate, rename, or replace a contract
+- `sync-editor`: update completions, hover docs, or snippets for existing frontmatter
+2. Read the author-facing references first:
+- `references/frontmatter-authoring-playbook.md`
+- `references/outer-inner-frontmatter-snippets.md` when you need ready-to-insert YAML
+- `references/vscode-extension-sync.md` when editor hints or completions are in scope
+3. Write the contract in this order:
+- exact key path
+- outer or inner layer
+- accepted type or shape
+- default behavior
+- rendering or editor effect
+- one minimal example
+- one realistic example if the feature is non-trivial
+- migration note if old syntax exists
+4. Only after the contract is clear, use `references/frontmatter-source-map.md` or `scripts/audit_frontmatter_keys.py` to verify runtime ownership.
+5. If the change touches Hero Editor, Chart Editor, Mermaid editor, Smart Insert, or CodeLens, also use `../vitepress-visual-authoring-system/SKILL.md`.
 
-1. Prefer runtime-truth over legacy snippet truth when conflicts exist.
-2. Treat `hero.customSnippet` as deprecated and ignored; use `hero.snippets` and `hero.floating.items`.
-3. Always include compile-safe YAML examples in docs updates.
-4. Keep examples aligned with actual runtime contracts in:
-- `docs/src/en-US/frontmatter/page/**`
-- `docs/src/en-US/frontmatter/content/**`
-- `docs/src/en-US/frontmatter/hero/**`
-- `docs/src/en-US/frontmatter/reference/*.md`
-- `docs/src/en-US/guide/hero-enhancement*.md`
-- `docs/src/en-US/hero/matrix/**/*.md`
-5. When local assets are used in frontmatter examples, prefer base-safe project paths and validate in build/runtime.
+## Core Rules
 
-## Tasks
+1. Author-facing clarity is the main output. Internal implementation details are secondary.
+2. Never describe a frontmatter key without valid YAML.
+3. Keep outer page keys and inner nested keys explicitly separated.
+4. If the extension exposes the key through completion, hover, or editor UI, update that surface in the same task.
+5. If a key is deprecated, say what replaces it and whether old syntax is ignored, converted, or still accepted.
+6. Prefer compile-safe examples that can live in real docs pages.
+7. If the same contract affects multiple locales, keep the docs structure aligned even if the prose differs.
 
-### 1. Audit Frontmatter Coverage
+## Working Patterns
 
-1. Run:
-- `python3 scripts/audit_frontmatter_keys.py --repo-root <repo-path>`
-2. Inspect:
-- outer keys used by pages
-- inner nested key paths
-- snippet prefixes in `.vscode/md.code-snippets`
-- extension registry keys in `PickAIDDocVSCodeExtension/src/data/FrontmatterRegistry.ts`
-3. Use audit output to identify missing docs/snippets/registry entries.
+### Add a new outer page key
 
-### 2. Author Outer + Inner Frontmatter Docs
+1. Define the purpose in one sentence.
+2. Decide the exact value type.
+3. Add a minimal YAML example.
+4. Add one realistic example showing interaction with nearby keys.
+5. Update docs, snippets, and extension registry if the key is author-facing.
 
-1. Update docs under:
-- `docs/src/en-US/frontmatter/`
-2. Ensure each updated section includes at least one YAML code block.
-3. Keep outer/inner split explicit:
-- outer table
-- nested path table with concrete examples
-4. Include both a normal `layout: doc` example and a `layout: home` hero-page example when the contract affects page authoring.
-5. When template-derived developer docs changed and other repos should stay aligned, use [$vitepress-doc-sync](../vitepress-doc-sync/SKILL.md).
+Example:
 
-### 3. Sync VSCode Snippets + Extension Registry
+```yaml
+---
+layout: doc
+showEditor: true
+editor:
+  type: sidebar
+---
+```
 
-1. Update `.vscode/md.code-snippets` prefixes and bodies for frontmatter.
-2. Update `PickAIDDocVSCodeExtension/src/data/FrontmatterRegistry.ts` key coverage and snippets.
-3. Re-run audit and close gaps.
+### Add a new inner nested key
+
+1. Place it under the correct parent contract.
+2. Document the full path, not just the leaf name.
+3. Show the smallest valid parent structure.
+4. Explain whether omission falls back to defaults.
+
+Example:
+
+```yaml
+---
+layout: home
+hero:
+  background:
+    layers:
+      - kind: gradient
+        opacity: 0.7
+---
+```
+
+### Migrate or replace a key
+
+1. Document the old form.
+2. Document the new form.
+3. Explain which one wins if both appear.
+4. Update examples so the preferred syntax dominates future usage.
+5. If extension hover or completion still teaches the old syntax, fix it in the same task.
+
+### Audit frontmatter coverage
+
+1. Use the playbook to define the expected contract surface first.
+2. Run the audit script only after you know what should exist.
+3. Compare docs, snippets, and extension registry against the contract.
+4. Close gaps in authoring surfaces before polishing implementation details.
 
 ## Deliverable Checklist
 
-1. Frontmatter docs include both outer and inner sections.
-2. Docs include YAML snippets, not only prose/tables.
-3. Snippet templates and extension registry are aligned with runtime keys.
-4. Build succeeds.
-5. Audit output shows no obvious missing high-value keys.
+1. The contract is described in author terms, not just implementation terms.
+2. YAML examples cover both minimal and realistic usage where needed.
+3. Outer and inner keys are not mixed together ambiguously.
+4. Extension completion or hover coverage matches the documented contract when relevant.
+5. Deprecations include clear replacement guidance.
+6. Validation commands or audit output do not show obvious coverage gaps.
 
 ## Resources
 
-- `scripts/audit_frontmatter_keys.py`
-  - Scan markdown frontmatter usage and emit outer/inner key inventory plus snippet/registry coverage summaries.
-- `references/frontmatter-source-map.md`
-  - Authoritative file map and ownership of frontmatter domains.
+- `references/frontmatter-authoring-playbook.md`
+  - Main operating guide for designing and documenting frontmatter.
 - `references/outer-inner-frontmatter-snippets.md`
-  - Snippet-ready YAML examples for global, hero, waves, floating, features, and content/UI keys.
+  - Ready YAML patterns for common page, hero, and content structures.
 - `references/vscode-extension-sync.md`
-  - Checklist for keeping template snippets and extension registry synchronized.
-- [$vitepress-doc-sync](../vitepress-doc-sync/SKILL.md)
-  - Cross-repo sync workflow for template-derived developer docs after frontmatter contract changes.
+  - How to keep snippet and extension metadata aligned.
+- `references/frontmatter-source-map.md`
+  - Fallback file ownership map when you need to verify where runtime truth lives.
+- `scripts/audit_frontmatter_keys.py`
+  - Audit helper for coverage checks after the contract is defined.
+- `../vitepress-visual-authoring-system/SKILL.md`
+  - Use alongside this skill for visual-authoring surfaces.

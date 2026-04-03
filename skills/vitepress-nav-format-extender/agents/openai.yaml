@@ -1,4 +1,4 @@
 interface:
   display_name: "VitePress Nav Format Extender"
-  short_description: "Extend the typed nav system and shared preview/rendering contract"
-  default_prompt: "Extend the shared VitePress nav format, builders, validation, or preview layouts without breaking per-repo local registries."
+  short_description: "Change the shared nav API with examples, safe defaults, and migration care"
+  default_prompt: "Extend the shared VitePress navigation system by defining the new author-facing capability first, then updating types, builders, validation, and rendering without breaking local registries or simple links."

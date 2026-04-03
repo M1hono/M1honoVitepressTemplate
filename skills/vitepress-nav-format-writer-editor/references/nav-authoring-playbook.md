@@ -1,84 +1,55 @@
 # Nav Authoring Playbook
 
+Use this guide when writing or cleaning up a locale `nav.ts` file.
+
 ## Preferred File Shape
 
 1. Imports
-2. Shared screenshot/URL constants
-3. Named top-level section constants
-4. Named panel arrays
-5. Final `export default createNavItems(...)`
+2. Reused media or URL constants
+3. Named top-level items
+4. Named panel or group arrays
+5. Final export that reads like the site structure
 
-This is preferred over a single deeply nested exported object.
+A maintainer should understand the page hierarchy by scanning the final export and the named constants above it.
 
-## Example Patterns
+## Authoring Priorities
 
-### Simple link
+1. Text first
+2. Correct link type second
+3. Preview content third
+4. Visual flourish last
 
-```ts
-const homeNav = createLinkedNavItem("Home", "/");
-```
+If preview styling makes the nav harder to read, the preview is overdesigned.
 
-### Third-party docs link
+## Internal vs External Targets
 
-```ts
-const courseNav = createLinkedNavItem("KubeJS Course", {
-  href: "https://example.com",
-  badge: createNavBadge("3rd-party", "info"),
-  desc: "Externally maintained long-form course.",
-});
-```
+### Internal
 
-If the existing builder signature does not fit, keep the external target explicit with `href` on the final item object.
+Use normal internal links for project pages. Keep them aligned with the current locale and base rules.
 
-### Dropdown with named panels
+### External
 
-```ts
-const docsPanels: NavPanel[] = [
-  {
-    groups: [
-      {
-        label: "Guides",
-        items: [
-          {
-            text: "Overview",
-            link: "/docs/overview/",
-            desc: "Entry point for the docs area.",
-          },
-        ],
-      },
-    ],
-  },
-];
+Use `href` for third-party content. Add a badge or short description when users may think it is part of the current docs set.
 
-const docsNav = createDropdownNavItem(
-  "Docs",
-  createNavDropdown({
-    layout: "columns",
-    panels: docsPanels,
-  }),
-);
-```
+## Preview Policy
 
-### Plain screenshot preview
+Use previews only when they improve orientation.
 
-```ts
-const docsPreview = createNavPreviewPanel(
-  "Docs Hub",
-  "Primary entry point for the documentation area.",
-  "Use this when you want the internal docs set, not external references.",
-  createScreenshotMedia(
-    "Docs hub preview",
-    "/imgs/screenshots/nav/docs-hub.png",
-    "linear-gradient(135deg, #102038 0%, #2b4c7e 100%)",
-  ),
-);
-```
+Good uses:
+- primary docs hub
+- showcase landing area
+- visual section where a screenshot explains the section faster than prose
 
-## Review Checklist
+Weak uses:
+- every simple link
+- decorative duplication of the link text
+- screenshot blocks that overwhelm the section name
 
-- Are top-level sections named?
-- Are dropdowns using builders instead of raw structural blobs?
-- Are previews plain by default?
-- Are third-party links using `href` and clearly labeled?
-- Does the locale still match its sibling locale structurally where expected?
-- Did the change avoid touching component registry files?
+## Refactor Policy
+
+When a nav file becomes messy:
+
+1. Pull repeated preview data into named constants.
+2. Name panel arrays after their meaning.
+3. Flatten unnecessary nesting.
+4. Keep the final export readable without opening multiple helper files.

@@ -1,4 +1,4 @@
 interface:
   display_name: "VitePress Template Extender"
-  short_description: "Extend this VitePress template with consistent patterns"
-  default_prompt: "Extend this VitePress template by adding components, markdown plugins, or config in the existing project style."
+  short_description: "Add template features from author surface through runtime, editor, and i18n"
+  default_prompt: "Extend this VitePress template from the outside in: define the author-facing change first, then implement the smallest runtime, editor, and i18n changes needed to fit the existing template architecture."

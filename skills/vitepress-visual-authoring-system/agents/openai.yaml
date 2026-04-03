@@ -1,0 +1,4 @@
+interface:
+  display_name: "VitePress Visual Authoring System"
+  short_description: "Keep hero, chart, Mermaid, and editor behavior aligned across runtime and tooling"
+  default_prompt: "Update the visual authoring system by starting from the author-facing behavior, then keeping template runtime, docs, and editor support aligned across hero, charts, Mermaid, Smart Insert, and CodeLens flows."
