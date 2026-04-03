@@ -41,6 +41,16 @@
     box-sizing: border-box;
 }
 
+.fullwidth-layout .VPDoc:not(.has-sidebar) .container,
+.fullwidth-layout .VPDoc:not(.has-sidebar) .content,
+.fullwidth-layout .VPDoc:not(.has-sidebar) .container > .content {
+    max-width: 100% !important;
+}
+
+.fullwidth-layout .VPDoc:not(.has-sidebar) .content {
+    padding-inline: 0;
+}
+
 @media (max-width: 768px) {
     .m-nav-layout .VPPage .vp-doc {
         padding:
