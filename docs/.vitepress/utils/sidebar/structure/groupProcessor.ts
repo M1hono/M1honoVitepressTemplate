@@ -15,7 +15,7 @@
 
 import path from 'node:path';
 import { SidebarItem, GroupConfig, EffectiveDirConfig } from '../types';
-import { FileSystem } from "@utils/vitepress/system/FileSystem";
+import type { FileSystem } from "../shared/fileSystem";
 import { ConfigReaderService } from '../config';
 import { generateLink } from './linkGenerator';
 import { sortItems } from './itemSorter';

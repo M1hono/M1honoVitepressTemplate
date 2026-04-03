@@ -1,5 +1,5 @@
 import path from "node:path";
-import { FileSystem } from "@utils/vitepress/system";
+import type { FileSystem } from "./fileSystem";
 import { normalizePathSeparators } from "./objectUtils";
 
 export const SIDEBAR_CONFIG_FILE_CANDIDATES = [

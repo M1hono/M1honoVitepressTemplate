@@ -1,8 +1,8 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { Dirent, Stats } from "node:fs";
-import { FileSystem } from "@utils/vitepress/system/FileSystem";
-import { normalizePathSeparators } from "@utils/sidebar/shared/objectUtils";
+import type { FileSystem } from "./FileSystem";
+import { normalizePathSeparators } from "../../sidebar/shared/objectUtils";
 
 export class NodeFileSystem implements FileSystem {
     async readFile(filePath: string): Promise<string> {
@@ -52,4 +52,3 @@ export class NodeFileSystem implements FileSystem {
         }
     }
 }
-

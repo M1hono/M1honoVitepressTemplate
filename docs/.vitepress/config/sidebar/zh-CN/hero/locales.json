@@ -1,4 +1,5 @@
 {
   "_self_": "Hero 演练场",
-  "heroRuntime.md": "Hero 运行时 Frontmatter"
+  "matrix/": "Hero 配置矩阵",
+  "AllConfig.md": "Hero 全配置总览"
 }

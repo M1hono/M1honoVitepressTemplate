@@ -12,7 +12,7 @@ import { StructuralGeneratorService } from "./structure";
 import { JsonConfigSynchronizerService } from "./overrides";
 import { GitBookService } from "./external";
 import { GitBookParserService } from "./external/GitBookParserService";
-import { FileSystem, NodeFileSystem } from "@utils/vitepress/system";
+import { NodeFileSystem, type FileSystem } from "./shared/fileSystem";
 import { normalizePathSeparators } from "./shared/objectUtils";
 import {
     SIDEBAR_CONFIG_FILE_CANDIDATES,

@@ -18,7 +18,7 @@ import {
     SidebarItem,
     JsonFileMetadata,
 } from '../types';
-import { FileSystem } from "@utils/vitepress/system/FileSystem";
+import type { FileSystem } from "../shared/fileSystem";
 import { normalizePathSeparators, sanitizeTitleForPath } from '../shared/objectUtils';
 import { JsonFileHandler, JsonOverrideFileType } from './JsonFileHandler';
 import { MetadataManager } from './MetadataManager';

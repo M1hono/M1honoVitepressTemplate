@@ -16,7 +16,7 @@ import path from 'node:path';
 import { normalizePathSeparators } from '../shared/objectUtils';
 import { JsonFileHandler, JsonOverrideFileType } from './JsonFileHandler';
 import { MetadataManager } from './MetadataManager';
-import { FileSystem } from "@utils/vitepress/system/FileSystem";
+import type { FileSystem } from "../shared/fileSystem";
 
 /**
  * Intelligent directory cleanup service for JSON configuration management.

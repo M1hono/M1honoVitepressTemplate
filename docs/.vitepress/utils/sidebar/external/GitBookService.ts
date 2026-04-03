@@ -1,4 +1,4 @@
-import { FileSystem } from "@utils/vitepress/system/FileSystem";
+import type { FileSystem } from "../shared/fileSystem";
 import { normalizePathSeparators } from '../shared/objectUtils';
 import glob from 'fast-glob';
 import path from 'node:path';

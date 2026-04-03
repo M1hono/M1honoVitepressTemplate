@@ -1,7 +1,7 @@
 import path from "node:path";
 import matter from "gray-matter";
 import { SidebarItem, EffectiveDirConfig, FileConfig } from "../types";
-import { FileSystem } from "@utils/vitepress/system/FileSystem";
+import type { FileSystem } from "../shared/fileSystem";
 import { ConfigReaderService } from "../config";
 import { generateLink } from "./linkGenerator";
 import { generatePathKey } from "./pathKeyGenerator";

@@ -1,4 +1,5 @@
 {
   "_self_": "Hero Playground",
-  "heroRuntime.md": "Hero Runtime Frontmatter"
+  "matrix/": "Hero Config Matrix",
+  "AllConfig.md": "All Hero Configuration"
 }
