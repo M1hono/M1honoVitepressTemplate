@@ -1,17 +1,13 @@
 <script lang="ts" setup>
     import { createBreadcrumbState } from "@utils/vitepress/runtime/navigation/breadcrumbState";
+    import { resolveBaseAwareHref } from "@utils/vitepress/runtime/navigation/linkResolution";
     import { useData, withBase } from "vitepress";
     import { computed } from "vue";
 
     const { breadcrumbs } = createBreadcrumbState();
     const { frontmatter } = useData();
 
-    const isExternalLink = (link: string) => /^(https?:)?\/\//.test(link);
-    const resolveHref = (link?: string) => {
-        if (!link) return undefined;
-        if (isExternalLink(link)) return link;
-        return withBase(link);
-    };
+    const resolveHref = (link?: string) => resolveBaseAwareHref(link, withBase);
 
     // Only show breadcrumbs if there is a real trail and it's not disabled in frontmatter
     const hasBreadcrumbs = computed(() => {

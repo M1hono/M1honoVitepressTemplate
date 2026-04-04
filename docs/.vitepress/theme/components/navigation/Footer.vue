@@ -10,6 +10,10 @@
     import type { FooterConfig } from "@utils/content/footer";
     import { Icon } from "@iconify/vue";
     import { useSafeI18n } from "@utils/i18n/locale";
+    import {
+        isExternalUrl,
+        resolveBaseAwareHref,
+    } from "@utils/vitepress/runtime/navigation/linkResolution";
     import { createViewportState, Breakpoints } from "@utils/vitepress/runtime/viewport";
     import {
         resolveThemeColorByMode,
@@ -186,8 +190,10 @@
      * @returns True if external link
      */
     const isExternalLink = (url: string) => {
-        return /^https?:\/\//.test(url);
+        return isExternalUrl(url);
     };
+
+    const resolveHref = (href?: string) => resolveBaseAwareHref(href, withBase);
 
     /**
      * Resolves icon source based on icon configuration.
@@ -335,7 +341,7 @@
                             alt="icon"
                         />
                         <a
-                            :href="link.link"
+                            :href="resolveHref(link.link)"
                             :rel="link.rel"
                             :target="
                                 link.target ||
@@ -409,8 +415,10 @@
                     />
                     <a
                         :href="
-                            footerData.beian.icp.link ||
-                            'https://beian.miit.gov.cn/'
+                            resolveHref(
+                                footerData.beian.icp.link ||
+                                    'https://beian.miit.gov.cn/'
+                            )
                         "
                         :rel="footerData.beian.icp.rel || 'nofollow'"
                         :target="footerData.beian.icp.target"
@@ -474,8 +482,10 @@
                     />
                     <a
                         :href="
-                            footerData.beian.police.link ||
-                            'https://beian.mps.gov.cn/'
+                            resolveHref(
+                                footerData.beian.police.link ||
+                                    'https://beian.mps.gov.cn/'
+                            )
                         "
                         :rel="footerData.beian.police.rel"
                         :target="footerData.beian.police.target"
@@ -491,7 +501,7 @@
                 >
                     <Icon icon="mdi:license" />
                     <a
-                        :href="projectInfo.footerOptions.licenseLink"
+                        :href="resolveHref(projectInfo.footerOptions.licenseLink)"
                         rel="noopener noreferrer"
                         target="_blank"
                         class="info-link"
@@ -540,8 +550,10 @@
                 }}{{ currentYear }}
                 <a
                     :href="
-                        footerData.author.link ||
-                        `https://github.com/${footerData.author.name}`
+                        resolveHref(
+                            footerData.author.link ||
+                                `https://github.com/${footerData.author.name}`
+                        )
                     "
                     :rel="footerData.author.rel"
                     :target="footerData.author.target"
