@@ -5,21 +5,17 @@ import {
     getLangCodeFromVitepressLang,
     getLanguageByCode,
 } from "@utils/config/project-api";
+import { resolveDirectoryLandingAwarePath } from "@utils/sidebar/shared/directoryLandingRouteResolver";
 import { buildBreadcrumbItems, type BreadcrumbItem } from "./linkResolution";
+import { buildKnownPagePathSetFromSidebar } from "./pageRouteIndex";
 
 export function createBreadcrumbState() {
     const route = useRoute();
-    const { lang, site, page } = useData();
+    const { lang, site, page, theme } = useData();
 
-    const knownPagePaths = computed<Set<string>>(() => {
-        const pages: string[] = (site.value as any).pages ?? [];
-        const set = new Set<string>();
-        pages.forEach((p) => {
-            if (typeof p !== "string") return;
-            set.add(p);
-        });
-        return set;
-    });
+    const knownPagePaths = computed(() =>
+        buildKnownPagePathSetFromSidebar(theme.value.sidebar),
+    );
 
     const breadcrumbs = computed<BreadcrumbItem[]>(() => {
         const normalizedLang = getLangCodeFromVitepressLang(lang.value);
@@ -39,6 +35,7 @@ export function createBreadcrumbState() {
             knownPagePaths: knownPagePaths.value,
             navTree,
             localeCodes: Object.keys(navConfig.locales),
+            resolveLinkPath: resolveDirectoryLandingAwarePath,
         });
     });
 

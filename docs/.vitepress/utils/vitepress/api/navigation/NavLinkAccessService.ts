@@ -1,30 +1,16 @@
-const markdownPages = import.meta.glob("/src/**/*.md");
+import { normalizeMarkdownPageRoute } from "../../runtime/navigation/pageRouteIndex";
+
+const markdownPages = import.meta.glob("../../../../src/**/*.md");
 
 class NavMarkdownRouteIndex {
     private readonly accessibleInternalRoutes: Set<string>;
 
     constructor(pages: Record<string, unknown>) {
         this.accessibleInternalRoutes = new Set<string>(
-            Object.keys(pages).map((filePath) => this.pageFileToRoute(filePath)),
+            Object.keys(pages).map((filePath) =>
+                normalizeMarkdownPageRoute(filePath).replace(/\/$/, "") || "/",
+            ),
         );
-    }
-
-    private normalizeRoutePath(path: string): string {
-        let route = (path || "/").trim();
-        if (!route) return "/";
-        route = route.split(/[?#]/)[0] || "/";
-        route = route.replace(/\/index(?:\.md|\.html)?$/i, "");
-        route = route.replace(/\.(md|html)$/i, "");
-        if (!route.startsWith("/")) route = `/${route}`;
-        if (route.length > 1 && route.endsWith("/")) route = route.slice(0, -1);
-        return route || "/";
-    }
-
-    private pageFileToRoute(filePath: string): string {
-        let route = filePath.replace(/^\/src/, "");
-        route = route.replace(/\.md$/i, "");
-        route = route.replace(/\/index$/i, "");
-        return this.normalizeRoutePath(route || "/");
     }
 
     hasRoute(path: string) {
