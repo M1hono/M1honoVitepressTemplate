@@ -7,6 +7,10 @@ import { generateLink } from "./linkGenerator";
 import { generatePathKey } from "./pathKeyGenerator";
 import { normalizePathSeparators } from "../shared/objectUtils";
 import {
+    joinSidebarBaseRelativePath,
+    resolveChildViewTransition,
+} from "./viewControl";
+import {
     isSidebarConfigFileName,
     resolveSidebarConfigFilePath,
 } from "../shared/sidebarFileConventions";
@@ -269,18 +273,28 @@ async function processDirectoryEntry(
     ) => Promise<SidebarItem[]>
 ): Promise<SidebarItem | null> {
     let subItems: SidebarItem[] = [];
-    
-    if (currentLevelDepth < parentViewEffectiveConfig.maxDepth) {
+
+    const childViewTransition = resolveChildViewTransition(
+        parentViewEffectiveConfig,
+        dirEffectiveConfig,
+        itemRelativePathKey,
+        currentLevelDepth
+    );
+
+    if (childViewTransition.canRecurse) {
         const subDirContextConfig = {
-            ...dirEffectiveConfig,
-            _baseRelativePathForChildren: itemRelativePathKey,
+            ...childViewTransition.nextConfig,
+            _baseRelativePathForChildren: joinSidebarBaseRelativePath(
+                parentViewEffectiveConfig._baseRelativePathForChildren,
+                itemRelativePathKey
+            ),
         };
-        
+
         subItems = await recursiveGenerator(
             normalizedItemAbsPath,
             subDirContextConfig,
             lang,
-            currentLevelDepth + 1,
+            childViewTransition.nextDepth,
             isDevMode
         );
     }
@@ -428,7 +442,6 @@ export async function processItem(
         return null;
     }
 
-    const parentKeyForChildren = parentViewEffectiveConfig._baseRelativePathForChildren ?? "";
     const parentDirAbsPath = path.dirname(normalizedItemAbsPath);
     const itemRelativePathKey = generatePathKey(
         normalizedItemAbsPath,
@@ -457,7 +470,9 @@ export async function processItem(
         isDevMode
     );
 
-    const isProcessingWithinExistingRoot = currentLevelDepth > 0;
+    const isProcessingWithinExistingRoot =
+        currentLevelDepth > 0 ||
+        parentViewEffectiveConfig._disableRootFlatten === true;
     
     if (
         dirEffectiveConfig.root &&

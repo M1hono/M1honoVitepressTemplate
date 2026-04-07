@@ -1,12 +1,12 @@
 /**
  * @fileoverview Group processing utilities for sidebar generation.
- *
+ * 
  * This module handles the extraction and processing of grouped content within
  * sidebar structures. Groups allow organizing related content from different
  * directories into separate, independent sidebar sections. This is particularly
  * useful for creating thematic groupings that transcend the physical directory
  * structure.
- *
+ * 
  * @module GroupProcessor
  * @version 1.0.0
  * @author M1hono
@@ -20,12 +20,13 @@ import { ConfigReaderService } from '../config';
 import { generateLink } from './linkGenerator';
 import { sortItems } from './itemSorter';
 import { normalizePathSeparators } from '../shared/objectUtils';
+import { normalizeViewControl } from './viewControl';
 import { resolveSidebarConfigFilePath } from "../shared/sidebarFileConventions";
 
 /**
  * Type definition for item processing callback function.
  * Used for processing individual file system entries during sidebar generation.
- *
+ * 
  * @typedef {Function} ItemProcessorFunction
  * @since 1.0.0
  */
@@ -47,7 +48,7 @@ export type ItemProcessorFunction = (
 /**
  * Type definition for recursive sidebar view generation callback function.
  * Used for generating nested sidebar content recursively.
- *
+ * 
  * @typedef {Function} RecursiveViewGeneratorFunction
  * @since 1.0.0
  */
@@ -61,11 +62,11 @@ export type RecursiveViewGeneratorFunction = (
 
 /**
  * Processes a group configuration and generates its standalone SidebarItem.
- *
+ * 
  * Creates an independent sidebar section that extracts content from the specified
  * path and organizes it under a group title. This allows content from nested
  * directories to be promoted to top-level sections for better organization.
- *
+ * 
  * @param {GroupConfig} groupConfig - Group configuration from frontmatter
  * @param {string} baseDirAbsPath - Absolute path of the directory defining this group
  * @param {EffectiveDirConfig} parentDirEffectiveConfig - Effective config of the parent directory
@@ -129,17 +130,17 @@ export async function processGroup(
         groupContentAbsPath,
     );
     let groupEffectiveConfig: EffectiveDirConfig;
-
+    
     try {
         const groupFrontmatter = await configReader.getLocalFrontmatter(groupIndexPath);
-
+        
         const baseConfig = {
             ...parentDirEffectiveConfig,
             externalLinks: [],
             groups: [],
             itemOrder: {}
         };
-
+        
         groupEffectiveConfig = {
             ...baseConfig,
             ...groupFrontmatter,
@@ -148,7 +149,13 @@ export async function processGroup(
             priority: groupConfig.priority ?? (groupFrontmatter.priority || 0),
             maxDepth: groupConfig.maxDepth ?? (groupFrontmatter.maxDepth || parentDirEffectiveConfig.maxDepth),
             path: groupContentAbsPath,
+            viewControl: normalizeViewControl(
+                groupFrontmatter.viewControl ?? baseConfig.viewControl,
+                baseConfig.viewControl.mode
+            ),
             _baseRelativePathForChildren: '',
+            _controlRelativePath: '',
+            _disableRootFlatten: false,
             itemOrder: Array.isArray(groupFrontmatter.itemOrder) ? {} : (groupFrontmatter.itemOrder || {})
         };
     } catch (error) {
@@ -159,7 +166,10 @@ export async function processGroup(
             priority: groupConfig.priority ?? 0,
             maxDepth: groupConfig.maxDepth ?? parentDirEffectiveConfig.maxDepth,
             path: groupContentAbsPath,
+            viewControl: parentDirEffectiveConfig.viewControl,
             _baseRelativePathForChildren: '',
+            _controlRelativePath: '',
+            _disableRootFlatten: false,
             externalLinks: [],
             groups: [],
             itemOrder: {}
@@ -171,7 +181,13 @@ export async function processGroup(
         title: groupTitle,
         priority: groupConfig.priority ?? groupEffectiveConfig.priority ?? 0,
         maxDepth: groupConfig.maxDepth ?? groupEffectiveConfig.maxDepth,
-        _baseRelativePathForChildren: ''
+        viewControl: normalizeViewControl(
+            groupEffectiveConfig.viewControl,
+            groupEffectiveConfig.viewControl.mode
+        ),
+        _baseRelativePathForChildren: '',
+        _controlRelativePath: '',
+        _disableRootFlatten: false,
     };
 
     const groupItems = await recursiveViewGenerator(
@@ -213,11 +229,11 @@ export async function processGroup(
 
 /**
  * Extracts grouped content from sidebar items and returns filtered results.
- *
+ * 
  * Processes group configurations to create independent sidebar sections while
  * removing the original grouped content from the main sidebar structure. This
  * prevents duplication and allows for clean separation of grouped content.
- *
+ * 
  * @param {SidebarItem[]} sidebarItems - Original sidebar items
  * @param {GroupConfig[]} groups - Group configurations to process
  * @param {string} baseDirAbsPath - Base directory path
@@ -280,7 +296,7 @@ export async function extractGroups(
 
         if (groupItem) {
             extractedGroups.push(groupItem);
-
+            
             const groupAbsPath = normalizePathSeparators(
                 path.resolve(baseDirAbsPath, groupConfig.path)
             );
@@ -295,11 +311,11 @@ export async function extractGroups(
 
 /**
  * Removes sidebar items that match the specified absolute paths.
- *
+ * 
  * Filters out items whose file paths or directory paths match any of the
  * paths in the removal set. Recursively processes nested items to ensure
  * complete removal of grouped content.
- *
+ * 
  * @param {SidebarItem[]} items - Sidebar items to filter
  * @param {Set<string>} pathsToRemove - Set of absolute paths to remove
  * @returns {SidebarItem[]} Filtered sidebar items with specified paths removed
@@ -311,7 +327,7 @@ function filterItemsByPaths(items: SidebarItem[], pathsToRemove: Set<string>): S
         if (item._filePath && pathsToRemove.has(normalizePathSeparators(item._filePath))) {
             return false;
         }
-
+        
         if (item._isDirectory && item._relativePathKey) {
             const itemPath = item._relativePathKey.replace(/\/$/, '');
             for (const pathToRemove of pathsToRemove) {
@@ -320,22 +336,22 @@ function filterItemsByPaths(items: SidebarItem[], pathsToRemove: Set<string>): S
                 }
             }
         }
-
+        
         if (item.items) {
             item.items = filterItemsByPaths(item.items, pathsToRemove);
         }
-
+        
         return true;
     });
 }
 
 /**
  * Converts a string to a URL-safe slug format.
- *
+ * 
  * Transforms text into lowercase, replaces spaces with hyphens, removes
  * non-word characters, and cleans up multiple hyphens. Used for generating
  * consistent path segments from titles and names.
- *
+ * 
  * @param {string} text - Text to convert to slug format
  * @returns {string} URL-safe slug string
  * @since 1.0.0
@@ -357,10 +373,10 @@ function slugify(text: string): string {
 
 /**
  * Checks if an absolute path is excluded due to GitBook restrictions.
- *
+ * 
  * Determines whether a given path falls within any of the globally excluded
  * GitBook directories by comparing normalized paths.
- *
+ * 
  * @param {string} absPath - Absolute path to check
  * @param {string[]} exclusionList - Array of absolute paths to excluded GitBook directories
  * @returns {boolean} True if the path should be excluded, false otherwise
@@ -369,7 +385,7 @@ function slugify(text: string): string {
  */
 function isGitBookExcluded(absPath: string, exclusionList: string[]): boolean {
     const normalizedAbsPath = normalizePathSeparators(absPath);
-    return exclusionList.some(excludedPath =>
+    return exclusionList.some(excludedPath => 
         normalizedAbsPath === excludedPath || normalizedAbsPath.startsWith(excludedPath + '/')
     );
-}
+} 

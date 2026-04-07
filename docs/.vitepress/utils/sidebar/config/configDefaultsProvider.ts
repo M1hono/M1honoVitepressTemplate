@@ -14,6 +14,7 @@
 
 import path from 'node:path';
 import { EffectiveDirConfig, GlobalSidebarConfig, DirectoryConfig, GroupConfig, ExternalLinkConfig } from '../types';
+import { normalizeViewControl } from '../structure/viewControl';
 
 /**
  * @function convertItemOrderToRecord
@@ -110,8 +111,13 @@ export function applyConfigDefaults(
     const itemOrder = convertItemOrderToRecord(partialConfig.itemOrder ?? defaults.itemOrder);
     const groups = Array.isArray(partialConfig.groups) ? partialConfig.groups : [];
     const externalLinks = Array.isArray(partialConfig.externalLinks) ? partialConfig.externalLinks : [];
+    const viewControl = normalizeViewControl(
+        partialConfig.viewControl ?? defaults.viewControl,
+        root ? 'self' : 'all'
+    );
 
     return {
+        ...partialConfig,
         root,
         title,
         hidden,
@@ -121,10 +127,9 @@ export function applyConfigDefaults(
         itemOrder,
         groups,
         externalLinks,
+        viewControl,
         path: directoryPath,
         lang,
         isDevMode,
-        ...partialConfig
     };
 } 
-

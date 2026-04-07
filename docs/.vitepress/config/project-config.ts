@@ -18,7 +18,7 @@ export const projectConfig: ProjectConfig = {
     base: "/M1honoVitepressTemplate/",
 
     keyWords: ["VitePress", "template", "documentation", "wiki", "markdown"],
-    version: "2.0.1",
+    version: "2.1.0",
     author: "M1hono",
     license: "CC BY-SA 4.0",
 

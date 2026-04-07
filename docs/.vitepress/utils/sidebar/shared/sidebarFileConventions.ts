@@ -6,6 +6,7 @@ export const SIDEBAR_CONFIG_FILE_CANDIDATES = [
     "sidebarIndex.md",
     "root.md",
     "index.md",
+    "Catalogue.md",
 ] as const;
 
 export const DIRECTORY_LANDING_FILE_CANDIDATES = [

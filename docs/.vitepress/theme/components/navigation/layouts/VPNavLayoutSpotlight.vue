@@ -43,8 +43,10 @@
         }
         return links;
     });
-    const hasPreviewColumn = computed(() => previewLinks.value.length > 0);
     const defaultPreview = computed(() => props.item.dropdown?.preview || null);
+    const hasPreviewColumn = computed(
+        () => previewLinks.value.length > 0 || Boolean(defaultPreview.value),
+    );
 
     const menuId = computed(() => {
         const slug = props.item.text

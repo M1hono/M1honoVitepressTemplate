@@ -2,6 +2,14 @@
 
 A VitePress template with the M1hono documentation stack, visual authoring features, and companion agent skills.
 
+Current release: `2.1.0`
+
+## Release Highlights
+
+- Sidebar traversal now supports Crychic-synced `viewControl` semantics, including root-controlled and child-override modes.
+- Shared navigation layouts were refreshed with the current multi-column and spotlight implementations from Crychic.
+- Sidebar generation now ships with regression coverage for `viewControl` depth handling.
+
 ## Quick Start
 
 This template keeps the VitePress app inside `docs/`.
@@ -92,7 +100,12 @@ Notes:
 - M1hono VitePress theme structure
 - multi-language documentation support
 - visual authoring runtime for hero, charts, and Mermaid
+- root-controlled sidebar traversal and richer shared navigation layouts
 - companion agent skills for template extension and maintenance
+
+## Changelog
+
+- See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 
 ## Deploy
 

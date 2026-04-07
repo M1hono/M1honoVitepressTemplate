@@ -14,6 +14,7 @@ import { GitBookService } from "./external";
 import { GitBookParserService } from "./external/GitBookParserService";
 import { NodeFileSystem, type FileSystem } from "./shared/fileSystem";
 import { normalizePathSeparators } from "./shared/objectUtils";
+import { normalizeViewControl } from "./structure/viewControl";
 import {
     SIDEBAR_CONFIG_FILE_CANDIDATES,
     resolveSidebarConfigFilePath,
@@ -49,6 +50,22 @@ function filterGroupedContent(items: any[], groupPaths: Set<string>): any[] {
         
         return newItem
     }).filter(item => item !== null);
+}
+
+function mergeStandaloneRootPropertiesPreservingChildren(
+    targetItem: SidebarItem,
+    standaloneItem: SidebarItem
+): void {
+    const preservedChildren = targetItem.items;
+    Object.assign(targetItem, standaloneItem);
+
+    if (preservedChildren !== undefined) {
+        targetItem.items = preservedChildren;
+    }
+}
+
+function cloneSidebarItemForStandaloneSync(item: SidebarItem): SidebarItem {
+    return JSON.parse(JSON.stringify(item)) as SidebarItem;
 }
 
 /**
@@ -272,6 +289,8 @@ export async function generateSidebars(
             effectiveConfig = {
                 ...effectiveConfig,
                 _baseRelativePathForChildren: "", 
+                _controlRelativePath: "",
+                _disableRootFlatten: false,
             };
             
 
@@ -333,7 +352,13 @@ export async function generateSidebars(
                             root: false,
                             priority: groupConfig.priority ?? (groupFrontmatter.priority || 0),
                             maxDepth: groupConfig.maxDepth ?? (groupFrontmatter.maxDepth || effectiveConfig.maxDepth),
+                            viewControl: normalizeViewControl(
+                                groupFrontmatter.viewControl ?? baseConfig.viewControl,
+                                baseConfig.viewControl.mode
+                            ),
                             _baseRelativePathForChildren: '',
+                            _controlRelativePath: '',
+                            _disableRootFlatten: false,
                             itemOrder: Array.isArray(groupFrontmatter.itemOrder) ? {} : (groupFrontmatter.itemOrder || {})
                         };
                     } catch (error) {
@@ -343,7 +368,10 @@ export async function generateSidebars(
                             root: false,
                             priority: groupConfig.priority ?? 0,
                             maxDepth: groupConfig.maxDepth ?? effectiveConfig.maxDepth,
+                            viewControl: effectiveConfig.viewControl,
                             _baseRelativePathForChildren: '',
+                            _controlRelativePath: '',
+                            _disableRootFlatten: false,
                             externalLinks: [],
                             groups: [],
                             itemOrder: {}
@@ -403,6 +431,7 @@ export async function generateSidebars(
         }
         
         const processedFlattenedSections = new Set<string>();
+        const processedChildRootDecorations = new Set<string>();
         
         const searchForFlattenedRoots = async (items: any[], currentPath: string = ''): Promise<void> => {
             if (!Array.isArray(items)) return;
@@ -427,9 +456,9 @@ export async function generateSidebars(
                                 const itemRootKey = `/${normalizePathSeparators(path.relative(absDocsPath, itemPathInDocs))}/`;
                                 const normalizedItemRootKey = itemRootKey.replace(/\/\/+/g, "/");
                                 
-                                if (!processedFlattenedSections.has(normalizedItemRootKey)) {
+                                if (!processedChildRootDecorations.has(normalizedItemRootKey)) {
                                     const standaloneSection = [{
-                                        ...item,
+                                        ...cloneSidebarItemForStandaloneSync(item),
                                         _isRoot: true
                                     }];
                                     
@@ -443,9 +472,9 @@ export async function generateSidebars(
                                     
                                     if (processedSection && processedSection.length > 0) {
                                         const processedItem = processedSection[0];
-                                        Object.assign(item, processedItem);
+                                        mergeStandaloneRootPropertiesPreservingChildren(item, processedItem);
                                         
-                                        processedFlattenedSections.add(normalizedItemRootKey);
+                                        processedChildRootDecorations.add(normalizedItemRootKey);
                                     }
                                 }
                             }
@@ -524,9 +553,9 @@ export async function generateSidebars(
                                         const childRootKey = `/${normalizePathSeparators(path.relative(absDocsPath, childPathInDocs))}/`;
                                         const normalizedChildRootKey = childRootKey.replace(/\/\/+/g, "/");
                                         
-                                        if (!processedFlattenedSections.has(normalizedChildRootKey)) {
+                                        if (!processedChildRootDecorations.has(normalizedChildRootKey)) {
                                             const standaloneSection = [{
-                                                ...childItem,
+                                                ...cloneSidebarItemForStandaloneSync(childItem),
                                                 _isRoot: true
                                             }];
                                             
@@ -540,9 +569,9 @@ export async function generateSidebars(
                                             
                                             if (processedSection && processedSection.length > 0) {
                                                 const processedChild = processedSection[0];
-                                                Object.assign(childItem, processedChild);
+                                                mergeStandaloneRootPropertiesPreservingChildren(childItem, processedChild);
                                                 
-                                                processedFlattenedSections.add(normalizedChildRootKey);
+                                                processedChildRootDecorations.add(normalizedChildRootKey);
                                             }
                                         }
                                     }

@@ -32,7 +32,10 @@
         }
         return links;
     });
-    const hasPreviewColumn = computed(() => previewLinks.value.length > 0);
+    const defaultPreview = computed(() => props.item.dropdown?.preview || null);
+    const hasPreviewColumn = computed(
+        () => previewLinks.value.length > 0 || Boolean(defaultPreview.value),
+    );
 
     const menuId = computed(() => {
         const slug = props.item.text
@@ -225,9 +228,10 @@
                 >
                     <Transition name="item-preview-sheet" mode="out-in">
                         <NavHoverPreviewSheet
-                            v-if="activePreviewLink"
-                            :key="activePreviewLink.text"
+                            v-if="activePreviewLink || defaultPreview"
+                            :key="activePreviewLink?.text || `${menuId}-default`"
                             :link="activePreviewLink"
+                            :preview="defaultPreview"
                         />
                         <div
                             v-else

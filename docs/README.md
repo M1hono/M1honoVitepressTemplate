@@ -1,8 +1,16 @@
-# VitePress Template Advanced - Configuration Guide
+# M1hono VitePress Template - Configuration Guide
 
 ## Overview
 
 This guide covers the core configuration system: how to modify project settings, add new languages, and configure sidebar tags.
+
+Current release: `2.1.0`
+
+## Release Highlights
+
+- Crychic-synced `viewControl` handling for root-controlled and descendant-controlled sidebar traversal
+- refreshed shared navigation layouts used by the template header dropdowns
+- regression coverage for sidebar traversal depth and child escape behavior
 
 ## Table of Contents
 
