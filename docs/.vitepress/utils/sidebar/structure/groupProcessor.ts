@@ -20,6 +20,7 @@ import { ConfigReaderService } from '../config';
 import { generateLink } from './linkGenerator';
 import { sortItems } from './itemSorter';
 import { normalizePathSeparators } from '../shared/objectUtils';
+import { normalizeCollapseControl } from './collapseControl';
 import { normalizeViewControl } from './viewControl';
 import { resolveSidebarConfigFilePath } from "../shared/sidebarFileConventions";
 
@@ -153,6 +154,9 @@ export async function processGroup(
                 groupFrontmatter.viewControl ?? baseConfig.viewControl,
                 baseConfig.viewControl.mode
             ),
+            collapseControl: normalizeCollapseControl(
+                groupFrontmatter.collapseControl ?? baseConfig.collapseControl
+            ),
             _baseRelativePathForChildren: '',
             _controlRelativePath: '',
             _disableRootFlatten: false,
@@ -167,6 +171,7 @@ export async function processGroup(
             maxDepth: groupConfig.maxDepth ?? parentDirEffectiveConfig.maxDepth,
             path: groupContentAbsPath,
             viewControl: parentDirEffectiveConfig.viewControl,
+            collapseControl: parentDirEffectiveConfig.collapseControl,
             _baseRelativePathForChildren: '',
             _controlRelativePath: '',
             _disableRootFlatten: false,
@@ -184,6 +189,9 @@ export async function processGroup(
         viewControl: normalizeViewControl(
             groupEffectiveConfig.viewControl,
             groupEffectiveConfig.viewControl.mode
+        ),
+        collapseControl: normalizeCollapseControl(
+            groupEffectiveConfig.collapseControl
         ),
         _baseRelativePathForChildren: '',
         _controlRelativePath: '',

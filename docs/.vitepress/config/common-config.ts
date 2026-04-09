@@ -21,6 +21,43 @@ import {
 
 const projectInfo = getProjectInfo();
 const projectPaths = getPaths();
+const shouldForceOptimizeDeps =
+    process.env.M1HONO_FORCE_OPTIMIZE_DEPS === "1" ||
+    process.env.M1HONO_FORCE_OPTIMIZE_DEPS === "true";
+
+function resolveViteCacheMode(): "build" | "dev" {
+    const explicitMode = process.env.M1HONO_VITE_CACHE_MODE?.trim();
+    if (explicitMode === "build" || explicitMode === "dev") {
+        return explicitMode;
+    }
+
+    for (const arg of process.argv) {
+        if (arg === "build") {
+            return "build";
+        }
+
+        if (arg === "dev" || arg === "serve") {
+            return "dev";
+        }
+    }
+
+    return process.env.NODE_ENV === "production" ? "build" : "dev";
+}
+
+function resolveViteCacheDir() {
+    const explicitCacheDir = process.env.M1HONO_VITE_CACHE_DIR?.trim();
+    if (explicitCacheDir) {
+        return explicitCacheDir;
+    }
+
+    return resolve(
+        projectPaths.root,
+        projectPaths.cache,
+        resolveViteCacheMode(),
+    );
+}
+
+const viteCacheDir = resolveViteCacheDir();
 import contributors from "../config/contributors.json";
 
 interface Contributor {
@@ -57,7 +94,7 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
 
     srcDir: projectPaths.src,
     outDir: projectPaths.build,
-    cacheDir: projectPaths.cache,
+    cacheDir: viteCacheDir,
 
     lastUpdated: true,
     cleanUrls: true,
@@ -305,7 +342,9 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                 "vitepress-plugin-tabs/client",
                 "@lite-tree/vue",
             ],
-            force: true,
+            // Keep dev prebundle chunk ids stable across normal restarts.
+            // Opt in only when dependency prebundling really needs a reset.
+            force: shouldForceOptimizeDeps,
         },
         build: {
             chunkSizeWarningLimit: 1500,

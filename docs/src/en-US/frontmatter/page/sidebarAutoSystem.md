@@ -34,6 +34,8 @@ Use this page as the source-of-truth when building content templates, snippets, 
 | `priority` | `number` | `0` | Lower numbers sort earlier. |
 | `maxDepth` | `number` | `3` | Maximum recursive depth for generated items. |
 | `collapsed` | `boolean` | `false` | Default collapsed state for this directory group. |
+| `collapseControl` | `object` | omitted | Controls child directory or child-root collapsed state in the current generated sidebar view. |
+| `viewControl` | `object` | roots default to `self`; non-roots default to `all` | Advanced traversal ownership for nested-root generation. |
 | `itemOrder` | `string[] | Record<string, number>` | `{}` | Optional explicit ordering map (not required in frontmatter-first mode). |
 | `groups` | `GroupConfig[]` | `[]` | Extracts subpaths into generated group sections. |
 | `externalLinks` | `ExternalLinkConfig[]` | `[]` | Adds external links in the same section. |
@@ -79,6 +81,44 @@ maxDepth: 5
 priority: 10
 ---
 ```
+
+## Recommended Folding Control: `collapseControl`
+
+Use `collapseControl` when the parent root should decide which child directories start collapsed in the current sidebar view.
+
+```yaml
+---
+title: Modpack Docs
+root: true
+collapsed: false
+collapseControl:
+  default: true
+  paths:
+    "kubejs/1.20.1": false
+    "kubejs/1.21": false
+---
+```
+
+Important behavior:
+
+1. `collapseControl` only changes the current generated view.
+2. It does not rewrite a child root's own `collapsed`.
+3. It does not rewrite a child root's own `maxDepth`.
+4. Paths are written relative to the current sidebar view root.
+
+## Advanced Traversal Ownership: `viewControl`
+
+Keep `viewControl` for the smaller set of nested-root cases where you need to decide who owns traversal during the current generation pass.
+
+```yaml
+---
+title: KubeJS 1.20.1
+viewControl:
+  controlledByParent: false
+---
+```
+
+When a child root stays under parent control, it still keeps its own local `maxDepth` and local `viewControl` for its own sidebar generation.
 
 ## Group + External Links Example
 

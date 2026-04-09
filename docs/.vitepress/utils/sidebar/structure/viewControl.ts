@@ -11,6 +11,14 @@ export interface ChildViewTransition {
     nextConfig: EffectiveDirConfig
 }
 
+function getActiveMaxDepth(config: EffectiveDirConfig): number {
+    return config._controllerMaxDepth ?? config.maxDepth;
+}
+
+function getActiveViewControl(config: EffectiveDirConfig): ResolvedSidebarViewControl {
+    return config._controllerViewControl ?? config.viewControl;
+}
+
 function trimRelativePath(value?: string): string {
     if (!value) {
         return "";
@@ -107,7 +115,11 @@ export function resolveChildViewTransition(
     itemRelativePathKey: string,
     currentLevelDepth: number
 ): ChildViewTransition {
-    const parentViewControl = parentViewConfig.viewControl;
+    // This resolves ownership for the current generation pass only.
+    // A child root that stays under parent control here still keeps its own
+    // config and can use it again when generated as the active root later.
+    const parentViewControl = getActiveViewControl(parentViewConfig);
+    const parentMaxDepth = getActiveMaxDepth(parentViewConfig);
     const childViewControl = childDirConfig.viewControl;
     const childControlPath = joinRelativePath(
         parentViewConfig._controlRelativePath,
@@ -132,12 +144,12 @@ export function resolveChildViewTransition(
     if (parentControlsChild) {
         return {
             parentControlsChild,
-            canRecurse: currentLevelDepth < parentViewConfig.maxDepth,
+            canRecurse: currentLevelDepth < parentMaxDepth,
             nextDepth: currentLevelDepth + 1,
             nextConfig: {
                 ...childDirConfig,
-                maxDepth: parentViewConfig.maxDepth,
-                viewControl: parentViewControl,
+                _controllerMaxDepth: parentMaxDepth,
+                _controllerViewControl: parentViewControl,
                 _controlRelativePath: childControlPath,
                 _disableRootFlatten: parentViewConfig._disableRootFlatten ?? false,
             },
@@ -150,6 +162,8 @@ export function resolveChildViewTransition(
         nextDepth: 0,
         nextConfig: {
             ...childDirConfig,
+            _controllerMaxDepth: childDirConfig.maxDepth,
+            _controllerViewControl: childDirConfig.viewControl,
             _controlRelativePath: "",
             _disableRootFlatten: true,
         },

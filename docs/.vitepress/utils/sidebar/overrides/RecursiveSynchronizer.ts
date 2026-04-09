@@ -14,6 +14,15 @@ import { SyncEngine } from './SyncEngine';
 import { JsonItemSorter } from './JsonItemSorter';
 import { PathKeyProcessor } from './PathKeyProcessor';
 
+export function isFlattenedRootWrapper(items: SidebarItem[]): boolean {
+    return (
+        items.length === 1 &&
+        items[0]?._isRoot === true &&
+        Array.isArray(items[0].items) &&
+        items[0].items.length > 0
+    );
+}
+
 /**
  * @class RecursiveSynchronizer
  * @description Handles recursive synchronization of sidebar items with JSON overrides.
@@ -75,7 +84,8 @@ export class RecursiveSynchronizer {
             return;
         }
 
-        const isFlattenedRootStructure = isTopLevelCall && items.length === 1 && items[0]._isRoot && items[0].items && items[0].items.length > 0;
+        const isFlattenedRootStructure =
+            isTopLevelCall && isFlattenedRootWrapper(items);
 
         if (isFlattenedRootStructure) {
             const rootItem = items[0];
@@ -189,12 +199,15 @@ export class RecursiveSynchronizer {
         for (const item of items) {
             const itemKey = this.pathProcessor.extractRelativeKeyForCurrentDir(item, rootConfigDirSignature);
             
-            if (item._isRoot && items.length === 1) {
+            if (isFlattenedRootWrapper(items)) {
                 if (localesData.hasOwnProperty('_self_')) {
                     item.text = localesData['_self_'];
                 }
                 if (collapsedData.hasOwnProperty('_self_')) {
                     item.collapsed = collapsedData['_self_'];
+                }
+                if (hiddenData.hasOwnProperty('_self_')) {
+                    item._hidden = hiddenData['_self_'] === true;
                 }
                 
                 if (item.items && item.items.length > 0) {
@@ -812,4 +825,3 @@ ${dirName}_removed_${timestamp}/
         }
     }
 } 
-

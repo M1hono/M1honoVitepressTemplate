@@ -34,6 +34,8 @@ priority: 50
 | `priority` | `number` | `0` | 数值越小排序越靠前。 |
 | `maxDepth` | `number` | `3` | 生成项目的最大递归深度。 |
 | `collapsed` | `boolean` | `false` | 此目录组的默认折叠状态。 |
+| `collapseControl` | `object` | 不写 | 控制当前生成的 sidebar 视图里子目录或子 root 的折叠状态。 |
+| `viewControl` | `object` | root 默认为 `self`，非 root 默认为 `all` | 高级 nested-root 遍历控制。 |
 | `itemOrder` | `string[] | Record<string, number>` | `{}` | 可选显式排序映射（Frontmatter 优先模式下通常不需要）。 |
 | `groups` | `GroupConfig[]` | `[]` | 将子路径提取为生成的分组区块。 |
 | `externalLinks` | `ExternalLinkConfig[]` | `[]` | 在同一区块中添加外部链接。 |
@@ -79,6 +81,44 @@ maxDepth: 5
 priority: 10
 ---
 ```
+
+## 推荐折叠控制：`collapseControl`
+
+如果你的目标只是让父 root 决定当前 sidebar 视图里哪些子目录默认折叠、哪些默认展开，优先使用 `collapseControl`。
+
+```yaml
+---
+title: 整合包文档
+root: true
+collapsed: false
+collapseControl:
+  default: true
+  paths:
+    "kubejs/1.20.1": false
+    "kubejs/1.21": false
+---
+```
+
+需要注意：
+
+1. `collapseControl` 只影响当前这次生成出来的 sidebar 视图。
+2. 它不会改写子 root 自己的 `collapsed`。
+3. 它不会改写子 root 自己的 `maxDepth`。
+4. `paths` 总是相对当前 sidebar 视图根目录来写。
+
+## 高级遍历控制：`viewControl`
+
+`viewControl` 保留给少数 nested-root 场景，用来决定当前这轮生成时由谁接管遍历控制。
+
+```yaml
+---
+title: KubeJS 1.20.1
+viewControl:
+  controlledByParent: false
+---
+```
+
+即使子 root 当前继续跟随父级生成，它依然保留自己的本地 `maxDepth` 和本地 `viewControl`，在它自己生成 sidebar 时继续生效。
 
 ## 分组 + 外部链接示例
 

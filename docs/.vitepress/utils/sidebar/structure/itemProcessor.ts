@@ -10,6 +10,7 @@ import {
     joinSidebarBaseRelativePath,
     resolveChildViewTransition,
 } from "./viewControl";
+import { resolveChildCollapsedState } from "./collapseControl";
 import {
     isSidebarItemExcludedFileName,
     resolveSidebarConfigFilePath,
@@ -149,6 +150,7 @@ async function createRootLinkItem(
     normalizedItemAbsPath: string,
     itemRelativePathKey: string,
     dirEffectiveConfig: EffectiveDirConfig,
+    parentViewEffectiveConfig: EffectiveDirConfig,
     docsAbsPath: string,
     lang: string,
     fs: FileSystem
@@ -170,7 +172,11 @@ async function createRootLinkItem(
         text: dirEffectiveConfig.title,
         link: linkToSubRoot,
         items: [],
-        collapsed: dirEffectiveConfig.collapsed,
+        collapsed: resolveChildCollapsedState(
+            parentViewEffectiveConfig,
+            dirEffectiveConfig,
+            itemRelativePathKey,
+        ),
         _priority: dirEffectiveConfig.priority,
         _relativePathKey: itemRelativePathKey,
         _isDirectory: true,
@@ -325,7 +331,11 @@ async function processDirectoryEntry(
         text: directoryTitle,
         link: linkToDir || undefined,
         items: subItems.length > 0 ? subItems : [],
-        collapsed: dirEffectiveConfig.collapsed,
+        collapsed: resolveChildCollapsedState(
+            parentViewEffectiveConfig,
+            dirEffectiveConfig,
+            itemRelativePathKey,
+        ),
         _priority: dirEffectiveConfig.priority,
         _relativePathKey: itemRelativePathKey,
         _isDirectory: true,
@@ -484,6 +494,7 @@ export async function processItem(
             normalizedItemAbsPath,
             itemRelativePathKey,
             dirEffectiveConfig,
+            parentViewEffectiveConfig,
             docsAbsPath,
             lang,
             fs

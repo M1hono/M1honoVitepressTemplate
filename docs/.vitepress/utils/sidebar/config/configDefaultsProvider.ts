@@ -14,6 +14,7 @@
 
 import path from 'node:path';
 import { EffectiveDirConfig, GlobalSidebarConfig, DirectoryConfig, GroupConfig, ExternalLinkConfig } from '../types';
+import { normalizeCollapseControl } from '../structure/collapseControl';
 import { normalizeViewControl } from '../structure/viewControl';
 
 /**
@@ -115,6 +116,9 @@ export function applyConfigDefaults(
         partialConfig.viewControl ?? defaults.viewControl,
         root ? 'self' : 'all'
     );
+    const collapseControl = normalizeCollapseControl(
+        partialConfig.collapseControl ?? defaults.collapseControl
+    );
 
     return {
         ...partialConfig,
@@ -128,6 +132,7 @@ export function applyConfigDefaults(
         groups,
         externalLinks,
         viewControl,
+        collapseControl,
         path: directoryPath,
         lang,
         isDevMode,

@@ -79,6 +79,9 @@ export type SidebarViewControlMode = 'self' | 'children' | 'roots' | 'all';
 
 export interface SidebarViewControlConfig {
     /**
+     * Controls the current controller's traversal ownership for this generation pass.
+     * It does not mutate child roots permanently.
+     *
      * `self`: current view keeps control for all descendants.
      * `children`: non-root child directories can take control, nested roots stay under current view.
      * `roots`: nested roots can take control, regular children stay under current view.
@@ -101,6 +104,23 @@ export interface ResolvedSidebarViewControl {
     mode: SidebarViewControlMode
     allow: string[]
     controlledByParent?: boolean
+}
+
+/**
+ * Controls collapsed state for child directory items in the current sidebar view.
+ * This only affects how items appear in the current generated sidebar and does
+ * not rewrite the child directory's own local config.
+ */
+export interface SidebarCollapseControlConfig {
+    /** Optional default collapsed state for child directory items in this view */
+    default?: boolean
+    /** Per-path collapsed overrides, relative to the current sidebar view root */
+    paths?: Record<string, boolean>
+}
+
+export interface ResolvedSidebarCollapseControl {
+    default?: boolean
+    paths: Record<string, boolean>
 }
 
 /**
@@ -129,6 +149,8 @@ export interface DirectoryConfig {
     externalLinks?: ExternalLinkConfig[]
     /** Controls whether descendant directories can take over traversal config */
     viewControl?: SidebarViewControlConfig
+    /** Controls collapsed state for child directory items in the current view */
+    collapseControl?: SidebarCollapseControlConfig
     /** Allow other frontmatter fields */
     [key: string]: any
 }
@@ -172,6 +194,8 @@ export interface GlobalSidebarConfig {
         hidden?: boolean
         /** Global fallback for descendant traversal control */
         viewControl?: SidebarViewControlConfig
+        /** Global fallback for child collapsed state in the current view */
+        collapseControl?: SidebarCollapseControlConfig
     }
     /** Allow other configuration fields */
     [key: string]: any
@@ -204,6 +228,8 @@ export interface EffectiveDirConfig {
     externalLinks: ExternalLinkConfig[]
     /** Resolved descendant traversal control */
     viewControl: ResolvedSidebarViewControl
+    /** Resolved child collapsed-state control for the current view */
+    collapseControl: ResolvedSidebarCollapseControl
     /** Absolute path to the directory this config is for */
     path: string
     /** Language of this config */
@@ -216,6 +242,10 @@ export interface EffectiveDirConfig {
     _controlRelativePath?: string
     /** @internal Prevent root flattening when the directory is embedded in a parent view */
     _disableRootFlatten?: boolean
+    /** @internal Active traversal maxDepth for the current generation pass */
+    _controllerMaxDepth?: number
+    /** @internal Active traversal ownership config for the current generation pass */
+    _controllerViewControl?: ResolvedSidebarViewControl
     /** Allow other merged fields */
     [key: string]: any
 }
