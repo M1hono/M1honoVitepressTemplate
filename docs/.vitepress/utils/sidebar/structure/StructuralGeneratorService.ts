@@ -25,7 +25,7 @@ import {
     resolveChildViewTransition,
 } from "./viewControl";
 import {
-    isSidebarConfigFileName,
+    isSidebarItemExcludedFileName,
     resolveSidebarConfigFilePath,
 } from "../shared/sidebarFileConventions";
 
@@ -273,7 +273,7 @@ export class StructuralGeneratorService {
             }
 
             if (entry.isFile()) {
-                if (isSidebarConfigFileName(entry.name)) {
+                if (isSidebarItemExcludedFileName(entry.name)) {
                     continue;
                 }
 
@@ -335,7 +335,7 @@ export class StructuralGeneratorService {
                         if (
                             subEntry.isFile() &&
                             subEntry.name.toLowerCase().endsWith(".md") &&
-                            !isSidebarConfigFileName(subEntry.name)
+                            !isSidebarItemExcludedFileName(subEntry.name)
                         ) {
                             hasMarkdownFiles = true;
                         }
@@ -364,7 +364,7 @@ export class StructuralGeneratorService {
                             if (
                                 subEntry.isFile() &&
                                 subEntry.name.toLowerCase().endsWith(".md") &&
-                                !isSidebarConfigFileName(subEntry.name)
+                                !isSidebarItemExcludedFileName(subEntry.name)
                             ) {
                                 const fileItem = await processItem(
                                     subEntry.name,

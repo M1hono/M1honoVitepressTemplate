@@ -11,7 +11,7 @@ import {
     resolveChildViewTransition,
 } from "./viewControl";
 import {
-    isSidebarConfigFileName,
+    isSidebarItemExcludedFileName,
     resolveSidebarConfigFilePath,
 } from "../shared/sidebarFileConventions";
 
@@ -83,7 +83,7 @@ async function processFileEntry(
         return null;
     }
 
-    if (isSidebarConfigFileName(entryName)) {
+    if (isSidebarItemExcludedFileName(entryName)) {
         return null;
     }
 
@@ -212,7 +212,7 @@ async function hasNestedMarkdownContent(
             if (
                 entry.isFile() &&
                 entry.name.toLowerCase().endsWith(".md") &&
-                !isSidebarConfigFileName(entry.name)
+                !isSidebarItemExcludedFileName(entry.name)
             ) {
                 return true;
             }
