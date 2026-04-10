@@ -21,7 +21,6 @@ priority: 50
 
 1. 侧边栏排序由 `index.md` 和子页面的 `priority` 控制。
 2. 页面 `description` 放在 frontmatter，便于文档元数据和扩展生成。
-3. `itemOrder` 仅在 `priority` 不够表达排序时再使用。
 
 ## 目录级键（`index.md`）
 
@@ -35,7 +34,6 @@ priority: 50
 | `maxDepth` | `number` | `3` | 生成项目的最大递归深度。 |
 | `collapsed` | `boolean` | `false` | 此目录组的默认折叠状态。 |
 | `useChildrenCollapsed` | `object` | 不写 | 通过 `mode` 和 `depth` 控制当前生成树里的子项折叠显示。 |
-| `itemOrder` | `string[] | Record<string, number>` | `{}` | 可选显式排序映射（Frontmatter 优先模式下通常不需要）。 |
 | `groups` | `GroupConfig[]` | `[]` | 将子路径提取为生成的分组区块。 |
 | `externalLinks` | `ExternalLinkConfig[]` | `[]` | 在同一区块中添加外部链接。 |
 
@@ -121,17 +119,6 @@ externalLinks:
 ---
 ```
 
-## 可选 `itemOrder` 示例
-
-```yaml
----
-title: Frontmatter 系统
-itemOrder:
-  hero-runtime.md: 1
-  sidebar-auto-system.md: 2
-  key-inventory.md: 3
----
-```
 
 ## Markdown 驱动的 Sidebar 规则
 

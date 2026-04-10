@@ -17,7 +17,6 @@ priority: 60
 | `useChildrenCollapsed` | 侧边栏目录 | 不写 | 通过 `mode` 和 `depth` 控制当前生成树里的子项折叠显示。 |
 | `useChildrenCollapsed.mode` | 侧边栏目录 | 写对象时默认为 `children` | `children \| self \| collapsed \| open`。 |
 | `useChildrenCollapsed.depth` | 侧边栏目录 | 写对象时默认为 `1` | 控制后代显示规则影响深度的正整数。 |
-| `itemOrder` | 侧边栏目录 | `{}` | 手动子条目排序映射/数组。 |
 | `groups` | 侧边栏目录 | `[]` | 侧边栏输出中提取的分组区块。 |
 | `externalLinks` | 侧边栏目录 | `[]` | 追加到区块的外部链接。 |
 | `priority` | 侧边栏目录/页面 | `0` | 兄弟条目间的排序优先级。 |

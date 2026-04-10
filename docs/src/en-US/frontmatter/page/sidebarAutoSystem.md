@@ -21,7 +21,6 @@ Use this page as the source-of-truth when building content templates, snippets, 
 
 1. Sidebar ordering is controlled by frontmatter `priority` on `index.md` and leaf `*.md` pages.
 2. Page `description` is documented in frontmatter (for docs metadata and extension generation).
-3. `itemOrder` is optional and should only be used when frontmatter `priority` is not enough.
 
 ## Directory-Level Keys (`index.md`)
 
@@ -35,7 +34,6 @@ Use this page as the source-of-truth when building content templates, snippets, 
 | `maxDepth` | `number` | `3` | Maximum recursive depth for generated items. |
 | `collapsed` | `boolean` | `false` | Default collapsed state for this directory group. |
 | `useChildrenCollapsed` | `object` | omitted | Current-tree child collapsed display rule with `mode` and `depth`. |
-| `itemOrder` | `string[] | Record<string, number>` | `{}` | Optional explicit ordering map (not required in frontmatter-first mode). |
 | `groups` | `GroupConfig[]` | `[]` | Extracts subpaths into generated group sections. |
 | `externalLinks` | `ExternalLinkConfig[]` | `[]` | Adds external links in the same section. |
 
@@ -121,17 +119,6 @@ externalLinks:
 ---
 ```
 
-## Optional `itemOrder` Example
-
-```yaml
----
-title: Frontmatter System
-itemOrder:
-  hero-runtime.md: 1
-  sidebar-auto-system.md: 2
-  key-inventory.md: 3
----
-```
 
 ## Markdown-Driven Sidebar Rule
 

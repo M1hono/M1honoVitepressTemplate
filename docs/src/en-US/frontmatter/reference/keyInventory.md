@@ -17,7 +17,6 @@ priority: 60
 | `useChildrenCollapsed` | sidebar directory | omitted | Current-tree child collapsed display rule with `mode` and `depth`.
 | `useChildrenCollapsed.mode` | sidebar directory | `children` when object is present | `children \| self \| collapsed \| open`.
 | `useChildrenCollapsed.depth` | sidebar directory | `1` when object is present | Positive integer depth for descendant display overrides.
-| `itemOrder` | sidebar directory | `{}` | Manual child ordering map/array.
 | `groups` | sidebar directory | `[]` | Extracted grouped sections in sidebar output.
 | `externalLinks` | sidebar directory | `[]` | External links appended to a section.
 | `priority` | sidebar directory/page | `0` | Sorting priority among siblings.
