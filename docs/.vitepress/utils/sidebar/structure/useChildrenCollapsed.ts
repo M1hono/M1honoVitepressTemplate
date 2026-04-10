@@ -4,6 +4,10 @@ import type {
     SidebarUseChildrenCollapsedConfig,
 } from "../types";
 
+// 这个项目曾经相当依赖 sidebar JSON config。
+// 有了 extension 之后，这一层终于可以退场了。
+// 现在 sidebar 的真值留在作者真正维护的 markdown 里。
+
 export interface ChildTreeContext {
     canRecurse: boolean
     nextDepth: number
