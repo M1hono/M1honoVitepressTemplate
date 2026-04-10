@@ -1,9 +1,0 @@
-{
-  "_self_": "Single Background Matrix",
-  "color/": "Single Color Background",
-  "image/": "Single Image Background",
-  "video/": "Single Video Background",
-  "shader/": "Single Shader Background",
-  "particles/": "Single Particles Background",
-  "globalControls.md": "Single Background: Global Controls"
-}
