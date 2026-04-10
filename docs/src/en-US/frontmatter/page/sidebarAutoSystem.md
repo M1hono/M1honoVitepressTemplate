@@ -13,7 +13,7 @@ The sidebar system is **declarative-first**:
 
 1. `index.md` and page frontmatter define structure intent.
 2. Sidebar generator builds the tree.
-3. JSON overrides under `docs/.vitepress/config/sidebar/**` are now reserved for labels and view state only.
+3. No sidebar JSON config layer remains in the runtime path; sidebar truth stays in markdown frontmatter.
 
 Use this page as the source-of-truth when building content templates, snippets, and extension completions.
 
@@ -21,7 +21,7 @@ Use this page as the source-of-truth when building content templates, snippets, 
 
 1. Sidebar ordering is controlled by frontmatter `priority` on `index.md` and leaf `*.md` pages.
 2. Page `description` is documented in frontmatter (for docs metadata and extension generation).
-3. `order.json` is kept empty by default so it does not override frontmatter priorities.
+3. `itemOrder` is optional and should only be used when frontmatter `priority` is not enough.
 
 ## Directory-Level Keys (`index.md`)
 
@@ -34,8 +34,7 @@ Use this page as the source-of-truth when building content templates, snippets, 
 | `priority` | `number` | `0` | Lower numbers sort earlier. |
 | `maxDepth` | `number` | `3` | Maximum recursive depth for generated items. |
 | `collapsed` | `boolean` | `false` | Default collapsed state for this directory group. |
-| `collapseControl` | `object` | omitted | Controls child directory or child-root collapsed state in the current generated sidebar view. |
-| `viewControl` | `object` | roots default to `self`; non-roots default to `all` | Advanced traversal ownership for nested-root generation. |
+| `useChildrenCollapsed` | `object` | omitted | Current-tree child collapsed display rule with `mode` and `depth`. |
 | `itemOrder` | `string[] | Record<string, number>` | `{}` | Optional explicit ordering map (not required in frontmatter-first mode). |
 | `groups` | `GroupConfig[]` | `[]` | Extracts subpaths into generated group sections. |
 | `externalLinks` | `ExternalLinkConfig[]` | `[]` | Adds external links in the same section. |
@@ -82,43 +81,27 @@ priority: 10
 ---
 ```
 
-## Recommended Folding Control: `collapseControl`
+## Current-Tree Folding: `useChildrenCollapsed`
 
-Use `collapseControl` when the parent root should decide which child directories start collapsed in the current sidebar view.
+Use `useChildrenCollapsed` when the current directory should control how child directories or child roots appear in the current generated sidebar tree.
 
 ```yaml
 ---
 title: Modpack Docs
 root: true
 collapsed: false
-collapseControl:
-  default: true
-  paths:
-    "kubejs/1.20.1": false
-    "kubejs/1.21": false
+useChildrenCollapsed:
+  mode: self
+  depth: 2
 ---
 ```
 
 Important behavior:
 
-1. `collapseControl` only changes the current generated view.
+1. `useChildrenCollapsed` only changes the current generated view.
 2. It does not rewrite a child root's own `collapsed`.
 3. It does not rewrite a child root's own `maxDepth`.
-4. Paths are written relative to the current sidebar view root.
-
-## Advanced Traversal Ownership: `viewControl`
-
-Keep `viewControl` for the smaller set of nested-root cases where you need to decide who owns traversal during the current generation pass.
-
-```yaml
----
-title: KubeJS 1.20.1
-viewControl:
-  controlledByParent: false
----
-```
-
-When a child root stays under parent control, it still keeps its own local `maxDepth` and local `viewControl` for its own sidebar generation.
+4. Nearest descendant `useChildrenCollapsed` replaces the inherited rule for its own subtree.
 
 ## Group + External Links Example
 
@@ -150,16 +133,15 @@ itemOrder:
 ---
 ```
 
-## JSON Override Layer
+## Markdown-Driven Sidebar Rule
 
-The engine synchronizes generated structure with JSON files under:
+Sidebar truth comes from:
 
-- `docs/.vitepress/config/sidebar/<lang>/<section>/locales.json`
-- `docs/.vitepress/config/sidebar/<lang>/<section>/collapsed.json`
-- `docs/.vitepress/config/sidebar/<lang>/<section>/hidden.json`
+- directory frontmatter in `index.md` or `sidebarIndex.md`
+- page frontmatter in markdown files
+- structural defaults in `/.sidebarrc.yml`
 
-`order.json` exists for compatibility, but in this project it is intentionally kept empty and should not be used as the primary ordering source.
-Use declarative frontmatter for long-term structure intent.
+There is no live sidebar JSON config layer.
 
 ## Regeneration Commands
 
@@ -184,5 +166,5 @@ If sidebar output looks stale:
 
 1. Ensure the section has an `index.md` with `root: true`.
 2. Re-run `yarn sidebar`.
-3. Check `docs/.vitepress/cache/sidebar/sidebar_<lang>.json` for generated routes.
-4. Verify `priority` values directly in markdown frontmatter before touching sidebar JSON files.
+3. Confirm the section is regenerated after `yarn sidebar` instead of checking any JSON cache artifact.
+4. Verify `priority` and `useChildrenCollapsed` directly in markdown frontmatter before assuming the generator is stale.

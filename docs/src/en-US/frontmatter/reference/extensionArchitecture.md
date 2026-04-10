@@ -132,7 +132,7 @@ Checklist:
 2. Normalize it in the correct API layer.
 3. Consume only normalized values in runtime or views.
 4. Add a docs example immediately.
-5. Run `yarn sync-config` and `yarn frontmatter` when generated metadata depends on the change.
+5. Run `yarn frontmatter` when generated metadata depends on the change.
 
 ## Style Extension
 

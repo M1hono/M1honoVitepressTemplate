@@ -235,7 +235,6 @@ yarn build
 When config or frontmatter contracts changed, also run:
 
 ```bash
-yarn sync-config
 yarn frontmatter
 ```
 
@@ -315,7 +314,7 @@ For site-level feature changes:
 
 1. Update `docs/.vitepress/config/project-config.ts`.
 2. Update locale config under `docs/.vitepress/config/lang/**` if labels or search locales change.
-3. Run `yarn sync-config` and `yarn frontmatter` when the configuration must propagate into docs metadata or generated content.
+3. Run `yarn frontmatter` when the configuration must propagate into docs metadata or generated content.
 
 ## Style Extension Playbook
 

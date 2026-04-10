@@ -14,10 +14,9 @@ priority: 60
 | `root` | 侧边栏目录 | `false` | 将 `index.md` 目录标记为侧边栏根。 |
 | `maxDepth` | 侧边栏目录 | `3` | 生成的侧边栏条目的递归深度上限。 |
 | `collapsed` | 侧边栏目录 | `false` | 目录区块的默认折叠状态。 |
-| `collapseControl` | 侧边栏目录 | 不写 | 父级控制当前生成 sidebar 视图里子目录的折叠状态。 |
-| `collapseControl.default` | 侧边栏目录 | 不写 | 当前视图里子目录项的默认折叠状态。 |
-| `collapseControl.paths` | 侧边栏目录 | `{}` | 相对当前 sidebar 视图根目录的按路径折叠覆盖。 |
-| `viewControl` | 侧边栏目录 | root 为 `self`，非 root 为 `all` | 高级 nested-root 遍历控制。 |
+| `useChildrenCollapsed` | 侧边栏目录 | 不写 | 通过 `mode` 和 `depth` 控制当前生成树里的子项折叠显示。 |
+| `useChildrenCollapsed.mode` | 侧边栏目录 | 写对象时默认为 `children` | `children \| self \| collapsed \| open`。 |
+| `useChildrenCollapsed.depth` | 侧边栏目录 | 写对象时默认为 `1` | 控制后代显示规则影响深度的正整数。 |
 | `itemOrder` | 侧边栏目录 | `{}` | 手动子条目排序映射/数组。 |
 | `groups` | 侧边栏目录 | `[]` | 侧边栏输出中提取的分组区块。 |
 | `externalLinks` | 侧边栏目录 | `[]` | 追加到区块的外部链接。 |

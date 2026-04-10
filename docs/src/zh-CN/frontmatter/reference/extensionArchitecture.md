@@ -132,7 +132,7 @@ hero:
 2. 再在 API 层做规范化。
 3. 运行时与视图层只消费规范化结果。
 4. 立刻补充文档示例。
-5. 若生成元数据依赖该配置，执行 `yarn sync-config` 与 `yarn frontmatter`。
+5. 若生成元数据依赖该配置，执行 `yarn frontmatter`。
 
 ## 样式扩展
 

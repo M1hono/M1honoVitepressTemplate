@@ -1,8 +1,7 @@
 {
     "description": "Maps component IDs used in useSafeI18n() to their corresponding translation file paths",
-    "generatedAt": "2026-04-09T06:11:49.468Z",
+    "generatedAt": "2026-04-10T10:01:55.791Z",
     "mappings": {
-        "footer": "navigation/Footer",
         "article-metadata": "content/ArticleMetadata",
         "bills-component": "content/Bills",
         "commits-counter": "content/CommitsCounter",
@@ -17,6 +16,7 @@
         "not-found": "ui/NotFound",
         "progress-linear": "ui/ProgressLinear",
         "state-component": "ui/State",
+        "footer": "navigation/Footer",
         "hero-model3d": "hero/image/Model3D"
     }
 }

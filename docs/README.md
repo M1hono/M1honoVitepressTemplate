@@ -8,10 +8,10 @@ Current release: `2.1.0`
 
 ## Release Highlights
 
-- Crychic-synced `collapseControl` handling for parent-controlled folding in the current sidebar view
-- advanced `viewControl` handling for nested-root traversal ownership and child escape behavior
+- Markdown-driven `useChildrenCollapsed` support for current-tree folding with depth-aware inheritance
+- legacy sidebar JSON config and sync workflow retired from the template runtime
 - refreshed shared navigation layouts used by the template header dropdowns
-- regression coverage for traversal ownership and collapse overrides
+- regression coverage for current-tree folding and maxDepth preservation
 
 ## Table of Contents
 

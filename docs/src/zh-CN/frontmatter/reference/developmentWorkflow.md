@@ -40,7 +40,6 @@ yarn build
 若改动影响项目配置或 frontmatter 契约，还应执行：
 
 ```bash
-yarn sync-config
 yarn frontmatter
 ```
 

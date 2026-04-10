@@ -14,10 +14,9 @@ priority: 60
 | `root` | sidebar directory | `false` | Marks an `index.md` directory as a sidebar root.
 | `maxDepth` | sidebar directory | `3` | Recursive depth cap for generated sidebar items.
 | `collapsed` | sidebar directory | `false` | Default collapse state for directory sections.
-| `collapseControl` | sidebar directory | omitted | Parent-controlled child folding for the current generated sidebar view.
-| `collapseControl.default` | sidebar directory | omitted | Default collapsed state for child directory items in the current view.
-| `collapseControl.paths` | sidebar directory | `{}` | Per-path collapse overrides relative to the current sidebar view root.
-| `viewControl` | sidebar directory | roots `self`, non-roots `all` | Advanced traversal ownership for nested-root generation.
+| `useChildrenCollapsed` | sidebar directory | omitted | Current-tree child collapsed display rule with `mode` and `depth`.
+| `useChildrenCollapsed.mode` | sidebar directory | `children` when object is present | `children \| self \| collapsed \| open`.
+| `useChildrenCollapsed.depth` | sidebar directory | `1` when object is present | Positive integer depth for descendant display overrides.
 | `itemOrder` | sidebar directory | `{}` | Manual child ordering map/array.
 | `groups` | sidebar directory | `[]` | Extracted grouped sections in sidebar output.
 | `externalLinks` | sidebar directory | `[]` | External links appended to a section.

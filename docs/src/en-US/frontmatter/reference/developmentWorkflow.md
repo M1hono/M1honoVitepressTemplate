@@ -37,10 +37,9 @@ yarn tags
 yarn build
 ```
 
-Run these too when project config or frontmatter contracts changed:
+Run this too when project config or frontmatter contracts changed:
 
 ```bash
-yarn sync-config
 yarn frontmatter
 ```
 

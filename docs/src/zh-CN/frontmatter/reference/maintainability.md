@@ -235,7 +235,6 @@ yarn build
 若修改了配置或 frontmatter 契约，还应执行：
 
 ```bash
-yarn sync-config
 yarn frontmatter
 ```
 
@@ -315,7 +314,7 @@ yarn frontmatter
 
 1. 更新 `docs/.vitepress/config/project-config.ts`。
 2. 若涉及标签或搜索 locale，同步更新 `docs/.vitepress/config/lang/**`。
-3. 若配置需要向文档元数据或生成内容传播，执行 `yarn sync-config` 与 `yarn frontmatter`。
+3. 若配置需要向文档元数据或生成内容传播，执行 `yarn frontmatter`。
 
 ## 样式扩展规范
 

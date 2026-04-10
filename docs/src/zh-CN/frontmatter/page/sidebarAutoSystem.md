@@ -13,7 +13,7 @@ priority: 50
 
 1. `index.md` 和页面 frontmatter 定义结构意图。
 2. 侧边栏生成器构建目录树。
-3. `docs/.vitepress/config/sidebar/**` 下的 JSON 仅用于标签与视图状态补充。
+3. 运行时路径里不再保留 sidebar JSON 配置层，sidebar 真值只来自 markdown frontmatter。
 
 在构建内容模板、代码片段和扩展补全时，请以本页面为真实来源。
 
@@ -21,7 +21,7 @@ priority: 50
 
 1. 侧边栏排序由 `index.md` 和子页面的 `priority` 控制。
 2. 页面 `description` 放在 frontmatter，便于文档元数据和扩展生成。
-3. `order.json` 默认保持空对象，避免覆盖 frontmatter 排序。
+3. `itemOrder` 仅在 `priority` 不够表达排序时再使用。
 
 ## 目录级键（`index.md`）
 
@@ -34,8 +34,7 @@ priority: 50
 | `priority` | `number` | `0` | 数值越小排序越靠前。 |
 | `maxDepth` | `number` | `3` | 生成项目的最大递归深度。 |
 | `collapsed` | `boolean` | `false` | 此目录组的默认折叠状态。 |
-| `collapseControl` | `object` | 不写 | 控制当前生成的 sidebar 视图里子目录或子 root 的折叠状态。 |
-| `viewControl` | `object` | root 默认为 `self`，非 root 默认为 `all` | 高级 nested-root 遍历控制。 |
+| `useChildrenCollapsed` | `object` | 不写 | 通过 `mode` 和 `depth` 控制当前生成树里的子项折叠显示。 |
 | `itemOrder` | `string[] | Record<string, number>` | `{}` | 可选显式排序映射（Frontmatter 优先模式下通常不需要）。 |
 | `groups` | `GroupConfig[]` | `[]` | 将子路径提取为生成的分组区块。 |
 | `externalLinks` | `ExternalLinkConfig[]` | `[]` | 在同一区块中添加外部链接。 |
@@ -82,43 +81,27 @@ priority: 10
 ---
 ```
 
-## 推荐折叠控制：`collapseControl`
+## 当前生成树折叠控制：`useChildrenCollapsed`
 
-如果你的目标只是让父 root 决定当前 sidebar 视图里哪些子目录默认折叠、哪些默认展开，优先使用 `collapseControl`。
+如果你的目标只是让当前目录决定当前这棵生成出来的 sidebar 树里子目录或子 root 如何显示折叠状态，使用 `useChildrenCollapsed`。
 
 ```yaml
 ---
 title: 整合包文档
 root: true
 collapsed: false
-collapseControl:
-  default: true
-  paths:
-    "kubejs/1.20.1": false
-    "kubejs/1.21": false
+useChildrenCollapsed:
+  mode: self
+  depth: 2
 ---
 ```
 
 需要注意：
 
-1. `collapseControl` 只影响当前这次生成出来的 sidebar 视图。
+1. `useChildrenCollapsed` 只影响当前这次生成出来的 sidebar 视图。
 2. 它不会改写子 root 自己的 `collapsed`。
 3. 它不会改写子 root 自己的 `maxDepth`。
-4. `paths` 总是相对当前 sidebar 视图根目录来写。
-
-## 高级遍历控制：`viewControl`
-
-`viewControl` 保留给少数 nested-root 场景，用来决定当前这轮生成时由谁接管遍历控制。
-
-```yaml
----
-title: KubeJS 1.20.1
-viewControl:
-  controlledByParent: false
----
-```
-
-即使子 root 当前继续跟随父级生成，它依然保留自己的本地 `maxDepth` 和本地 `viewControl`，在它自己生成 sidebar 时继续生效。
+4. 如果子目录自己也声明了 `useChildrenCollapsed`，它会接管自己子树的显示规则。
 
 ## 分组 + 外部链接示例
 
@@ -150,16 +133,15 @@ itemOrder:
 ---
 ```
 
-## JSON 覆盖层
+## Markdown 驱动的 Sidebar 规则
 
-引擎将生成的结构与以下位置的 JSON 文件同步：
+Sidebar 真值只来自：
 
-- `docs/.vitepress/config/sidebar/<lang>/<section>/locales.json`
-- `docs/.vitepress/config/sidebar/<lang>/<section>/collapsed.json`
-- `docs/.vitepress/config/sidebar/<lang>/<section>/hidden.json`
+- `index.md` 或 `sidebarIndex.md` 的目录 frontmatter
+- markdown 页面自己的 frontmatter
+- `/.sidebarrc.yml` 中的结构默认值
 
-`order.json` 为兼容保留，但本项目默认保持空对象，不作为主排序来源。
-长期结构意图请使用声明式 frontmatter。
+运行时不再依赖 sidebar JSON 配置层。
 
 ## 重新生成命令
 
@@ -184,5 +166,5 @@ yarn build
 
 1. 确保该区块有一个带 `root: true` 的 `index.md`。
 2. 重新运行 `yarn sidebar`。
-3. 检查 `docs/.vitepress/cache/sidebar/sidebar_<lang>.json` 中生成的路由。
-4. 先检查 markdown frontmatter 中的 `priority`，再考虑 JSON 文件是否需要调整。
+3. 重新执行 `yarn sidebar` 后确认区块已经重新生成，而不是去检查任何 JSON 缓存产物。
+4. 先检查 markdown frontmatter 里的 `priority` 和 `useChildrenCollapsed`，再判断是否需要重新生成。

@@ -4,7 +4,7 @@
  * This module provides functionality for sorting sidebar items based on
  * priority values, item order configurations, and fallback alphabetical
  * ordering. It handles both explicit priority assignments and order
- * configurations from JSON files.
+ * configurations declared in markdown/frontmatter.
  *
  * @module ItemSorter
  * @version 1.0.0
@@ -17,13 +17,13 @@ import { SidebarItem } from '../types';
 /**
  * Applies item order configuration to priority values for sidebar items.
  *
- * Converts itemOrder configuration (typically from order.json files) into
+ * Converts itemOrder configuration into
  * priority values that can be used for sorting. This ensures that explicit
  * ordering configurations properly influence the final sidebar structure.
  * Recursively processes nested items to maintain hierarchical ordering.
  *
  * @param {SidebarItem[]} items - Array of SidebarItems to process
- * @param {Record<string, number>} [itemOrderConfig={}] - The itemOrder configuration from order.json
+ * @param {Record<string, number>} [itemOrderConfig={}] - The resolved itemOrder configuration
  * @since 1.0.0
  * @private
  */
@@ -64,7 +64,7 @@ function applyItemOrderToPriority(
  * hierarchical ordering throughout the sidebar structure.
  *
  * @param {SidebarItem[]} itemsToSort - The array of SidebarItems to sort
- * @param {Record<string, number>} [itemOrderConfig={}] - The itemOrder configuration from order.json
+ * @param {Record<string, number>} [itemOrderConfig={}] - The resolved itemOrder configuration
  * @returns {SidebarItem[]} A new array of sorted SidebarItems
  * @since 1.0.0
  * @public
