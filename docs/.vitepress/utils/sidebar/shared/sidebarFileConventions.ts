@@ -1,6 +1,8 @@
-import path from "node:path";
-import type { FileSystem } from "./fileSystem";
 import { normalizePathSeparators } from "./objectUtils";
+
+type ExistingFileProbe = {
+    exists(path: string): Promise<boolean>;
+};
 
 export const SIDEBAR_CONFIG_FILE_CANDIDATES = [
     "sidebarIndex.md",
@@ -18,6 +20,7 @@ export const SIDEBAR_ITEM_EXCLUDED_FILE_CANDIDATES = [
 export const DIRECTORY_LANDING_FILE_CANDIDATES = [
     "index.md",
     "Catalogue.md",
+    "README.md",
 ] as const;
 
 const SIDEBAR_CONFIG_FILE_SET = new Set(
@@ -32,6 +35,15 @@ function normalizeFileName(fileName: string) {
     return fileName.trim().toLowerCase();
 }
 
+function joinDirectoryFilePath(directoryAbsPath: string, fileName: string) {
+    const normalizedDirectory = normalizePathSeparators(directoryAbsPath)
+        .replace(/\/+$/g, "");
+    const normalizedFileName = normalizePathSeparators(fileName)
+        .replace(/^\/+/g, "");
+
+    return `${normalizedDirectory}/${normalizedFileName}`;
+}
+
 export function isSidebarConfigFileName(fileName: string) {
     return SIDEBAR_CONFIG_FILE_SET.has(normalizeFileName(fileName));
 }
@@ -41,14 +53,12 @@ export function isSidebarItemExcludedFileName(fileName: string) {
 }
 
 async function resolveExistingFileInDirectory(
-    fs: FileSystem,
+    fs: ExistingFileProbe,
     directoryAbsPath: string,
     candidates: readonly string[],
 ) {
     for (const fileName of candidates) {
-        const fullPath = normalizePathSeparators(
-            path.join(directoryAbsPath, fileName),
-        );
+        const fullPath = joinDirectoryFilePath(directoryAbsPath, fileName);
         if (await fs.exists(fullPath)) {
             return fullPath;
         }
@@ -57,7 +67,7 @@ async function resolveExistingFileInDirectory(
 }
 
 export async function resolveSidebarConfigFilePath(
-    fs: FileSystem,
+    fs: ExistingFileProbe,
     directoryAbsPath: string,
 ) {
     const existing = await resolveExistingFileInDirectory(
@@ -66,13 +76,14 @@ export async function resolveSidebarConfigFilePath(
         SIDEBAR_CONFIG_FILE_CANDIDATES,
     );
     if (existing) return existing;
-    return normalizePathSeparators(
-        path.join(directoryAbsPath, SIDEBAR_CONFIG_FILE_CANDIDATES[0]),
+    return joinDirectoryFilePath(
+        directoryAbsPath,
+        SIDEBAR_CONFIG_FILE_CANDIDATES[0],
     );
 }
 
 export async function resolveDirectoryLandingFilePath(
-    fs: FileSystem,
+    fs: ExistingFileProbe,
     directoryAbsPath: string,
 ) {
     return resolveExistingFileInDirectory(

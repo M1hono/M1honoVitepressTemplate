@@ -12,18 +12,27 @@ import {
 import { templateCompilerOptions } from "@tresjs/core";
 import llmstxt from "vitepress-plugin-llms";
 
-import { sidebarPlugin } from "../utils/sidebar/";
+import { sidebarPlugin } from "../utils/sidebar/plugin";
 import { markdown } from "./markdown-plugins";
 import {
     groupIconVitePlugin,
     localIconLoader,
 } from "vitepress-plugin-group-icons";
+import { m1honoTemplateDerivedDocsSyncPlugin } from "../utils/vitepress/dev/m1honoTemplateDerivedDocsSyncPlugin";
 
 const projectInfo = getProjectInfo();
 const projectPaths = getPaths();
 const shouldForceOptimizeDeps =
     process.env.M1HONO_FORCE_OPTIMIZE_DEPS === "1" ||
     process.env.M1HONO_FORCE_OPTIMIZE_DEPS === "true";
+const shouldDebugTemplateWatchers =
+    process.env.M1HONO_DEBUG_WATCHERS === "1";
+const currentNodeMajorVersion = Number.parseInt(
+    process.versions.node.split(".")[0] ?? "0",
+    10,
+);
+
+type M1honoViteWatchMode = "auto" | "native" | "poll";
 
 function resolveViteCacheMode(): "build" | "dev" {
     const explicitMode = process.env.M1HONO_VITE_CACHE_MODE?.trim();
@@ -57,7 +66,63 @@ function resolveViteCacheDir() {
     );
 }
 
+function resolveViteWatchMode(): M1honoViteWatchMode {
+    const explicitWatchMode = process.env.M1HONO_VITE_WATCH_MODE?.trim().toLowerCase();
+    if (
+        explicitWatchMode === "auto" ||
+        explicitWatchMode === "native" ||
+        explicitWatchMode === "poll"
+    ) {
+        return explicitWatchMode;
+    }
+
+    return "auto";
+}
+
+function resolveViteWatchInterval() {
+    const explicitInterval = Number.parseInt(
+        process.env.M1HONO_VITE_WATCH_INTERVAL?.trim() ?? "",
+        10,
+    );
+
+    if (Number.isFinite(explicitInterval) && explicitInterval >= 50) {
+        return explicitInterval;
+    }
+
+    return 150;
+}
+
+function shouldUsePollingWatcher() {
+    const watchMode = resolveViteWatchMode();
+    if (watchMode === "poll") {
+        return true;
+    }
+
+    if (watchMode === "native") {
+        return false;
+    }
+
+    // Native fs events are unreliable in the current VitePress/Vite stack on Node 25+.
+    return currentNodeMajorVersion >= 25;
+}
+
+function resolveViteServerConfig() {
+    if (!isViteDevMode || !shouldUsePollingWatcher()) {
+        return undefined;
+    }
+
+    return {
+        watch: {
+            usePolling: true,
+            interval: resolveViteWatchInterval(),
+        },
+    };
+}
+
 const viteCacheDir = resolveViteCacheDir();
+const isViteDevMode = resolveViteCacheMode() === "dev";
+const shouldEnableLlmsPluginInCurrentMode =
+    isFeatureEnabled("llms") && resolveViteCacheMode() === "build";
 import contributors from "../config/contributors.json";
 
 interface Contributor {
@@ -207,6 +272,7 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
     } satisfies DefaultTheme.Config,
 
     vite: {
+        server: resolveViteServerConfig(),
         resolve: {
             alias: [
                 {
@@ -382,8 +448,7 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
             },
         },
         define: {
-            __VUE_PROD_HYDRATION_MISMATCH_DETAILS__:
-                process.env.NODE_ENV === "development",
+            __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: isViteDevMode,
             __VUE_OPTIONS_API__: true,
             __VUE_PROD_DEVTOOLS__: false,
             __GIT_CHANGELOG_ENABLED__: isFeatureEnabled("gitChangelog"),
@@ -413,7 +478,9 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                       })(),
                   ]
                 : []),
-            ...(isFeatureEnabled("llms") ? [llmstxt(createLlmsSettings())] : []),
+            ...(shouldEnableLlmsPluginInCurrentMode
+                ? [llmstxt(createLlmsSettings())]
+                : []),
             // Conditionally load sidebar plugin based on autoSidebar feature flag
             ...(isFeatureEnabled("autoSidebar")
                 ? [
@@ -422,7 +489,7 @@ export const commonConfig: UserConfig<DefaultTheme.Config> = {
                           languages: getLanguageLinks().map((link) =>
                               link.replace(/^\/|\/$/g, ""),
                           ),
-                          debug: process.env.NODE_ENV === "development",
+                          debug: shouldDebugTemplateWatchers,
                           docsDir: projectPaths.docs,
                           hotRestartOnIndexChange: false,
                       }),
